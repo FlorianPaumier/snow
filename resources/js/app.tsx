@@ -8,7 +8,7 @@ import { TooltipProvider } from '@/components/ui/tooltip';
 import { initializeTheme } from '@/hooks/use-appearance';
 import '../css/app.css';
 
-const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
+const appName = import.meta.env.VITE_APP_NAME || 'Frostline OPS';
 
 void createInertiaApp({
     title: (title) => (title ? `${title} - ${appName}` : appName),

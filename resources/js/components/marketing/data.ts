@@ -24,14 +24,14 @@ export const heroStats = [
     { value: '11 min', label: 'median dispatch time' },
 ] as const;
 
-/* ── Client wordmarks (styled text logos) ───────────────────────── */
+/* ── Client categories (industries served) ──────────────────────── */
 export const clientLogos = [
-    'NorthPeak Property Group',
-    'Twin Cities Snow Co.',
-    'IronRange Municipal',
-    'Lakeshore Facilities',
-    'BearPaw Contracting',
-    'Silver Birch HOA',
+    'Property Management',
+    'Municipal Services',
+    'Facilities Management',
+    'Commercial Contracting',
+    'HOA Management',
+    'Landscape & Grounds',
 ] as const;
 
 /* ── Core product features (home grid) ──────────────────────────── */
@@ -45,61 +45,32 @@ export const homeFeatures: MarketingFeature[] = [
     {
         icon: Zap,
         title: 'Trigger-based auto-dispatch',
-        copy: 'Set a depth per property. When snow crosses the line, crews are dispatched, routed, and rolling — no phone calls required.',
+        copy: 'Stop running the 3 a.m. phone tree. Set a trigger depth per property and crews are dispatched, routed, and rolling the moment snow crosses the line.',
     },
     {
         icon: Route,
         title: 'Smart route optimization',
-        copy: 'Multi-stop routes that respect priorities, fuel, and shift hours. Re-route mid-storm the moment a truck goes down.',
+        copy: 'Routes shouldn\u2019t live in one dispatcher\u2019s head. Multi-stop sequencing respects priority, fuel, and shift hours — and re-routes in seconds when a truck goes down mid-storm.',
     },
     {
         icon: CloudSnow,
         title: 'Storm mode',
-        copy: 'One switch escalates everything: priority sorting, alerting, and an ember-lit dashboard built for 3 a.m. decisions.',
+        copy: 'The night every route changes at once needs one switch, not a whiteboard. Priority sorting, escalation alerts, and a dashboard built for 3 a.m. decisions.',
     },
     {
         icon: Truck,
         title: 'Driver-first mobile app',
-        copy: 'Offline-first with giant touch targets that work in gloves. Stops, photos, and ETAs in three taps or fewer.',
+        copy: 'Gloves, glare, and dead zones shouldn\u2019t stop work. Offline-first with giant touch targets — stops, photos, and ETAs in three taps or fewer.',
     },
     {
         icon: Camera,
         title: 'Proof of service',
-        copy: 'Geo-stamped, timestamped photos on every pass. Invoice disputes end before they start.',
+        copy: 'When a property manager asks whether lot B was cleared, the answer should be a photo — not a phone call. Geo-stamped, timestamped proof on every pass.',
     },
     {
         icon: Receipt,
         title: 'Billing that keeps up',
-        copy: 'Per-storm, seasonal, or per-push invoicing compiled within 24 hours of the final pass. NET-14 as standard.',
-    },
-];
-
-/* ── Testimonials ───────────────────────────────────────────────── */
-export interface Testimonial {
-    quote: string;
-    name: string;
-    role: string;
-    initials: string;
-}
-
-export const testimonials: Testimonial[] = [
-    {
-        quote: 'We used to rebuild routes on a whiteboard at 4 a.m. Frostline arms the crews before the first flake lands.',
-        name: 'Elena Marsh',
-        role: 'Owner · Twin Cities Snow Co.',
-        initials: 'EM',
-    },
-    {
-        quote: 'Proof-of-service photos cut our invoice disputes to zero. Property managers sign off the same day.',
-        name: 'Priya Natarajan',
-        role: 'Ops Director · NorthPeak Property Group',
-        initials: 'PN',
-    },
-    {
-        quote: 'Storm mode is the feature I didn\u2019t know I needed — one toggle and the whole night reorganizes itself.',
-        name: 'Sam Okafor',
-        role: 'Streets Superintendent · IronRange Municipal',
-        initials: 'SO',
+        copy: 'Storms end at dawn; invoices shouldn\u2019t take a week. Per-storm, seasonal, or per-push billing compiled within 24 hours of the final pass. NET-14 as standard.',
     },
 ];
 
@@ -174,7 +145,7 @@ export const pricingTiers: PricingTier[] = [
 export const homeFaqs = [
     {
         q: 'How does auto-dispatch decide when to send crews?',
-        a: 'Every property carries a trigger depth — 2.5 cm for priority-1 sites, 5 cm for standard contracts. Our weather feeds and pavement sensors watch each site; the moment accumulation crosses the line, Frostline dispatches the right crew with an optimized route. You keep full override control from the dashboard.',
+        a: 'Every property carries a trigger depth — 2.5 cm for priority-1 sites, 5 cm for standard contracts. Weather feeds and pavement sensors watch each site; the moment accumulation crosses the line, the closest crew is dispatched with an optimized route. You keep full override control from the dashboard.',
     },
     {
         q: 'Does the driver app work without cell coverage?',
@@ -182,7 +153,7 @@ export const homeFaqs = [
     },
     {
         q: 'Can I import my existing property list?',
-        a: 'Bring a CSV from any system — Service Autopilot, Yardbook, or plain spreadsheets. Our importer maps addresses, surface types, and trigger depths in one pass, and your onboarding specialist will run it with you.',
+        a: 'Bring a CSV from any system — spreadsheets, property management software, or lists you already keep. The importer maps addresses, surface types, and trigger depths in one pass, and guided setup walks you through it.',
     },
     {
         q: 'How does billing handle seasonal contracts versus per-storm?',
@@ -190,7 +161,7 @@ export const homeFaqs = [
     },
     {
         q: 'What hardware do crews need?',
-        a: 'Any modern iPhone or Android phone — nothing else. The app is built for gloves, glare, and -30° mornings. If you run mounted tablets, the driver app scales up to those too.',
+        a: 'Any modern smartphone — nothing else. The app is built for gloves, glare, and cold mornings. If you run mounted tablets, the driver app scales up to those too.',
     },
     {
         q: 'Is there a contract, or can I cancel anytime?',
@@ -210,7 +181,7 @@ export const pricingFaqs = [
     },
     {
         q: 'Is onboarding included?',
-        a: 'On every plan. Pro and Fleet get white-glove storm-season onboarding: we import your properties, configure triggers, and ride along on your first dispatched storm.',
+        a: 'On every plan. Pro and Fleet get guided onboarding: we help you import your properties, configure triggers, and run your first routed event. Starter includes self-serve setup with full documentation.',
     },
     {
         q: 'Can I pay annually?',
@@ -220,48 +191,8 @@ export const pricingFaqs = [
 
 /* ── Company stats (about + home band) ──────────────────────────── */
 export const companyStats = [
-    { value: '2021', label: 'founded in Minneapolis' },
-    { value: '1,200+', label: 'crews on Frostline' },
-    { value: '38', label: 'states & provinces' },
+    { value: '2021', label: 'founded' },
+    { value: '1,200+', label: 'crews dispatched' },
+    { value: '11 min', label: 'median dispatch time' },
     { value: '4.2M', label: 'properties cleared' },
-] as const;
-
-/* ── Team (about page) ──────────────────────────────────────────── */
-export const teamMembers = [
-    {
-        name: 'Mika Halttunen',
-        role: 'Co-founder & CEO',
-        fact: 'Third-generation plow operator',
-        initials: 'MH',
-    },
-    {
-        name: 'Jordan Reyes',
-        role: 'Co-founder & CTO',
-        fact: 'Wrote the first route optimizer in a truck cab',
-        initials: 'JR',
-    },
-    {
-        name: 'Aisha Bello',
-        role: 'Head of Design',
-        fact: 'Owns the Frostline design system',
-        initials: 'AB',
-    },
-    {
-        name: 'Theo Lindqvist',
-        role: 'Head of Meteorology',
-        fact: 'Reads radar the way others read mail',
-        initials: 'TL',
-    },
-    {
-        name: 'Grace Oduya',
-        role: 'Customer Success Lead',
-        fact: 'Onboards every fleet personally',
-        initials: 'GO',
-    },
-    {
-        name: 'Marcus Webb',
-        role: 'Engineering',
-        fact: 'Keeps the driver app alive at -30°',
-        initials: 'MW',
-    },
 ] as const;

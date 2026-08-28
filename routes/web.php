@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 use App\Http\Controllers\ContactInquiryController;
 use App\Http\Controllers\SessionController;
+use App\Http\Controllers\UserAccountValidationController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\UserEmailResetNotificationController;
 use App\Http\Controllers\UserEmailVerificationController;
 use App\Http\Controllers\UserEmailVerificationNotificationController;
+use App\Http\Controllers\UserManagementController;
 use App\Http\Controllers\UserPasswordController;
 use App\Http\Controllers\UserProfileController;
 use App\Http\Controllers\UserTwoFactorAuthenticationController;
@@ -24,8 +26,15 @@ Route::post('contact', [ContactInquiryController::class, 'store'])
     ->middleware('throttle:10,1')
     ->name('contact.store');
 
-Route::middleware(['auth', 'verified'])->group(function (): void {
+Route::middleware(['auth', 'verified:account-validation.show'])->group(function (): void {
     Route::get('dashboard', fn () => Inertia::render('dashboard'))->name('dashboard');
+
+    // User Management (admin CRUD)...
+    Route::middleware('can:manage-users')->group(function (): void {
+        Route::resource('users', UserManagementController::class)
+            ->only(['index', 'create', 'store', 'edit', 'update', 'destroy'])
+            ->names('users');
+    });
 });
 
 Route::middleware('auth')->group(function (): void {
@@ -78,6 +87,15 @@ Route::middleware('guest')->group(function (): void {
 });
 
 Route::middleware('auth')->group(function (): void {
+    // User Account Validation (OTP)...
+    Route::get('validate-account', [UserAccountValidationController::class, 'create'])
+        ->name('account-validation.show');
+    Route::post('validate-account', [UserAccountValidationController::class, 'store'])
+        ->name('account-validation.store');
+    Route::post('validate-account/resend', [UserAccountValidationController::class, 'update'])
+        ->middleware('throttle:6,1')
+        ->name('account-validation.resend');
+
     // User Email Verification...
     Route::get('verify-email', [UserEmailVerificationNotificationController::class, 'create'])
         ->name('verification.notice');

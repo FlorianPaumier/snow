@@ -37,6 +37,15 @@ export default function Login({
             >
                 {({ processing, errors }) => (
                     <>
+                        {status && (
+                            <div
+                                className="rounded-lg border border-success/25 bg-success/10 px-4 py-3 text-center text-sm font-medium text-success"
+                                data-test="login-status"
+                            >
+                                {status}
+                            </div>
+                        )}
+
                         <div className="grid gap-6">
                             <div className="grid gap-2">
                                 <Label htmlFor="email">Email address</Label>
@@ -109,12 +118,6 @@ export default function Login({
                     </>
                 )}
             </Form>
-
-            {status && (
-                <div className="mb-4 text-center text-sm font-medium text-green-600">
-                    {status}
-                </div>
-            )}
         </AuthLayout>
     );
 }

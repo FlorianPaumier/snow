@@ -197,7 +197,7 @@ const comparisonGroups: ComparisonGroup[] = [
         rows: [
             { feature: 'Per-storm billing', values: [true, true, true] },
             { feature: 'Seasonal contracts', values: [false, true, true] },
-            { feature: 'QuickBooks / Xero sync', values: [false, true, true] },
+            { feature: 'Accounting sync', values: [false, true, true] },
         ],
     },
     {
@@ -242,7 +242,7 @@ function ComparisonSection() {
             align="left"
             eyebrow="Compare"
             title="Every feature, side by side"
-            description="The same winter-ops core on every plan — the differences come down to scale, control, and support."
+            description="The same operational core on every plan — the differences come down to scale, control, and support."
         >
             <div className="overflow-hidden rounded-xl border border-border bg-card">
                 <div className="scrollbar-frost overflow-x-auto">
@@ -365,7 +365,8 @@ export default function Pricing() {
             <FaqSection />
 
             <CTABand
-                title="Start before the snow flies"
+                title="Be ready before the first storm"
+                description="Set up your properties, triggers, and crews now — so the night the forecast turns, you're watching it happen instead of organizing it."
                 primaryLabel="Start free trial"
                 primaryTo={ROUTES.contact}
                 secondaryLabel="Talk to sales"

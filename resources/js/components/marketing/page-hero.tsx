@@ -149,7 +149,7 @@ export function MarketingSection({
 /* ── CTABand: reusable closing call-to-action ───────────────────── */
 export function CTABand({
     title = 'Ready for the next storm?',
-    description = 'Set up your properties before the first flake. Your first storm season on Frostline comes with white-glove onboarding.',
+    description = 'Set up your properties, triggers, and crews before the first flake — so the next storm night runs itself. Guided onboarding gets your first routed event live fast.',
     primaryLabel = 'Start free trial',
     primaryTo = ROUTES.contact,
     secondaryLabel = 'See pricing',

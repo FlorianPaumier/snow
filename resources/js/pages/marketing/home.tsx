@@ -11,7 +11,6 @@ import {
     Route,
     Snowflake,
     Sparkles,
-    Star,
     Zap,
     type LucideIcon,
 } from 'lucide-react';
@@ -22,7 +21,6 @@ import {
     homeFaqs,
     homeFeatures,
     pricingTiers,
-    testimonials,
 } from '@/components/marketing/data';
 import { MarketingLayout } from '@/components/marketing/marketing-layout';
 import { CTABand, MarketingSection } from '@/components/marketing/page-hero';
@@ -33,7 +31,6 @@ import {
     AccordionItem,
     AccordionTrigger,
 } from '@/components/ui/accordion';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
@@ -107,7 +104,7 @@ function DashboardMock() {
                     <div className="flex flex-1 justify-center px-2">
                         <span className="flex items-center gap-1.5 rounded-md border border-border bg-background px-2.5 py-1 font-mono text-[10px] text-muted-foreground">
                             <Lock className="size-3" />
-                            app.frostline.ops/storm
+                            app.frostline.ops/operations
                         </span>
                     </div>
                     <span className="w-10 shrink-0" />
@@ -173,7 +170,7 @@ function DashboardMock() {
                         <ul className="divide-y divide-border">
                             <li className="flex items-center justify-between gap-3 px-3 py-2">
                                 <span className="truncate font-mono text-xs">
-                                    418 Silver Birch Ln
+                                    128 Harbor View Ln
                                 </span>
                                 <span className="flex shrink-0 items-center gap-1.5">
                                     <span className="size-1.5 rounded-full bg-info" />
@@ -184,7 +181,7 @@ function DashboardMock() {
                             </li>
                             <li className="flex items-center justify-between gap-3 px-3 py-2">
                                 <span className="truncate font-mono text-xs">
-                                    72 Ironrange Rd
+                                    82 Summit Ridge Rd
                                 </span>
                                 <span className="flex shrink-0 items-center gap-1.5">
                                     <span className="size-1.5 rounded-full bg-glacier-500" />
@@ -195,7 +192,7 @@ function DashboardMock() {
                             </li>
                             <li className="flex items-center justify-between gap-3 px-3 py-2">
                                 <span className="truncate font-mono text-xs">
-                                    9 Maple Ct
+                                    9 Maplewood Ct
                                 </span>
                                 <span className="flex shrink-0 items-center gap-1.5">
                                     <span className="size-1.5 rounded-full bg-success" />
@@ -262,21 +259,21 @@ const HOW_IT_WORKS: HowItWorksStep[] = [
         icon: MapPinned,
         tint: GLACIER_TINT,
         title: 'Map your properties',
-        copy: 'Import sites from any CSV, set a trigger depth per contract, and tag surfaces so the router knows a loading dock from a cul-de-sac.',
+        copy: 'Your sites shouldn\u2019t live in one dispatcher\u2019s memory. Import from any CSV, set a trigger depth per contract, and tag surfaces so the router knows a loading dock from a cul-de-sac.',
         caption: 'Setup: one afternoon',
     },
     {
         icon: CloudSnow,
         tint: EMBER_TINT,
         title: 'Let the storm work for you',
-        copy: 'Weather feeds watch each site. When snow crosses your trigger depth, crews wake to routes already optimized on their phones.',
+        copy: 'Stop waking crews manually. Weather feeds watch each site — when snow crosses your trigger depth, drivers wake to routes already optimized on their phones.',
         caption: 'Dispatch: 11 min median',
     },
     {
         icon: Receipt,
         tint: GLACIER_TINT,
         title: 'Clear, prove, and bill',
-        copy: 'Geo-stamped photos and timestamps compile into invoices — per storm, per push, or seasonal — within 24 hours of the final pass.',
+        copy: 'Disputes shouldn\u2019t take phone calls, and invoicing shouldn\u2019t take days. Geo-stamped photos and timestamps compile into invoices — per storm, per push, or seasonal — within 24 hours of the final pass.',
         caption: 'Billing: NET-14 standard',
     },
 ];
@@ -330,7 +327,7 @@ export default function Home() {
                                 className="gap-1.5 rounded-full border-glacier-200 bg-glacier-50/70 px-3 py-1 text-xs font-medium text-glacier-800 dark:border-glacier-800/60 dark:bg-glacier-950/40 dark:text-glacier-300"
                             >
                                 <Sparkles aria-hidden="true" />
-                                Now dispatching — 2025/26 winter season
+                                Storm season is coming — get set up now
                             </Badge>
                             <h1
                                 id="home-hero-heading"
@@ -343,10 +340,11 @@ export default function Home() {
                                 .
                             </h1>
                             <p className="mt-5 text-lg leading-relaxed text-muted-foreground">
-                                Trigger-based auto-dispatch, smart routes, photo
-                                proof on every pass, and invoices that go out
-                                before the snow melts. One system for the whole
-                                season — from first flake to final invoice.
+                                When the forecast turns at 2 a.m., your
+                                operation shouldn't run on a whiteboard and a
+                                group text. Trigger-based dispatch, smart
+                                routes, photo proof on every pass, and invoices
+                                that go out before the snow melts.
                             </p>
                             <div className="mt-8 flex flex-wrap items-center justify-center gap-3 lg:justify-start">
                                 <Button asChild size="lg">
@@ -384,7 +382,7 @@ export default function Home() {
                             ))}
                         </dl>
                         <p className="mt-10 font-mono text-[11px] tracking-[0.18em] text-muted-foreground uppercase">
-                            Dispatched by crews across the snowbelt
+                            Trusted across snow-country operations
                         </p>
                         <ul className="mt-4 flex flex-wrap items-center gap-x-8 gap-y-3">
                             {clientLogos.map((logo) => (
@@ -405,7 +403,7 @@ export default function Home() {
                 id="features"
                 eyebrow="The platform"
                 title="Everything the storm demands"
-                description="Dispatch, routing, proof of service, and billing in one system — replacing the 4 a.m. whiteboard, the group text, and the spreadsheet your accountant fears."
+                description="If your storm nights run on a whiteboard, a group text, and the spreadsheet your accountant fears — this replaces all three. Dispatch, routing, proof of service, and billing in one system."
             >
                 <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                     {homeFeatures.map((feature, index) => {
@@ -467,13 +465,15 @@ export default function Home() {
                             id="storm-mode-heading"
                             className="mt-3 text-3xl font-semibold tracking-tight text-balance text-white md:text-4xl"
                         >
-                            One toggle. The whole night reorganizes itself.
+                            The forecast turns. One toggle, and the night
+                            reorganizes itself.
                         </h2>
                         <p className="mt-4 text-base leading-relaxed text-frost-200">
-                            Flip storm mode and Frostline re-sorts every route
-                            by contract priority, escalates the alerts that
-                            matter, and lights the dashboard in ember — built
-                            for the decisions you make at 3 a.m.
+                            When a storm escalates, every route needs to change
+                            at once — and a whiteboard can't keep up. Storm mode
+                            re-sorts every route by contract priority, escalates
+                            the alerts that matter, and lights the dashboard in
+                            ember for the decisions you make at 3 a.m.
                         </p>
                     </div>
                     <ul className="mt-10 grid gap-4 sm:grid-cols-3">
@@ -542,56 +542,9 @@ export default function Home() {
                 </div>
             </MarketingSection>
 
-            {/* 5 · Testimonials */}
-            <MarketingSection
-                id="testimonials"
-                eyebrow="From the field"
-                title="Crews don't hype. They re-up."
-            >
-                <ul className="grid gap-4 md:grid-cols-3">
-                    {testimonials.map((testimonial, index) => (
-                        <li
-                            key={testimonial.name}
-                            className="flex flex-col rounded-xl border border-border bg-card p-6 shadow-frost-xs"
-                        >
-                            {index === 0 ? (
-                                <Badge
-                                    variant="outline"
-                                    className="mb-4 w-fit gap-1 text-ember-700 dark:text-ember-400"
-                                >
-                                    <Star
-                                        aria-hidden="true"
-                                        className="fill-current"
-                                    />
-                                    Re-upped 3 winters
-                                </Badge>
-                            ) : null}
-                            <blockquote className="flex-1 text-sm leading-relaxed text-pretty">
-                                “{testimonial.quote}”
-                            </blockquote>
-                            <div className="mt-6 flex items-center gap-3 border-t border-border pt-4">
-                                <Avatar className="size-9">
-                                    <AvatarFallback className="bg-glacier-500/15 text-xs font-medium text-glacier-700 dark:text-glacier-400">
-                                        {testimonial.initials}
-                                    </AvatarFallback>
-                                </Avatar>
-                                <div className="min-w-0">
-                                    <p className="text-sm font-medium">
-                                        {testimonial.name}
-                                    </p>
-                                    <p className="text-xs text-muted-foreground">
-                                        {testimonial.role}
-                                    </p>
-                                </div>
-                            </div>
-                        </li>
-                    ))}
-                </ul>
-            </MarketingSection>
-
-            {/* 6 · Stats band */}
+            {/* 5 · Stats band */}
             <section
-                aria-label="Frostline by the numbers"
+                aria-label="By the numbers"
                 className="border-y border-border bg-card/40"
             >
                 <div className="mx-auto w-full max-w-6xl px-4 py-10 sm:px-6 md:py-12 lg:px-8">

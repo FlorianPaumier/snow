@@ -52,7 +52,7 @@ const triggerProperties = [
         note: 'Priority 2 · warehouse',
     },
     {
-        address: '1201 Nicollet Ave',
+        address: '1201 Harbor Ave',
         depth: '10 cm',
         active: false,
         note: 'paused · resumes Dec 1',
@@ -162,7 +162,6 @@ const routeStops: { address: string; status: StopStatus }[] = [
     { address: '44 Frontage Rd', status: 'enroute' },
     { address: '9 Old Mill Ct', status: 'scheduled' },
 ];
-
 function RouteVisual() {
     return (
         <div className="rounded-2xl border border-border bg-card p-5 shadow-frost-md">
@@ -304,19 +303,19 @@ const passEvents = [
     {
         time: '01:58',
         label: 'Plow pass complete',
-        caption: '44.981° N, 93.258° W · Lot A',
+        caption: 'Site A · main lot',
         verified: false,
     },
     {
         time: '02:17',
         label: 'Salt applied · 220 kg',
-        caption: '44.981° N, 93.258° W · Driveways',
+        caption: 'Site A · driveways',
         verified: false,
     },
     {
         time: '02:41',
         label: 'Plow pass complete',
-        caption: '44.978° N, 93.265° W · Lot B',
+        caption: 'Site B · east lot',
         verified: true,
     },
 ] as const;
@@ -392,7 +391,7 @@ function InvoiceVisual() {
                     <Receipt aria-hidden="true" className="size-4" />
                 </span>
                 <div className="min-w-0">
-                    <p className="text-sm font-medium">Invoice #FL-2043</p>
+                    <p className="text-sm font-medium">Invoice #INV-2043</p>
                     <p className="mt-0.5 font-mono text-[11px] text-muted-foreground">
                         Issued 06:12 · 2h after final pass
                     </p>
@@ -463,7 +462,7 @@ const featureRows: FeatureRowData[] = [
         icon: Radar,
         eyebrow: '01 · Dispatch',
         title: 'Weather-triggered dispatch',
-        copy: 'Every property carries its own trigger depth, armed by pavement sensors and hyperlocal weather feeds. The moment accumulation crosses the line, Frostline dispatches the closest crew — before the roads get dangerous, not after the phones start ringing.',
+        copy: 'The worst calls are the ones you make at 2 a.m. with half the information. Every property carries its own trigger depth, armed by pavement sensors and hyperlocal weather feeds — so the closest crew is dispatched the moment accumulation crosses the line, before the roads get dangerous and before the phones start ringing.',
         bullets: [
             'Per-contract trigger depths',
             'Pavement-temperature aware',
@@ -476,7 +475,7 @@ const featureRows: FeatureRowData[] = [
         icon: Route,
         eyebrow: '02 · Routes',
         title: 'Smart route optimization',
-        copy: 'The optimizer sequences every stop by priority, fuel, and shift hours — not just shortest distance. And when a truck drops out mid-storm, the remaining stops are re-sorted and pushed to every driver in seconds.',
+        copy: 'A route that only lives in one dispatcher\u2019s head is a route that fails when they\u2019re asleep. The optimizer sequences every stop by priority, fuel, and shift hours — not just shortest distance. And when a truck drops out mid-storm, the remaining stops are re-sorted and pushed to every driver in seconds.',
         bullets: [
             'Priority-aware sequencing',
             'Live re-route on breakdown',
@@ -489,7 +488,7 @@ const featureRows: FeatureRowData[] = [
         icon: Smartphone,
         eyebrow: '03 · Driver app',
         title: 'Driver-first mobile app',
-        copy: 'Offline-first and built for gloves, glare, and -30° mornings. From arrival to photo proof, a full stop takes three taps or fewer — everything else syncs when signal returns.',
+        copy: 'Most software was designed for a desk, a mouse, and good lighting — none of which exist in a cab at -30°. The driver app is offline-first and built for gloves and glare: from arrival to photo proof, a full stop takes three taps or fewer, and everything else syncs when signal returns.',
         bullets: [
             'Works in dead zones',
             'Glove-friendly 44px+ targets',
@@ -502,7 +501,7 @@ const featureRows: FeatureRowData[] = [
         icon: Camera,
         eyebrow: '04 · Proof',
         title: 'Proof of service',
-        copy: 'Every pass ends with a geo-stamped photo and a field-verified timestamp, attached to the exact invoice line it belongs to. When a property manager asks whether lot B was actually cleared, the answer is a photo — not a phone call.',
+        copy: '"Are you sure lot B was done?" is a question that should never start an argument. Every pass ends with a geo-stamped photo and a field-verified timestamp, attached to the exact invoice line it belongs to — so the answer is always evidence, never a phone call.',
         bullets: [
             'Dispute-ending photo trail',
             'Geo + time verified in the field, not on upload',
@@ -515,11 +514,11 @@ const featureRows: FeatureRowData[] = [
         icon: Receipt,
         eyebrow: '05 · Billing',
         title: 'Billing that keeps up',
-        copy: 'Per-storm, seasonal, and per-push contracts compile into invoices within 24 hours of the final pass — photos, salt usage, and surcharges itemized. NET-14 is the standard, not an upgrade.',
+        copy: 'The storm ends at dawn — the paperwork shouldn\u2019t eat the whole week. Per-storm, seasonal, and per-push contracts compile into invoices within 24 hours of the final pass, with photos, salt usage, and surcharges itemized. NET-14 is the standard, not an upgrade.',
         bullets: [
             'Mixed contract types per client',
             'Photos + salt usage itemized',
-            'QuickBooks + Xero sync',
+            'Accounting software sync',
         ],
         tint: 'glacier',
         Visual: InvoiceVisual,
@@ -578,12 +577,12 @@ function FeatureRow({ row, index }: { row: FeatureRowData; index: number }) {
 
 /* ── Integrations strip ─────────────────────────────────────────── */
 const integrations: { name: string; icon: LucideIcon }[] = [
-    { name: 'QuickBooks', icon: FileCheck },
-    { name: 'Xero', icon: BarChart3 },
-    { name: 'OpenWeather', icon: Cloudy },
-    { name: 'Twilio', icon: MessageSquare },
-    { name: 'Stripe', icon: CreditCard },
-    { name: 'Gusto', icon: Building },
+    { name: 'Accounting', icon: FileCheck },
+    { name: 'Weather feeds', icon: Cloudy },
+    { name: 'Communications', icon: MessageSquare },
+    { name: 'Payments', icon: CreditCard },
+    { name: 'Payroll', icon: Building },
+    { name: 'Reporting', icon: BarChart3 },
 ];
 
 function IntegrationsStrip() {
@@ -627,7 +626,7 @@ export default function Features() {
             <PageHero
                 eyebrow="The platform"
                 title="Built for the night the forecast turns"
-                description="Six systems that replace the whiteboard, the group chat, and the shoebox of receipts — from the first flake to the final invoice."
+                description="When the forecast turns, you shouldn't be rebuilding routes on a whiteboard. Six systems that replace the whiteboard, the group chat, and the shoebox of receipts — from the first flake to the final invoice."
             >
                 <Button asChild size="lg">
                     <Link href={ROUTES.contact}>

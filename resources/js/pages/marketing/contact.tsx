@@ -1,11 +1,10 @@
 import type { LucideIcon } from 'lucide-react';
 import {
     ArrowRight,
-    Building2,
     CheckCircle2,
     LifeBuoy,
     Loader2,
-    Phone,
+    MessageSquare,
 } from 'lucide-react';
 import * as React from 'react';
 import { toast } from 'sonner';
@@ -17,13 +16,6 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 
 /* ── Types & helpers ─────────────────────────────────────────────── */
@@ -32,7 +24,6 @@ interface ContactFormValues {
     name: string;
     email: string;
     company: string;
-    fleetSize: string;
     message: string;
 }
 
@@ -43,7 +34,6 @@ const EMPTY_FORM: ContactFormValues = {
     name: '',
     email: '',
     company: '',
-    fleetSize: '',
     message: '',
 };
 
@@ -58,17 +48,10 @@ function xsrfToken(): string | null {
     return match ? decodeURIComponent(match.slice('XSRF-TOKEN='.length)) : null;
 }
 
-const FLEET_OPTIONS = [
-    { value: '1-3', label: '1–3 trucks' },
-    { value: '4-10', label: '4–10 trucks' },
-    { value: '11-50', label: '11–50 trucks' },
-    { value: '50+', label: '50+ trucks' },
-] as const;
-
 const QUICK_FACTS = [
     { value: '2h', label: 'median first reply' },
     { value: '24/7', label: 'storm-season support' },
-    { value: '38', label: 'states & provinces served' },
+    { value: '11 min', label: 'median dispatch time' },
 ] as const;
 
 function validateField(
@@ -243,7 +226,6 @@ export default function Contact() {
                     name: form.name.trim(),
                     email: form.email.trim(),
                     company: form.company.trim() || undefined,
-                    fleetSize: form.fleetSize || undefined,
                     message: form.message.trim(),
                 }),
             });
@@ -274,14 +256,13 @@ export default function Contact() {
                 });
             } else {
                 toast.error("We couldn't send that", {
-                    description:
-                        'Please check your details and try again, or email hello@frostline.ops.',
+                    description: 'Please check your details and try again.',
                 });
             }
         } catch {
             toast.error('Something went wrong', {
                 description:
-                    "Try again or email hello@frostline.ops — your message didn't go out.",
+                    "Try again in a moment — your message didn't go out.",
             });
         } finally {
             setSubmitting(false);
@@ -293,8 +274,8 @@ export default function Contact() {
             <PageHero
                 compact
                 eyebrow="Contact"
-                title="Talk snow with us"
-                description="Sales, support, or a story from last night's storm — we answer fast. Median first reply: 2 business hours."
+                title="Get your season under control"
+                description="Questions, a tricky operation to untangle, or ready to start — tell us where it hurts. Median first reply: 2 business hours."
             />
 
             {/* Form + info column */}
@@ -318,8 +299,8 @@ export default function Contact() {
                                             Thanks — you're on the list.
                                         </AlertTitle>
                                         <AlertDescription className="text-success/90">
-                                            A Frostline crew member (the desk
-                                            kind) will reach out shortly.
+                                            We'll reach out shortly to get you
+                                            set up.
                                         </AlertDescription>
                                     </Alert>
                                     <Button
@@ -353,7 +334,7 @@ export default function Contact() {
                                                 onBlur={() =>
                                                     handleBlur('name')
                                                 }
-                                                placeholder="Dana Kowalski"
+                                                placeholder="Your name"
                                                 autoComplete="name"
                                                 aria-invalid={
                                                     touched.name && errors.name
@@ -390,7 +371,7 @@ export default function Contact() {
                                                 onBlur={() =>
                                                     handleBlur('email')
                                                 }
-                                                placeholder="dana@yourcompany.com"
+                                                placeholder="you@yourcompany.com"
                                                 autoComplete="email"
                                                 aria-invalid={
                                                     touched.email &&
@@ -414,58 +395,22 @@ export default function Contact() {
                                         </div>
                                     </div>
 
-                                    <div className="grid gap-4 sm:grid-cols-2">
-                                        <div className="grid gap-2">
-                                            <Label htmlFor="contact-company">
-                                                Company
-                                            </Label>
-                                            <Input
-                                                id="contact-company"
-                                                value={form.company}
-                                                onChange={(event) =>
-                                                    setField(
-                                                        'company',
-                                                        event.target.value,
-                                                    )
-                                                }
-                                                placeholder="Twin Cities Snow Co."
-                                                autoComplete="organization"
-                                            />
-                                        </div>
-                                        <div className="grid gap-2">
-                                            <Label htmlFor="contact-fleet">
-                                                Fleet size
-                                            </Label>
-                                            <Select
-                                                value={form.fleetSize}
-                                                onValueChange={(value) =>
-                                                    setField('fleetSize', value)
-                                                }
-                                            >
-                                                <SelectTrigger
-                                                    id="contact-fleet"
-                                                    className="w-full"
-                                                >
-                                                    <SelectValue placeholder="Select fleet size" />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    {FLEET_OPTIONS.map(
-                                                        (option) => (
-                                                            <SelectItem
-                                                                key={
-                                                                    option.value
-                                                                }
-                                                                value={
-                                                                    option.value
-                                                                }
-                                                            >
-                                                                {option.label}
-                                                            </SelectItem>
-                                                        ),
-                                                    )}
-                                                </SelectContent>
-                                            </Select>
-                                        </div>
+                                    <div className="grid gap-2">
+                                        <Label htmlFor="contact-company">
+                                            Company
+                                        </Label>
+                                        <Input
+                                            id="contact-company"
+                                            value={form.company}
+                                            onChange={(event) =>
+                                                setField(
+                                                    'company',
+                                                    event.target.value,
+                                                )
+                                            }
+                                            placeholder="Your company"
+                                            autoComplete="organization"
+                                        />
                                     </div>
 
                                     <div className="grid gap-2">
@@ -558,33 +503,25 @@ export default function Contact() {
                                             aria-hidden="true"
                                             className="size-2 animate-pulse-soft rounded-full bg-ember-400 shadow-glow-ember"
                                         />
-                                        Storm line open
+                                        Built for storm nights
                                     </p>
                                     <p className="mt-1 font-mono text-xs text-white/80">
-                                        24/7 · Nov–Apr
+                                        Dispatch · routes · proof · billing
                                     </p>
                                 </div>
                             </div>
 
                             <ContactInfoCard
-                                icon={Phone}
+                                icon={MessageSquare}
                                 iconClass="bg-glacier-500/10 text-glacier-700 dark:bg-glacier-400/10 dark:text-glacier-400"
                                 title="Talk to sales"
                             >
-                                <a
-                                    href="tel:+16125550147"
-                                    className="w-fit font-mono text-sm tracking-tight underline-offset-4 hover:underline"
-                                >
-                                    (612) 555-0147
-                                </a>
-                                <a
-                                    href="mailto:sales@frostline.ops"
-                                    className="w-fit text-sm underline-offset-4 hover:underline"
-                                >
-                                    sales@frostline.ops
-                                </a>
+                                <p className="text-sm">
+                                    Tell us about your operation — properties,
+                                    crews, and what breaks on storm nights.
+                                </p>
                                 <p className="text-xs text-muted-foreground">
-                                    Mon–Fri · 7am–6pm CT
+                                    Use the form · median first reply 2h
                                 </p>
                             </ContactInfoCard>
 
@@ -593,32 +530,13 @@ export default function Contact() {
                                 iconClass="bg-ember-500/10 text-ember-700 dark:bg-ember-400/10 dark:text-ember-400"
                                 title="Crew support"
                             >
-                                <a
-                                    href="mailto:support@frostline.ops"
-                                    className="w-fit text-sm underline-offset-4 hover:underline"
-                                >
-                                    support@frostline.ops
-                                </a>
                                 <p className="text-sm">
-                                    In-app chat · 24/7 storm line
+                                    In-app chat with real operators, staffed
+                                    around the clock through storm season.
                                 </p>
                                 <Badge className="mt-1 w-fit border-success/25 bg-success/10 text-success">
                                     Median reply 12 min
                                 </Badge>
-                            </ContactInfoCard>
-
-                            <ContactInfoCard
-                                icon={Building2}
-                                iconClass="bg-glacier-500/10 text-glacier-700 dark:bg-glacier-400/10 dark:text-glacier-400"
-                                title="Headquarters"
-                            >
-                                <p className="text-sm">
-                                    728 Hennepin Ave, Suite 300
-                                </p>
-                                <p className="text-sm">Minneapolis, MN 55401</p>
-                                <p className="font-mono text-xs text-muted-foreground">
-                                    44.978° N, 93.265° W
-                                </p>
                             </ContactInfoCard>
                         </div>
                     </div>

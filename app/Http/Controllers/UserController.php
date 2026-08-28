@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Actions\CreateUser;
+use App\Actions\CreateUserAccountValidationCode;
 use App\Actions\DeleteUser;
 use App\Http\Requests\CreateUserRequest;
 use App\Http\Requests\DeleteUserRequest;
@@ -22,9 +23,9 @@ final readonly class UserController
         return Inertia::render('user/create');
     }
 
-    public function store(CreateUserRequest $request, CreateUser $action): RedirectResponse
+    public function store(CreateUserRequest $request, CreateUser $action, CreateUserAccountValidationCode $validationCode): RedirectResponse
     {
-        /** @var array<string, mixed> $attributes */
+        /** @var array<string, mixed>  $attributes */
         $attributes = $request->safe()->except('password');
 
         $user = $action->handle(
@@ -36,7 +37,9 @@ final readonly class UserController
 
         $request->session()->regenerate();
 
-        return redirect()->intended(route('dashboard', absolute: false));
+        $validationCode->handle($user);
+
+        return redirect()->intended(route('account-validation.show', absolute: false));
     }
 
     public function destroy(DeleteUserRequest $request, #[CurrentUser] User $user, DeleteUser $action): RedirectResponse

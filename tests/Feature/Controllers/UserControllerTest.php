@@ -2,10 +2,12 @@
 
 declare(strict_types=1);
 
+use App\Mail\AccountValidationCodeMail;
 use App\Models\User;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 
 it('renders registration page', function (): void {
     $response = $this->fromRoute('home')
@@ -17,6 +19,7 @@ it('renders registration page', function (): void {
 
 it('may register a new user', function (): void {
     Event::fake([Registered::class]);
+    Mail::fake();
 
     $response = $this->fromRoute('register')
         ->post(route('register.store'), [
@@ -26,7 +29,9 @@ it('may register a new user', function (): void {
             'password_confirmation' => 'password1234',
         ]);
 
-    $response->assertRedirectToRoute('dashboard');
+    $response->assertRedirectToRoute('account-validation.show');
+
+    Mail::assertQueued(AccountValidationCodeMail::class);
 
     $user = User::query()->where('email', 'test@example.com')->first();
 

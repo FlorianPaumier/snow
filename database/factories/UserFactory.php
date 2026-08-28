@@ -23,11 +23,26 @@ final class UserFactory extends Factory
             'email' => fake()->unique()->safeEmail(),
             'email_verified_at' => now(),
             'password' => 'password',
+            'role' => User::ROLE_USER,
             'remember_token' => Str::random(10),
             'two_factor_secret' => Str::random(10),
             'two_factor_recovery_codes' => Str::random(10),
             'two_factor_confirmed_at' => now(),
         ];
+    }
+
+    public function admin(): self
+    {
+        return $this->state(fn (array $attributes): array => [
+            'role' => User::ROLE_ADMIN,
+        ]);
+    }
+
+    public function worker(): self
+    {
+        return $this->state(fn (array $attributes): array => [
+            'role' => User::ROLE_WORKER,
+        ]);
     }
 
     public function unverified(): self

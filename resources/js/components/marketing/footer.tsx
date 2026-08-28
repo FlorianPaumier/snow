@@ -58,7 +58,8 @@ export function MarketingFooter() {
                         <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
                             Snow removal operations software — dispatch,
                             routing, proof, and billing for the crews who clear
-                            the way. Built in Minneapolis, tested at -30°.
+                            the way. Field-tested through the toughest storm
+                            nights.
                         </p>
                         <p className="mt-4 inline-flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1 text-xs text-muted-foreground">
                             <span
@@ -100,8 +101,8 @@ export function MarketingFooter() {
 
                 <div className="mt-10 flex flex-col gap-3 border-t border-border pt-6 sm:flex-row sm:items-center sm:justify-between">
                     <p className="text-xs text-muted-foreground">
-                        © 2025 Frostline Systems Inc. — built for the crews who
-                        clear the way.
+                        © 2025 Frostline — built for the crews who clear the
+                        way.
                     </p>
                     <p className="font-mono text-[11px] text-muted-foreground">
                         Privacy · Terms · Status
