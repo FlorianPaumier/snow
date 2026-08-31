@@ -1,4 +1,4 @@
-import { Link } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
 import type { PropsWithChildren } from 'react';
 import Heading from '@/components/heading';
 import { Button } from '@/components/ui/button';
@@ -6,8 +6,8 @@ import { Separator } from '@/components/ui/separator';
 import { useCurrentUrl } from '@/hooks/use-current-url';
 import { cn, toUrl } from '@/lib/utils';
 import { edit as editAppearance } from '@/routes/appearance';
+import { index as billingIndex } from '@/routes/billing';
 import { edit as editPassword } from '@/routes/password';
-import { show as showTwoFactor } from '@/routes/two-factor';
 import { edit } from '@/routes/user-profile';
 import type { NavItem } from '@/types';
 
@@ -23,19 +23,26 @@ const sidebarNavItems: NavItem[] = [
         icon: null,
     },
     {
-        title: 'Two-Factor Auth',
-        href: showTwoFactor(),
-        icon: null,
-    },
-    {
         title: 'Appearance',
         href: editAppearance(),
         icon: null,
     },
 ];
 
+const billingNavItem: NavItem = {
+    title: 'Billing',
+    href: billingIndex(),
+    icon: null,
+};
+
 export default function SettingsLayout({ children }: PropsWithChildren) {
     const { isCurrentOrParentUrl } = useCurrentUrl();
+    const { auth } = usePage().props;
+
+    // Billing is only visible to organization admins...
+    const items = auth.can?.manageBilling
+        ? [...sidebarNavItems, billingNavItem]
+        : sidebarNavItems;
 
     // When server-side rendering, we only render the layout on the client...
     if (typeof window === 'undefined') {
@@ -50,12 +57,15 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
             />
 
             <div className="flex flex-col lg:flex-row lg:space-x-12">
-                <aside className="w-full max-w-xl lg:w-48">
+                <aside
+                    className="w-full max-w-xl lg:w-48"
+                    aria-label="Settings menu"
+                >
                     <nav
                         className="flex flex-col space-y-1 space-x-0"
                         aria-label="Settings"
                     >
-                        {sidebarNavItems.map((item, index) => (
+                        {items.map((item, index) => (
                             <Button
                                 key={`${toUrl(item.href)}-${index}`}
                                 size="sm"

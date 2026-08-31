@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
-use App\Actions\CreateUser;
-use App\Actions\CreateUserAccountValidationCode;
+use App\Actions\CreateOrganization;
+use App\Actions\CreateUserLoginChallengeCode;
 use App\Actions\DeleteUser;
 use App\Http\Requests\CreateUserRequest;
 use App\Http\Requests\DeleteUserRequest;
@@ -23,23 +23,30 @@ final readonly class UserController
         return Inertia::render('user/create');
     }
 
-    public function store(CreateUserRequest $request, CreateUser $action, CreateUserAccountValidationCode $validationCode): RedirectResponse
+    /**
+     * @param  array{name: string, userName: string, email: string}  $attributes
+     */
+    public function store(CreateUserRequest $request, CreateOrganization $createOrganization, CreateUserLoginChallengeCode $challengeCode): RedirectResponse
     {
-        /** @var array<string, mixed>  $attributes */
-        $attributes = $request->safe()->except('password');
+        /** @var array<string, mixed>  $validated */
+        $validated = $request->safe()->except('password');
 
-        $user = $action->handle(
-            $attributes,
-            $request->string('password')->value(),
-        );
+        $organization = $createOrganization->handle([
+            'name' => (string) $validated['organization'],
+            'userName' => (string) $validated['name'],
+            'email' => (string) $validated['email'],
+        ], $request->string('password')->value());
 
-        Auth::login($user);
+        // The owner is attached to the organization by the action, avoiding
+        // the auth-bound global scope on the users table...
+        /** @var User $user */
+        $user = $organization->users->firstOrFail();
 
-        $request->session()->regenerate();
+        $challengeCode->handle($user);
 
-        $validationCode->handle($user);
+        $request->session()->put('login.id', $user->getKey());
 
-        return redirect()->intended(route('account-validation.show', absolute: false));
+        return redirect()->intended(route('login-challenge.show', absolute: false));
     }
 
     public function destroy(DeleteUserRequest $request, #[CurrentUser] User $user, DeleteUser $action): RedirectResponse

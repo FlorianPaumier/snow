@@ -14,7 +14,7 @@ export default function AuthSplitLayout({
     return (
         <div className="relative grid min-h-svh lg:grid-cols-2">
             {/* Brand panel */}
-            <div className="relative hidden h-full flex-col justify-between overflow-hidden bg-glacier-950 p-10 text-white lg:flex">
+            <aside className="relative hidden h-full flex-col justify-between overflow-hidden bg-glacier-950 p-10 text-white lg:flex">
                 <div className="bg-grid-frost absolute inset-0 opacity-60" />
                 <div className="absolute -top-32 -left-32 size-96 rounded-full bg-glacier-500/20 blur-3xl" />
                 <div className="absolute -right-24 bottom-1/4 size-80 animate-drift rounded-full bg-glacier-400/15 blur-3xl" />
@@ -45,10 +45,10 @@ export default function AuthSplitLayout({
                 <p className="relative z-20 text-xs text-glacier-300/60">
                     © {new Date().getFullYear()} {name}. All rights reserved.
                 </p>
-            </div>
+            </aside>
 
             {/* Form panel */}
-            <div className="flex flex-col items-center justify-center bg-background p-6 md:p-10">
+            <main className="flex flex-col items-center justify-center bg-background p-6 md:p-10">
                 <div className="w-full max-w-sm space-y-8">
                     <div className="flex flex-col items-center gap-4">
                         <Link
@@ -72,7 +72,7 @@ export default function AuthSplitLayout({
                         {children}
                     </div>
                 </div>
-            </div>
+            </main>
         </div>
     );
 }

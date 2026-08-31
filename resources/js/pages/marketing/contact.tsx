@@ -298,7 +298,7 @@ export default function Contact() {
                                         <AlertTitle>
                                             Thanks — you're on the list.
                                         </AlertTitle>
-                                        <AlertDescription className="text-success/90">
+                                        <AlertDescription>
                                             We'll reach out shortly to get you
                                             set up.
                                         </AlertDescription>

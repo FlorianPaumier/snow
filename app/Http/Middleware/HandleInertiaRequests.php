@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Middleware;
 
+use App\Actions\GetSubscriptionSummary;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -15,6 +16,8 @@ final class HandleInertiaRequests extends Middleware
      * @var string
      */
     protected $rootView = 'app';
+
+    public function __construct(private readonly GetSubscriptionSummary $getSubscriptionSummary) {}
 
     /**
      * @see https://inertiajs.com/asset-versioning
@@ -36,8 +39,15 @@ final class HandleInertiaRequests extends Middleware
             'name' => config('app.name'),
             'auth' => [
                 'user' => $request->user(),
+                'organization' => $request->user()?->organization_id !== null
+                    ? ['id' => $request->user()->organization_id, 'name' => $request->user()->organization->name]
+                    : null,
+                'subscription' => $this->getSubscriptionSummary->handle($request->user()?->organization),
                 'can' => [
                     'manageUsers' => $request->user()?->can('manage-users') ?? false,
+                    'manageClients' => $request->user()?->can('manage-clients') ?? false,
+                    'manageContracts' => $request->user()?->can('manage-contracts') ?? false,
+                    'manageBilling' => $request->user()?->can('manage-billing') ?? false,
                 ],
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',

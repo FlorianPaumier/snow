@@ -60,8 +60,8 @@ const SORTABLE_COLUMNS = [
 
 /* ── Role vocabulary: tinted renderings of one state ── */
 const ROLE_BADGES: Record<string, string> = {
-    admin: 'border-emerald-500/25 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400',
-    worker: 'border-sky-500/25 bg-sky-500/10 text-sky-600 dark:text-sky-400',
+    admin: 'border-emerald-500/25 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400',
+    worker: 'border-sky-500/25 bg-sky-500/10 text-sky-700 dark:text-sky-400',
     user: 'border-border bg-muted text-muted-foreground',
 };
 
@@ -253,7 +253,7 @@ export default function Index({
                                             <TableCell>
                                                 <span className="flex items-center gap-2">
                                                     <Avatar className="size-7">
-                                                        <AvatarFallback className="bg-primary/15 text-[10px] font-medium text-primary">
+                                                        <AvatarFallback className="bg-primary/15 text-[10px] font-medium text-glacier-800 dark:text-glacier-300">
                                                             {initialsOf(user)}
                                                         </AvatarFallback>
                                                     </Avatar>

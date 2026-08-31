@@ -1,4 +1,4 @@
-import { Link } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
 import { Check, CheckCircle2, Minus } from 'lucide-react';
 import * as React from 'react';
 import {
@@ -29,7 +29,9 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
-import { cn } from '@/lib/utils';
+import { index as billingIndex } from '@/routes/billing';
+import register from '@/routes/register';
+import { cn, toUrl } from '@/lib/utils';
 
 /* ── Billing period toggle ──────────────────────────────────────── */
 function BillingToggle({
@@ -87,7 +89,15 @@ function formatUsd(value: number): string {
     return `$${value.toLocaleString('en-US')}`;
 }
 
-function TierCard({ tier, annual }: { tier: PricingTier; annual: boolean }) {
+function TierCard({
+    tier,
+    annual,
+    ctaHref,
+}: {
+    tier: PricingTier;
+    annual: boolean;
+    ctaHref: string;
+}) {
     const price = annual ? Math.round(tier.annual / 12) : tier.monthly;
 
     return (
@@ -151,7 +161,7 @@ function TierCard({ tier, annual }: { tier: PricingTier; annual: boolean }) {
                     variant={tier.featured ? 'default' : 'outline'}
                     className="w-full"
                 >
-                    <Link href={tier.ctaTo}>{tier.cta}</Link>
+                    <Link href={ctaHref}>{tier.cta}</Link>
                 </Button>
             </div>
         </div>
@@ -331,6 +341,15 @@ function FaqSection() {
 /* ── Page ────────────────────────────────────────────────────────── */
 export default function Pricing() {
     const [annual, setAnnual] = React.useState(true);
+    const { auth } = usePage().props;
+
+    // Signed-in admins land on billing; everyone else starts a trial by
+    // registering. "Talk to sales" stays a contact link...
+    const ctaHref = toUrl(auth.user
+        ? auth.can?.manageBilling
+            ? billingIndex()
+            : ROUTES.contact
+        : register.store());
 
     return (
         <MarketingLayout title="Pricing — Frostline OPS" route={ROUTES.pricing}>
@@ -350,6 +369,7 @@ export default function Pricing() {
                                 key={tier.name}
                                 tier={tier}
                                 annual={annual}
+                                ctaHref={ctaHref}
                             />
                         ))}
                     </div>

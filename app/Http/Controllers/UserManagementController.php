@@ -37,8 +37,8 @@ final readonly class UserManagementController
         $users = User::query()
             ->when($search !== null, fn (Builder $query): Builder => $query->where(
                 fn (Builder $query): Builder => $query
-                    ->where('name', 'like', "%{$search}%")
-                    ->orWhere('email', 'like', "%{$search}%")
+                    ->where('name', 'like', sprintf('%%%s%%', $search))
+                    ->orWhere('email', 'like', sprintf('%%%s%%', $search))
             ))
             ->orderBy($sort, $direction)
             ->paginate(perPage: 15)

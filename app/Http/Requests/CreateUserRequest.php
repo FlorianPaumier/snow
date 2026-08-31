@@ -28,6 +28,7 @@ final class CreateUserRequest extends FormRequest
                 new ValidEmail,
                 Rule::unique(User::class),
             ],
+            'organization' => ['required', 'string', 'max:255'],
             'password' => [
                 'required',
                 'confirmed',

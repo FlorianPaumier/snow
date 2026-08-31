@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Enums\UserRole;
 use App\Models\User;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Notification;
@@ -21,8 +22,8 @@ it('renders the users index for admins', function (): void {
 
 it('searches users by name or email', function (): void {
     $admin = User::factory()->admin()->create();
-    User::factory()->create(['name' => 'Jean Tremblay', 'email' => 'jean@example.com']);
-    User::factory()->create(['name' => 'Marie Roy', 'email' => 'marie@example.com']);
+    User::factory()->forOrganization($admin->organization)->create(['name' => 'Jean Tremblay', 'email' => 'jean@example.com']);
+    User::factory()->forOrganization($admin->organization)->create(['name' => 'Marie Roy', 'email' => 'marie@example.com']);
 
     $this->actingAs($admin)
         ->get(route('users.index', ['search' => 'jean']))
@@ -41,8 +42,8 @@ it('searches users by name or email', function (): void {
 
 it('sorts users by the requested column and direction', function (): void {
     $admin = User::factory()->admin()->create();
-    User::factory()->create(['name' => 'Zack', 'email' => 'zack@example.com']);
-    User::factory()->create(['name' => 'Anna', 'email' => 'anna@example.com']);
+    User::factory()->forOrganization($admin->organization)->create(['name' => 'Zack', 'email' => 'zack@example.com']);
+    User::factory()->forOrganization($admin->organization)->create(['name' => 'Anna', 'email' => 'anna@example.com']);
 
     $this->actingAs($admin)
         ->get(route('users.index', ['sort' => 'name', 'direction' => 'asc']))
@@ -68,7 +69,7 @@ it('rejects invalid sort parameters', function (): void {
 
 it('paginates users', function (): void {
     $admin = User::factory()->admin()->create();
-    User::factory()->count(20)->create();
+    User::factory()->count(20)->forOrganization($admin->organization)->create();
 
     $response = $this->actingAs($admin)
         ->get(route('users.index', ['page' => 2]))
@@ -101,14 +102,14 @@ it('creates a user', function (): void {
             'email' => 'jean@example.com',
             'password' => 'super-secret-password',
             'password_confirmation' => 'super-secret-password',
-            'role' => User::ROLE_WORKER,
+            'role' => UserRole::ROLE_WORKER->value,
         ])
         ->assertRedirect(route('users.index'));
 
     $user = User::query()->where('email', 'jean@example.com')->first();
     expect($user)->not->toBeNull()
         ->and($user->name)->toBe('Jean Tremblay')
-        ->and($user->role)->toBe(User::ROLE_WORKER);
+        ->and($user->role)->toBe(UserRole::ROLE_WORKER);
 });
 
 it('validates the create user payload', function (array $payload): void {
@@ -133,14 +134,14 @@ it('rejects duplicate emails', function (): void {
             'email' => $admin->email,
             'password' => 'super-secret-password',
             'password_confirmation' => 'super-secret-password',
-            'role' => User::ROLE_USER,
+            'role' => UserRole::ROLE_USER->value,
         ])
         ->assertSessionHasErrors('email');
 });
 
 it('renders the edit page', function (): void {
     $admin = User::factory()->admin()->create();
-    $user = User::factory()->create();
+    $user = User::factory()->forOrganization($admin->organization)->create();
 
     $this->actingAs($admin)
         ->get(route('users.edit', $user))
@@ -155,7 +156,7 @@ it('updates a user without changing their password', function (): void {
     Event::fake();
 
     $admin = User::factory()->admin()->create();
-    $user = User::factory()->create();
+    $user = User::factory()->forOrganization($admin->organization)->create();
     $originalHash = $user->password;
 
     $this->actingAs($admin)
@@ -164,13 +165,13 @@ it('updates a user without changing their password', function (): void {
             'email' => $user->email,
             'password' => '',
             'password_confirmation' => '',
-            'role' => User::ROLE_ADMIN,
+            'role' => UserRole::ROLE_ADMIN->value,
         ])
         ->assertRedirect(route('users.index'));
 
     $user->refresh();
     expect($user->name)->toBe('Updated Name')
-        ->and($user->role)->toBe(User::ROLE_ADMIN)
+        ->and($user->role)->toBe(UserRole::ROLE_ADMIN)
         ->and($user->password)->toBe($originalHash);
 });
 
@@ -179,7 +180,7 @@ it('updates a user password when provided', function (): void {
     Event::fake();
 
     $admin = User::factory()->admin()->create();
-    $user = User::factory()->create();
+    $user = User::factory()->forOrganization($admin->organization)->create();
     $originalHash = $user->password;
 
     $this->actingAs($admin)
@@ -188,7 +189,7 @@ it('updates a user password when provided', function (): void {
             'email' => $user->email,
             'password' => 'brand-new-password',
             'password_confirmation' => 'brand-new-password',
-            'role' => $user->role,
+            'role' => $user->role->value,
         ])
         ->assertRedirect(route('users.index'));
 
@@ -197,7 +198,7 @@ it('updates a user password when provided', function (): void {
 
 it('deletes a user', function (): void {
     $admin = User::factory()->admin()->create();
-    $user = User::factory()->create();
+    $user = User::factory()->forOrganization($admin->organization)->create();
 
     $this->actingAs($admin)
         ->delete(route('users.destroy', $user))

@@ -38,7 +38,7 @@ export default function Edit({ user }: { user: EditableUser }) {
             title={`Edit ${user.name}`}
             description="Update the user's name, email, password, and role"
             breadcrumbs={breadcrumbs}
-            backHref={index()}
+            backHref={index().url}
             backLabel="Users"
         >
             <Form
@@ -129,7 +129,7 @@ export default function Edit({ user }: { user: EditableUser }) {
                         </FormSection>
 
                         <FormFooter>
-                            <CancelButton href={index()} />
+                            <CancelButton href={index().url} />
                             <SubmitButton processing={processing}>
                                 Save changes
                             </SubmitButton>

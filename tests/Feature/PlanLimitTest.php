@@ -1,0 +1,89 @@
+<?php
+
+declare(strict_types=1);
+
+use App\Models\Client;
+use App\Models\Organization;
+use App\Models\User;
+
+it('blocks creating a third user on the starter plan', function (): void {
+    $organization = Organization::factory()->withoutTrial()->create();
+    $admin = User::factory()->admin()->forOrganization($organization)->create();
+    User::factory()->forOrganization($organization)->create();
+
+    $response = $this->actingAs($admin)
+        ->fromRoute('users.create')
+        ->post(route('users.store'), [
+            'name' => 'Third User',
+            'email' => 'third@example.com',
+            'password' => 'password1234',
+            'password_confirmation' => 'password1234',
+            'role' => 'user',
+        ]);
+
+    $response->assertRedirectToRoute('users.create')
+        ->assertSessionHas(
+            'status',
+            'Your starter plan allows 2 users. Upgrade to add more.',
+        );
+
+    expect(User::withoutGlobalScopes()->where('organization_id', $organization->id)->count())->toBe(2);
+});
+
+it('allows creating users on the fleet plan without a limit', function (): void {
+    $organization = Organization::factory()->withoutTrial()->create();
+    $admin = User::factory()->admin()->forOrganization($organization)->create();
+
+    // Fleet has no user limit; create several beyond the starter cap...
+    User::factory()->count(5)->forOrganization($organization)->create();
+
+    expect(User::withoutGlobalScopes()->where('organization_id', $organization->id)->count())->toBe(6);
+});
+
+it('blocks creating clients beyond the starter plan limit', function (): void {
+    $organization = Organization::factory()->withoutTrial()->create();
+    $admin = User::factory()->admin()->forOrganization($organization)->create();
+
+    // Use the model directly to fill the quota without hitting the limit
+    // check itself...
+    Client::factory()->count(25)->forOrganization($organization)->create();
+
+    $response = $this->actingAs($admin)
+        ->fromRoute('clients.create')
+        ->post(route('clients.store'), [
+            'type' => 'individual',
+            'firstName' => 'Over',
+            'lastName' => 'Limit',
+            'email' => 'over@example.com',
+            'phoneDay' => '418-555-0123',
+            'addressStreet' => '123 Rue',
+            'addressCity' => 'Québec',
+            'addressPostalCode' => 'G1K 0A1',
+            'addressCountry' => 'Canada',
+        ]);
+
+    $response->assertRedirectToRoute('clients.create')
+        ->assertSessionHas(
+            'status',
+            'Your starter plan allows 25 clients. Upgrade to add more.',
+        );
+
+    expect(Client::withoutGlobalScopes()->where('organization_id', $organization->id)->count())->toBe(25);
+});
+
+it('grants starter limits while on trial', function (): void {
+    $organization = Organization::factory()->create(); // with trial...
+    $admin = User::factory()->admin()->forOrganization($organization)->create();
+
+    // One user exists (the admin); the starter limit of 2 allows one more...
+    $this->actingAs($admin)
+        ->post(route('users.store'), [
+            'name' => 'Second User',
+            'email' => 'second@example.com',
+            'password' => 'password1234',
+            'password_confirmation' => 'password1234',
+            'role' => 'user',
+        ]);
+
+    expect(User::withoutGlobalScopes()->where('organization_id', $organization->id)->count())->toBe(2);
+});

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use App\Mail\AccountValidationCodeMail;
+use App\Mail\LoginChallengeCodeMail;
 use App\Models\User;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Support\Facades\Event;
@@ -25,22 +25,29 @@ it('may register a new user', function (): void {
         ->post(route('register.store'), [
             'name' => 'Test User',
             'email' => 'test@example.com',
+            'organization' => 'Test Company',
             'password' => 'password1234',
             'password_confirmation' => 'password1234',
         ]);
 
-    $response->assertRedirectToRoute('account-validation.show');
+    $response->assertRedirectToRoute('login-challenge.show');
 
-    Mail::assertQueued(AccountValidationCodeMail::class);
+    Mail::assertQueued(LoginChallengeCodeMail::class);
 
-    $user = User::query()->where('email', 'test@example.com')->first();
+    // The user is queried unscoped: no authenticated user exists during
+    // registration, and the organization scope would hide the row...
+    $user = User::withoutGlobalScopes()->where('email', 'test@example.com')->first();
 
     expect($user)->not->toBeNull()
         ->and($user->name)->toBe('Test User')
         ->and($user->email)->toBe('test@example.com')
-        ->and(Hash::check('password1234', $user->password))->toBeTrue();
+        ->and($user->organization->name)->toBe('Test Company')
+        ->and($user->organization->trial_ends_at)->not->toBeNull()
+        ->and(Hash::check('password1234', $user->password))->toBeTrue()
+        ->and($user->login_challenge_code)->not->toBeNull()
+        ->and(session('login.id'))->toBe($user->getKey());
 
-    $this->assertAuthenticatedAs($user);
+    $this->assertGuest();
 
     Event::assertDispatched(Registered::class);
 });
@@ -49,6 +56,7 @@ it('requires name', function (): void {
     $response = $this->fromRoute('register')
         ->post(route('register.store'), [
             'email' => 'test@example.com',
+            'organization' => 'Test Company',
             'password' => 'password',
             'password_confirmation' => 'password',
         ]);
@@ -61,6 +69,7 @@ it('requires email', function (): void {
     $response = $this->fromRoute('register')
         ->post(route('register.store'), [
             'name' => 'Test User',
+            'organization' => 'Test Company',
             'password' => 'password',
             'password_confirmation' => 'password',
         ]);
@@ -74,6 +83,7 @@ it('requires valid email', function (): void {
         ->post(route('register.store'), [
             'name' => 'Test User',
             'email' => 'not-an-email',
+            'organization' => 'Test Company',
             'password' => 'password',
             'password_confirmation' => 'password',
         ]);
@@ -89,6 +99,7 @@ it('requires unique email', function (): void {
         ->post(route('register.store'), [
             'name' => 'Test User',
             'email' => 'test@example.com',
+            'organization' => 'Test Company',
             'password' => 'password',
             'password_confirmation' => 'password',
         ]);
@@ -97,11 +108,25 @@ it('requires unique email', function (): void {
         ->assertSessionHasErrors('email');
 });
 
+it('requires an organization', function (): void {
+    $response = $this->fromRoute('register')
+        ->post(route('register.store'), [
+            'name' => 'Test User',
+            'email' => 'test@example.com',
+            'password' => 'password',
+            'password_confirmation' => 'password',
+        ]);
+
+    $response->assertRedirectToRoute('register')
+        ->assertSessionHasErrors('organization');
+});
+
 it('requires password', function (): void {
     $response = $this->fromRoute('register')
         ->post(route('register.store'), [
             'name' => 'Test User',
             'email' => 'test@example.com',
+            'organization' => 'Test Company',
         ]);
 
     $response->assertRedirectToRoute('register')
@@ -113,6 +138,7 @@ it('requires password confirmation', function (): void {
         ->post(route('register.store'), [
             'name' => 'Test User',
             'email' => 'test@example.com',
+            'organization' => 'Test Company',
             'password' => 'password',
         ]);
 
@@ -125,6 +151,7 @@ it('requires matching password confirmation', function (): void {
         ->post(route('register.store'), [
             'name' => 'Test User',
             'email' => 'test@example.com',
+            'organization' => 'Test Company',
             'password' => 'password',
             'password_confirmation' => 'different-password',
         ]);

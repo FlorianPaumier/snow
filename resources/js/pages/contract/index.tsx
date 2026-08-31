@@ -1,0 +1,471 @@
+import { Form, Head, Link, router, usePage } from '@inertiajs/react';
+import {
+    CalendarRange,
+    Eye,
+    FileText,
+    Pencil,
+    Plus,
+    Search,
+    Trash2,
+} from 'lucide-react';
+import { useEffect, useState } from 'react';
+import ContractController from '@/actions/App/Http/Controllers/ContractController';
+import Heading from '@/components/heading';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from '@/components/ui/table';
+import AppLayout from '@/layouts/app-layout';
+import { formatCurrency } from '@/lib/utils';
+import { create, index } from '@/routes/contracts';
+import type { BreadcrumbItem } from '@/types';
+
+type ContractRow = {
+    id: string;
+    season: string;
+    client: {
+        id: string;
+        clientNumber: string;
+        displayName: string;
+    };
+    total: number;
+    collected: number;
+    outstanding: number;
+    created_at: string;
+};
+
+type Pagination = {
+    current_page: number;
+    last_page: number;
+    per_page: number;
+    total: number;
+    from: number | null;
+    to: number | null;
+    data: ContractRow[];
+};
+
+type Filters = {
+    season: string;
+    client: string;
+    search: string;
+    sort: string;
+    direction: 'asc' | 'desc';
+};
+
+const breadcrumbs: BreadcrumbItem[] = [
+    {
+        title: 'Contrats',
+        href: '/contracts',
+    },
+];
+
+const initialsOf = (name: string) =>
+    name
+        .split(/\s+/)
+        .map((part) => part[0])
+        .filter(Boolean)
+        .slice(0, 2)
+        .join('')
+        .toUpperCase();
+
+export default function Index({
+    contracts,
+    filters,
+    seasons,
+}: {
+    contracts: Pagination;
+    filters: Filters;
+    seasons: string[];
+}) {
+    const { status, errors, auth } = usePage().props;
+    const canManageContracts = auth.can?.manageContracts ?? false;
+    const [search, setSearch] = useState(filters.search);
+
+    // Debounced search: reload the page with the updated query string...
+    useEffect(() => {
+        if (search === filters.search) {
+            return;
+        }
+
+        const timeout = setTimeout(() => {
+            router.get(
+                index(),
+                {
+                    ...(search ? { search } : {}),
+                    ...(filters.season ? { season: filters.season } : {}),
+                    ...(filters.client ? { client: filters.client } : {}),
+                },
+                { preserveState: true, replace: true },
+            );
+        }, 300);
+
+        return () => clearTimeout(timeout);
+    }, [search, filters.search, filters.season, filters.client]);
+
+    const selectSeason = (nextSeason: string) => {
+        router.get(
+            index(),
+            {
+                ...(nextSeason ? { season: nextSeason } : {}),
+                ...(filters.client ? { client: filters.client } : {}),
+                ...(filters.search ? { search: filters.search } : {}),
+            },
+            { preserveState: true, replace: true },
+        );
+    };
+
+    const goToPage = (page: number) => {
+        router.get(
+            index(),
+            {
+                ...(filters.search ? { search: filters.search } : {}),
+                ...(filters.season ? { season: filters.season } : {}),
+                ...(filters.client ? { client: filters.client } : {}),
+                page,
+            },
+            { preserveState: true },
+        );
+    };
+
+    return (
+        <AppLayout breadcrumbs={breadcrumbs}>
+            <Head title="Contrats" />
+
+            <div className="flex h-full flex-1 flex-col gap-6 rounded-xl p-4">
+                <div className="flex flex-wrap items-end justify-between gap-4">
+                    <Heading
+                        title="Contrats"
+                        description="Les ententes de saison et leurs versements"
+                    />
+
+                    <div className="flex flex-wrap items-center gap-3">
+                        <Select
+                            name="season"
+                            value={filters.season || 'all'}
+                            onValueChange={(value) =>
+                                selectSeason(value === 'all' ? '' : value)
+                            }
+                        >
+                            <SelectTrigger
+                                id="season"
+                                aria-label="Saison"
+                                className="w-[160px]"
+                                data-test="season-filter"
+                            >
+                                <CalendarRange
+                                    aria-hidden="true"
+                                    className="size-4 text-muted-foreground"
+                                />
+                                <SelectValue placeholder="Saison" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all">
+                                    Toutes les saisons
+                                </SelectItem>
+                                {seasons.map((seasonOption) => (
+                                    <SelectItem
+                                        key={seasonOption}
+                                        value={seasonOption}
+                                    >
+                                        {seasonOption}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+
+                        {canManageContracts && (
+                            <Button asChild data-test="new-contract">
+                                <Link href={create()} prefetch>
+                                    <Plus /> Nouveau contrat
+                                </Link>
+                            </Button>
+                        )}
+                    </div>
+                </div>
+
+                {typeof status === 'string' && (
+                    <p className="text-sm text-green-600 dark:text-green-400">
+                        {status}
+                    </p>
+                )}
+
+                {typeof errors.contract === 'string' && (
+                    <p
+                        role="alert"
+                        className="text-sm font-medium text-destructive"
+                        data-test="contract-error"
+                    >
+                        {errors.contract}
+                    </p>
+                )}
+
+                <div className="overflow-hidden rounded-xl border">
+                    {/* Toolbar: live search + mono count (design system data display pattern) */}
+                    <div className="flex flex-col gap-3 border-b bg-muted/40 px-4 py-3 sm:flex-row sm:items-center">
+                        <div className="relative w-full sm:max-w-xs">
+                            <Search
+                                aria-hidden="true"
+                                className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground"
+                            />
+                            <Input
+                                type="search"
+                                value={search}
+                                onChange={(event) =>
+                                    setSearch(event.target.value)
+                                }
+                                onKeyDown={(event) => {
+                                    if (event.key === 'Escape') setSearch('');
+                                }}
+                                placeholder="Filtrer par client ou numéro…"
+                                aria-label="Filtrer les contrats"
+                                className="h-9 pl-8"
+                                data-test="contract-search"
+                            />
+                        </div>
+                        <p
+                            className="font-mono text-xs text-muted-foreground sm:ml-auto"
+                            aria-live="polite"
+                        >
+                            {contracts.total} contrat
+                            {contracts.total === 1 ? '' : 's'}
+                        </p>
+                    </div>
+
+                    <div className="overflow-x-auto">
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>Client</TableHead>
+                                    <TableHead>Saison</TableHead>
+                                    <TableHead className="text-right">
+                                        Total
+                                    </TableHead>
+                                    <TableHead className="text-right">
+                                        Encaissé
+                                    </TableHead>
+                                    <TableHead className="text-right">
+                                        Solde
+                                    </TableHead>
+                                    <TableHead>Créé le</TableHead>
+                                    <TableHead className="text-right">
+                                        Actions
+                                    </TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {contracts.data.length > 0 ? (
+                                    contracts.data.map((contract) => (
+                                        <TableRow
+                                            key={contract.id}
+                                            className="border-border/50 bg-muted/10 hover:bg-muted/25 dark:bg-muted/5 dark:hover:bg-muted/15"
+                                        >
+                                            <TableCell>
+                                                <span className="flex items-center gap-2">
+                                                    <Avatar className="size-7">
+                                                        <AvatarFallback className="bg-glacier-500/15 text-[10px] font-medium text-glacier-700 dark:text-glacier-400">
+                                                            {initialsOf(
+                                                                contract.client
+                                                                    .displayName,
+                                                            )}
+                                                        </AvatarFallback>
+                                                    </Avatar>
+                                                    <span className="flex flex-col">
+                                                        <span className="text-sm">
+                                                            {
+                                                                contract.client
+                                                                    .displayName
+                                                            }
+                                                        </span>
+                                                        <span className="font-mono text-xs text-muted-foreground">
+                                                            {
+                                                                contract.client
+                                                                    .clientNumber
+                                                            }
+                                                        </span>
+                                                    </span>
+                                                </span>
+                                            </TableCell>
+                                            <TableCell>
+                                                <Badge
+                                                    variant="outline"
+                                                    className="border-glacier-500/20 bg-glacier-500/10 text-glacier-700 dark:text-glacier-400"
+                                                >
+                                                    {contract.season}
+                                                </Badge>
+                                            </TableCell>
+                                            <TableCell className="text-right font-mono text-xs tabular-nums">
+                                                {formatCurrency(contract.total)}
+                                            </TableCell>
+                                            <TableCell className="text-right font-mono text-xs text-success tabular-nums">
+                                                {formatCurrency(
+                                                    contract.collected,
+                                                )}
+                                            </TableCell>
+                                            <TableCell className="text-right font-mono text-xs tabular-nums">
+                                                {formatCurrency(
+                                                    contract.outstanding,
+                                                )}
+                                            </TableCell>
+                                            <TableCell className="text-xs text-muted-foreground">
+                                                {contract.created_at}
+                                            </TableCell>
+                                            <TableCell>
+                                                <div className="flex items-center justify-end gap-0.5">
+                                                    <Button
+                                                        asChild
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        className="size-8 text-muted-foreground hover:text-foreground"
+                                                        aria-label={`Voir le contrat de ${contract.client.displayName}`}
+                                                    >
+                                                        <Link
+                                                            href={ContractController.show.url(
+                                                                {
+                                                                    contract:
+                                                                        contract.id,
+                                                                },
+                                                            )}
+                                                            prefetch
+                                                        >
+                                                            <Eye
+                                                                aria-hidden="true"
+                                                                className="size-4"
+                                                            />
+                                                        </Link>
+                                                    </Button>
+                                                    {canManageContracts && (
+                                                        <>
+                                                            <Button
+                                                                asChild
+                                                                variant="ghost"
+                                                                size="icon"
+                                                                className="size-8 text-muted-foreground hover:text-foreground"
+                                                                aria-label={`Modifier le contrat de ${contract.client.displayName}`}
+                                                            >
+                                                                <Link
+                                                                    href={ContractController.edit.url(
+                                                                        {
+                                                                            contract:
+                                                                                contract.id,
+                                                                        },
+                                                                    )}
+                                                                    prefetch
+                                                                >
+                                                                    <Pencil
+                                                                        aria-hidden="true"
+                                                                        className="size-4"
+                                                                    />
+                                                                </Link>
+                                                            </Button>
+                                                            <Form
+                                                                {...ContractController.destroy.form(
+                                                                    {
+                                                                        contract:
+                                                                            contract.id,
+                                                                    },
+                                                                )}
+                                                                className="contents"
+                                                            >
+                                                                <Button
+                                                                    type="submit"
+                                                                    variant="ghost"
+                                                                    size="icon"
+                                                                    className="size-8 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                                                                    aria-label={`Supprimer le contrat de ${contract.client.displayName}`}
+                                                                >
+                                                                    <Trash2
+                                                                        aria-hidden="true"
+                                                                        className="size-4"
+                                                                    />
+                                                                </Button>
+                                                            </Form>
+                                                        </>
+                                                    )}
+                                                </div>
+                                            </TableCell>
+                                        </TableRow>
+                                    ))
+                                ) : (
+                                    <TableRow>
+                                        <TableCell
+                                            colSpan={7}
+                                            className="h-28 text-center"
+                                        >
+                                            <div className="flex flex-col items-center gap-1.5">
+                                                <FileText
+                                                    aria-hidden="true"
+                                                    className="size-6 text-muted-foreground"
+                                                />
+                                                <p className="text-sm font-medium">
+                                                    Aucun contrat correspondant
+                                                </p>
+                                                <p className="text-xs text-muted-foreground">
+                                                    Essayez une autre saison ou
+                                                    un autre client.
+                                                </p>
+                                            </div>
+                                        </TableCell>
+                                    </TableRow>
+                                )}
+                            </TableBody>
+                        </Table>
+                    </div>
+
+                    {/* Pagination footer */}
+                    {contracts.total > contracts.per_page && (
+                        <div className="flex flex-wrap items-center justify-between gap-4 border-t px-4 py-3">
+                            <p className="text-xs text-muted-foreground">
+                                {contracts.from}–{contracts.to} sur{' '}
+                                {contracts.total}
+                            </p>
+                            <div className="flex items-center gap-2">
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    disabled={contracts.current_page <= 1}
+                                    onClick={() =>
+                                        goToPage(contracts.current_page - 1)
+                                    }
+                                >
+                                    Précédent
+                                </Button>
+                                <span className="font-mono text-xs text-muted-foreground">
+                                    {contracts.current_page}/
+                                    {contracts.last_page}
+                                </span>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    disabled={
+                                        contracts.current_page >=
+                                        contracts.last_page
+                                    }
+                                    onClick={() =>
+                                        goToPage(contracts.current_page + 1)
+                                    }
+                                >
+                                    Suivant
+                                </Button>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            </div>
+        </AppLayout>
+    );
+}

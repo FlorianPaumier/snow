@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Actions\CreateUserLoginChallengeCode;
 use App\Http\Requests\CreateSessionRequest;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -22,24 +23,18 @@ final readonly class SessionController
         ]);
     }
 
-    public function store(CreateSessionRequest $request): RedirectResponse
+    public function store(CreateSessionRequest $request, CreateUserLoginChallengeCode $challengeCode): RedirectResponse
     {
         $user = $request->validateCredentials();
 
-        if ($user->hasEnabledTwoFactorAuthentication()) {
-            $request->session()->put([
-                'login.id' => $user->getKey(),
-                'login.remember' => $request->boolean('remember'),
-            ]);
+        $challengeCode->handle($user);
 
-            return to_route('two-factor.login');
-        }
+        $request->session()->put([
+            'login.id' => $user->getKey(),
+            'login.remember' => $request->boolean('remember'),
+        ]);
 
-        Auth::login($user, $request->boolean('remember'));
-
-        $request->session()->regenerate();
-
-        return redirect()->intended(route('dashboard', absolute: false));
+        return to_route('login-challenge.show');
     }
 
     public function destroy(Request $request): RedirectResponse

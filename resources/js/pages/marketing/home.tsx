@@ -291,7 +291,7 @@ function StepCard({ step, index }: { step: HowItWorksStep; index: number }) {
                 >
                     <Icon aria-hidden="true" className="size-5" />
                 </span>
-                <span className="font-mono text-sm font-semibold text-muted-foreground/60">
+                <span className="font-mono text-sm font-semibold text-muted-foreground">
                     {String(index + 1).padStart(2, '0')}
                 </span>
             </div>

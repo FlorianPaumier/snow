@@ -33,14 +33,11 @@ it('matches the forgot password page visual', function (): void {
     $page->assertScreenshotMatches();
 });
 
-it('matches the validate account page visual', function (): void {
+it('matches the login challenge page visual', function (): void {
     $user = User::factory()->withoutTwoFactor()->create([
         'name' => 'Visual Tester',
         'email' => 'visual@example.com',
-        'email_verified_at' => null,
         'password' => 'password1234',
-        'validation_code' => Hash::make('123456'),
-        'validation_code_expires_at' => now()->addMinutes(15),
     ]);
 
     $page = visit('/login')
@@ -51,7 +48,7 @@ it('matches the validate account page visual', function (): void {
 
     $page->wait(2);
 
-    $page->assertPathIs('/validate-account');
+    $page->assertPathIs('/login-challenge');
 
     $page->assertScreenshotMatches();
 });

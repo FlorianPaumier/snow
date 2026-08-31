@@ -221,7 +221,8 @@ function Sidebar({
             : "group-data-[collapsible=icon]:w-(--sidebar-width-icon)"
         )}
       />
-      <div
+      <aside
+        aria-label="Sidebar"
         className={cn(
           "fixed inset-y-0 z-10 hidden h-svh w-(--sidebar-width) transition-[left,right,width] duration-200 ease-linear md:flex",
           side === "left"
@@ -241,7 +242,7 @@ function Sidebar({
         >
           {children}
         </div>
-      </div>
+      </aside>
     </div>
   )
 }

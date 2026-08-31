@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Requests;
 
+use App\Enums\UserRole;
 use App\Models\User;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -34,11 +35,7 @@ final class CreateUserManagementRequest extends FormRequest
                 Password::defaults(),
             ],
 
-            'role' => ['required', 'string', Rule::in([
-                User::ROLE_ADMIN,
-                User::ROLE_WORKER,
-                User::ROLE_USER,
-            ])],
+            'role' => ['required', 'string', Rule::enum(UserRole::class)],
         ];
     }
 }

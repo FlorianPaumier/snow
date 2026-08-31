@@ -1,4 +1,5 @@
 import { Head, Link } from '@inertiajs/react';
+import type { InertiaLinkProps } from '@inertiajs/react';
 import { ArrowLeft } from 'lucide-react';
 import type { PropsWithChildren } from 'react';
 import Heading from '@/components/heading';
@@ -7,6 +8,8 @@ import { Spinner } from '@/components/ui/spinner';
 import AppLayout from '@/layouts/app-layout';
 import { cn } from '@/lib/utils';
 import type { BreadcrumbItem } from '@/types';
+
+type LinkHref = NonNullable<InertiaLinkProps['href']>;
 
 /**
  * Shared layout for app-side forms.
@@ -38,7 +41,7 @@ export default function AppFormLayout({
     title: string;
     description?: string;
     breadcrumbs: BreadcrumbItem[];
-    backHref?: string;
+    backHref?: LinkHref;
     backLabel?: string;
     headTitle?: string;
 }>) {
@@ -90,7 +93,7 @@ export function FormFooter({
 }
 
 /** Secondary cancel action rendered inside a FormFooter. */
-export function CancelButton({ href }: { href: string }) {
+export function CancelButton({ href }: { href: LinkHref }) {
     return (
         <Button asChild variant="outline" type="button">
             <Link href={href} prefetch>

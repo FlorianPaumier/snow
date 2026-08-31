@@ -30,7 +30,7 @@ export default function Create() {
             title="New user"
             description="Add a new user by providing a name, email, and role"
             breadcrumbs={breadcrumbs}
-            backHref={index()}
+            backHref={index().url}
             backLabel="Users"
         >
             <Form
@@ -110,7 +110,7 @@ export default function Create() {
                         </div>
 
                         <FormFooter>
-                            <CancelButton href={index()} />
+                            <CancelButton href={index().url} />
                             <SubmitButton processing={processing}>
                                 Create user
                             </SubmitButton>

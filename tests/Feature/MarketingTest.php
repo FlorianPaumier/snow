@@ -53,3 +53,44 @@ it('validates the contact inquiry payload', function (): void {
 
     Mail::assertNothingSent();
 });
+
+it('validates the contact inquiry bounds and enum fields', function (array $payload, array $expectedErrors): void {
+    Mail::fake();
+
+    $base = [
+        'name' => 'Dana Kowalski',
+        'email' => 'dana@example.com',
+        'message' => 'We run six trucks across the metro and need dispatch.',
+    ];
+
+    $response = $this->postJson('/contact', [...$base, ...$payload]);
+
+    $response->assertUnprocessable()->assertInvalid($expectedErrors);
+
+    Mail::assertNothingSent();
+})->with([
+    'unknown fleet size' => [['fleetSize' => '15-30'], ['fleetSize']],
+    'company over 255 characters' => [['company' => str_repeat('a', 256)], ['company']],
+    'name over 255 characters' => [['name' => str_repeat('a', 256)], ['name']],
+    'message over 5000 characters' => [['message' => str_repeat('a', 5001)], ['message']],
+]);
+
+it('accepts every documented fleet size option', function (string $fleetSize): void {
+    Mail::fake();
+
+    $response = $this->postJson('/contact', [
+        'name' => 'Dana Kowalski',
+        'email' => 'dana@example.com',
+        'fleetSize' => $fleetSize,
+        'message' => 'We run six trucks across the metro and need dispatch.',
+    ]);
+
+    $response->assertOk()->assertJson(['ok' => true]);
+
+    Mail::assertQueued(ContactInquiryMail::class, 1);
+})->with([
+    '1-3' => ['1-3'],
+    '4-10' => ['4-10'],
+    '11-50' => ['11-50'],
+    '50+' => ['50+'],
+]);

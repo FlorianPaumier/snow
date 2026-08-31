@@ -2,10 +2,12 @@
 
 declare(strict_types=1);
 
+use App\Mail\LoginChallengeCodeMail;
 use App\Models\User;
 use Illuminate\Auth\Events\Lockout;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 
 it('renders login page', function (): void {
     $response = $this->fromRoute('home')
@@ -18,7 +20,34 @@ it('renders login page', function (): void {
             ->has('status'));
 });
 
-it('may create a session', function (): void {
+it('challenges every login with an emailed code', function (): void {
+    Mail::fake();
+
+    $user = User::factory()->create([
+        'email' => 'test@example.com',
+        'password' => Hash::make('password'),
+    ]);
+
+    $response = $this->fromRoute('login')
+        ->post(route('login.store'), [
+            'email' => 'test@example.com',
+            'password' => 'password',
+        ]);
+
+    Mail::assertQueued(LoginChallengeCodeMail::class, fn (LoginChallengeCodeMail $mail): bool => $mail->code !== '');
+
+    $response->assertRedirectToRoute('login-challenge.show');
+
+    expect(session('login.id'))->toBe($user->getKey())
+        ->and($user->refresh()->login_challenge_code)->not->toBeNull()
+        ->and($user->login_challenge_code_expires_at)->not->toBeNull();
+
+    $this->assertGuest();
+});
+
+it('challenges login even when two-factor authentication is not enrolled', function (): void {
+    Mail::fake();
+
     $user = User::factory()->withoutTwoFactor()->create([
         'email' => 'test@example.com',
         'password' => Hash::make('password'),
@@ -30,13 +59,17 @@ it('may create a session', function (): void {
             'password' => 'password',
         ]);
 
-    $response->assertRedirectToRoute('dashboard');
+    Mail::assertQueued(LoginChallengeCodeMail::class);
 
-    $this->assertAuthenticatedAs($user);
+    $response->assertRedirectToRoute('login-challenge.show');
+
+    $this->assertGuest();
 });
 
-it('may create a session with remember me', function (): void {
-    $user = User::factory()->withoutTwoFactor()->create([
+it('remembers the remember-me preference for the challenge', function (): void {
+    Mail::fake();
+
+    $user = User::factory()->create([
         'email' => 'test@example.com',
         'password' => Hash::make('password'),
     ]);
@@ -48,27 +81,9 @@ it('may create a session with remember me', function (): void {
             'remember' => true,
         ]);
 
-    $response->assertRedirectToRoute('dashboard');
+    $response->assertRedirectToRoute('login-challenge.show');
 
-    $this->assertAuthenticatedAs($user);
-});
-
-it('redirects to two-factor challenge when enabled', function (): void {
-    $user = User::factory()->create([
-        'email' => 'test@example.com',
-        'password' => Hash::make('password'),
-        'two_factor_secret' => encrypt('secret'),
-        'two_factor_recovery_codes' => encrypt(json_encode(['code1', 'code2'])),
-        'two_factor_confirmed_at' => now(),
-    ]);
-
-    $response = $this->fromRoute('login')
-        ->post(route('login.store'), [
-            'email' => 'test@example.com',
-            'password' => 'password',
-        ]);
-
-    $response->assertRedirectToRoute('two-factor.login');
+    expect(session('login.remember'))->toBeTrue();
 
     $this->assertGuest();
 });
@@ -162,7 +177,9 @@ it('throttles login attempts after too many failures', function (): void {
     expect($errors->get('email')[0])->toContain('Too many login attempts');
 });
 
-it('clears rate limit after successful login', function (): void {
+it('clears rate limit after a successful login attempt', function (): void {
+    Mail::fake();
+
     $user = User::factory()->withoutTwoFactor()->create([
         'email' => 'test@example.com',
         'password' => Hash::make('password'),
@@ -177,15 +194,22 @@ it('clears rate limit after successful login', function (): void {
             ]);
     }
 
-    // Successful login should clear the rate limit
+    // A successful credential check should clear the rate limit
     $response = $this->fromRoute('login')
         ->post(route('login.store'), [
             'email' => 'test@example.com',
             'password' => 'password',
         ]);
 
-    $response->assertRedirectToRoute('dashboard');
-    $this->assertAuthenticatedAs($user);
+    $response->assertRedirectToRoute('login-challenge.show');
+
+    // The rate limit was cleared, so a subsequent attempt is not throttled...
+    $this->fromRoute('login')
+        ->post(route('login.store'), [
+            'email' => 'test@example.com',
+            'password' => 'password',
+        ])
+        ->assertRedirectToRoute('login-challenge.show');
 });
 
 it('dispatches lockout event when rate limit is reached', function (): void {

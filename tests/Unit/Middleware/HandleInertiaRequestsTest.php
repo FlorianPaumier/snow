@@ -2,12 +2,13 @@
 
 declare(strict_types=1);
 
+use App\Actions\GetSubscriptionSummary;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Models\User;
 use Illuminate\Http\Request;
 
 it('shares app name from config', function (): void {
-    $middleware = new HandleInertiaRequests();
+    $middleware = new HandleInertiaRequests(new GetSubscriptionSummary());
 
     $request = Request::create('/', 'GET');
 
@@ -18,7 +19,7 @@ it('shares app name from config', function (): void {
 });
 
 it('shares null user when guest', function (): void {
-    $middleware = new HandleInertiaRequests();
+    $middleware = new HandleInertiaRequests(new GetSubscriptionSummary());
 
     $request = Request::create('/', 'GET');
 
@@ -35,7 +36,7 @@ it('shares authenticated user data', function (): void {
         'email' => 'test@example.com',
     ]);
 
-    $middleware = new HandleInertiaRequests();
+    $middleware = new HandleInertiaRequests(new GetSubscriptionSummary());
 
     $request = Request::create('/', 'GET');
     $request->setUserResolver(fn () => $user);
@@ -49,7 +50,7 @@ it('shares authenticated user data', function (): void {
 });
 
 it('defaults sidebarOpen to true when no cookie', function (): void {
-    $middleware = new HandleInertiaRequests();
+    $middleware = new HandleInertiaRequests(new GetSubscriptionSummary());
 
     $request = Request::create('/', 'GET');
 
@@ -60,7 +61,7 @@ it('defaults sidebarOpen to true when no cookie', function (): void {
 });
 
 it('sets sidebarOpen to true when cookie is true', function (): void {
-    $middleware = new HandleInertiaRequests();
+    $middleware = new HandleInertiaRequests(new GetSubscriptionSummary());
 
     $request = Request::create('/', 'GET');
     $request->cookies->set('sidebar_state', 'true');
@@ -71,7 +72,7 @@ it('sets sidebarOpen to true when cookie is true', function (): void {
 });
 
 it('sets sidebarOpen to false when cookie is false', function (): void {
-    $middleware = new HandleInertiaRequests();
+    $middleware = new HandleInertiaRequests(new GetSubscriptionSummary());
 
     $request = Request::create('/', 'GET');
     $request->cookies->set('sidebar_state', 'false');
@@ -82,7 +83,7 @@ it('sets sidebarOpen to false when cookie is false', function (): void {
 });
 
 it('includes parent shared data', function (): void {
-    $middleware = new HandleInertiaRequests();
+    $middleware = new HandleInertiaRequests(new GetSubscriptionSummary());
 
     $request = Request::create('/', 'GET');
 
