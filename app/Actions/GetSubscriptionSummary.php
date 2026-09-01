@@ -24,10 +24,12 @@ final class GetSubscriptionSummary
         $subscription = $organization->subscription();
 
         if ($subscription === null) {
+            $onTrial = $organization->onTrial();
+
             return [
                 'plan' => null,
-                'status' => 'trialing',
-                'onTrial' => true,
+                'status' => $onTrial ? 'trialing' : 'none',
+                'onTrial' => $onTrial,
                 'trialEndsAt' => $organization->trial_ends_at?->toIso8601String(),
             ];
         }
