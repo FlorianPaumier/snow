@@ -31,7 +31,7 @@ final readonly class GrantAccessUnlock
 
             // The unlock exists only for organizations that cannot act;
             // one grant per lifetime...
-            if (! $verdict['readOnly'] || $verdict['unlockedUntil'] !== null) {
+            if (! $verdict['readOnly'] || ! $verdict['unlockAvailable']) {
                 throw new OrganizationReadOnly(__('statuses.unlock_used'));
             }
 

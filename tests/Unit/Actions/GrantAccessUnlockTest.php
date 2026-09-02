@@ -27,6 +27,12 @@ it('refuses to grant the unlock twice', function (): void {
     resolve(GrantAccessUnlock::class)->handle($this->admin);
 })->throws(OrganizationReadOnly::class);
 
+it('refuses the unlock once the first one has expired', function (): void {
+    $this->organization->forceFill(['access_unlock_until' => now()->subHour()])->save();
+
+    resolve(GrantAccessUnlock::class)->handle($this->admin);
+})->throws(OrganizationReadOnly::class);
+
 it('refuses the unlock when the org already has full access', function (): void {
     $organization = Organization::factory()->create(); // trial running...
 

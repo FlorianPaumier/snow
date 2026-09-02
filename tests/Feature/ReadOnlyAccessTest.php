@@ -140,6 +140,21 @@ it('refuses the unlock a second time', function (): void {
         ->toBe(now()->addHours(24)->toIso8601String()); // unchanged...
 });
 
+it('refuses the unlock after the first one has expired', function (): void {
+    $this->organization->forceFill(['access_unlock_until' => now()->subHour()])->save();
+
+    $response = $this->actingAs($this->admin)
+        ->fromRoute('billing.index')
+        ->withHeaders(['X-Inertia' => 'true'])
+        ->post(route('billing.unlock'));
+
+    $response->assertRedirectToRoute('billing.index')
+        ->assertSessionHas('errors');
+
+    expect($this->organization->fresh()->access_unlock_until?->toIso8601String())
+        ->toBe(now()->subHour()->toIso8601String()); // unchanged...
+});
+
 /**
  * Local copy of the bindFakeStripeClient() helper from
  * tests/Feature/BillingControllerTest.php: Pest only loads a file's
