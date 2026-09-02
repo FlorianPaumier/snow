@@ -232,3 +232,54 @@ it('accepts a webhook without a customer id without flushing anything', function
 
     expect(Cache::has($versionKey))->toBeTrue();
 });
+
+it('restores full access when a Stripe subscription becomes active', function (): void {
+    $this->admin->organization->forceFill([
+        'trial_ends_at' => now()->subDay(),
+        'stripe_id' => 'cus_test_123',
+    ])->save();
+
+    // Seed a read-only verdict...
+    $this->actingAs($this->admin)
+        ->get(route('dashboard'))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->where('auth.access.readOnly', true));
+
+    // A subscription update webhook for this organization's customer,
+    // shaped as Stripe sends it (Cashier reads items.data[0])...
+    $this->postJson(route('cashier.webhook'), [
+        'id' => 'evt_access',
+        'type' => 'customer.subscription.updated',
+        'data' => [
+            'object' => [
+                'id' => 'sub_access',
+                'customer' => 'cus_test_123',
+                'status' => 'active',
+                'items' => [
+                    'data' => [
+                        [
+                            'id' => 'si_access',
+                            'price' => ['id' => 'price_test', 'product' => 'prod_test'],
+                            'quantity' => 1,
+                        ],
+                    ],
+                ],
+                'metadata' => ['name' => 'starter'],
+            ],
+        ],
+    ])->assertOk();
+
+    // The acting user instance persists across test requests, and its
+    // cached organization still carries the pre-webhook subscriptions
+    // relation. Real requests hydrate the user per request, so drop the
+    // stale relation and let the recomputed verdict query fresh...
+    $this->admin->unsetRelation('organization');
+
+    // The verdict recomputed from the flushed cache: mutations work again...
+    $this->actingAs($this->admin)
+        ->get(route('dashboard'))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->where('auth.access.readOnly', false));
+});
