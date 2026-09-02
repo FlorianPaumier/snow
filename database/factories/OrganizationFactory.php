@@ -37,4 +37,18 @@ final class OrganizationFactory extends Factory
             'owner_id' => $user->id,
         ]);
     }
+
+    public function expired(): self
+    {
+        return $this->state(fn (): array => [
+            'trial_ends_at' => now()->subDay(),
+        ]);
+    }
+
+    public function unlocked(): self
+    {
+        return $this->state(fn (): array => [
+            'access_unlock_until' => now()->addHours(24),
+        ]);
+    }
 }

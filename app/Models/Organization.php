@@ -19,6 +19,7 @@ use Laravel\Cashier\Billable;
  * @property-read string|null $owner_id
  * @property-read User|null $owner
  * @property-read CarbonInterface|null $trial_ends_at
+ * @property-read CarbonInterface|null $access_unlock_until
  * @property-read CarbonInterface $created_at
  * @property-read CarbonInterface $updated_at
  */
@@ -41,6 +42,7 @@ final class Organization extends Model
             'name' => 'string',
             'owner_id' => 'string',
             'trial_ends_at' => 'datetime',
+            'access_unlock_until' => 'datetime',
             'created_at' => 'datetime',
             'updated_at' => 'datetime',
         ];

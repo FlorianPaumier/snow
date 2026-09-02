@@ -341,6 +341,14 @@ const fr = {
         clientCount: ':count clients',
         subscribeMonthly: "S'abonner au mensuel",
         subscribeAnnually: "S'abonner à l'annuel",
+        readOnlyTitle: 'Votre essai est terminé',
+        readOnlyBody:
+            'Vos données sont en lecture seule — passez à un forfait pour continuer à gérer votre organisation.',
+        readOnlyUpgrade: 'Passer à un forfait',
+        readOnlyUnlock: 'Débloquer 24 heures (unique)',
+        readOnlyPaymentTitle: 'Problème de paiement',
+        readOnlyPaymentBody:
+            'Votre abonnement n\u2019est pas actif actuellement. Vos données sont en lecture seule jusqu\u2019au rétablissement du paiement.',
         pricesNote:
             'Les prix sont gérés dans Stripe. Vous avez besoin d\u2019une entente particulière?',
         contactUs: 'Nous contacter',
