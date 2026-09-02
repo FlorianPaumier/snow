@@ -37,7 +37,7 @@ it('lists only clients of the current organization', function (): void {
 
     // Sanity check via the model layer, since the client index paginates...
     expect(Client::query()->count())->toBe(0)
-        ->and(Client::withoutGlobalScopes()->where('organization_id', $this->organizationB->id)->count())->toBe(1);
+        ->and(Client::query()->withoutGlobalScopes()->where('organization_id', $this->organizationB->id)->count())->toBe(1);
 });
 
 it('does not find another organizations user on edit', function (): void {

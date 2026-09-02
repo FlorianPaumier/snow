@@ -35,14 +35,17 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
+import { useLocale } from '@/hooks/use-locale';
 import AppLayout from '@/layouts/app-layout';
-import { formatCurrency } from '@/lib/utils';
+import { interpolate, useCurrencyFormatter } from '@/lib/utils';
 import { dashboard } from '@/routes';
+import type { BreadcrumbItem } from '@/types';
 import ClientEvolutionChart, {
     type ClientEvolutionPoint,
 } from './dashboard/components/client-evolution-chart';
-import RevenueChart, { type RevenuePoint } from './dashboard/components/revenue-chart';
-import type { BreadcrumbItem } from '@/types';
+import RevenueChart, {
+    type RevenuePoint,
+} from './dashboard/components/revenue-chart';
 
 type SeasonSummary = {
     revenue: number;
@@ -74,23 +77,7 @@ type SeasonRecapRow = {
     contracts_count: number;
 };
 
-const breadcrumbs: BreadcrumbItem[] = [
-    {
-        title: 'Tableau de bord',
-        href: dashboard(),
-    },
-];
-
-const PAYMENT_SLOTS = [
-    { value: 'deposit', label: 'Dépôt' },
-    { value: 'first', label: '1er versement' },
-    { value: 'second', label: '2e versement' },
-    { value: 'balance', label: 'Solde' },
-] as const;
-
-const SLOT_LABELS: Record<string, string> = Object.fromEntries(
-    PAYMENT_SLOTS.map((slot) => [slot.value, slot.label]),
-);
+const PAYMENT_SLOT_VALUES = ['deposit', 'first', 'second', 'balance'] as const;
 
 const initialsOf = (name: string) =>
     name
@@ -102,11 +89,13 @@ const initialsOf = (name: string) =>
         .toUpperCase();
 
 function EmptyRow({ colSpan, hint }: { colSpan: number; hint: string }) {
+    const { t } = useLocale();
+
     return (
         <TableRow>
             <TableCell colSpan={colSpan} className="h-28 text-center">
                 <div className="flex flex-col items-center gap-1.5">
-                    <p className="text-sm font-medium">Aucune donnée</p>
+                    <p className="text-sm font-medium">{t.common.none}</p>
                     <p className="text-xs text-muted-foreground">{hint}</p>
                 </div>
             </TableCell>
@@ -115,6 +104,8 @@ function EmptyRow({ colSpan, hint }: { colSpan: number; hint: string }) {
 }
 
 function ChartLegend() {
+    const { t } = useLocale();
+
     return (
         <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
             <span className="flex items-center gap-1.5">
@@ -122,14 +113,14 @@ function ChartLegend() {
                     aria-hidden="true"
                     className="size-2.5 rounded-sm bg-chart-1"
                 />
-                Revenus
+                {t.dashboard.revenueLegendRevenue}
             </span>
             <span className="flex items-center gap-1.5">
                 <span
                     aria-hidden="true"
                     className="size-2.5 rounded-sm bg-chart-3"
                 />
-                Encaissé
+                {t.dashboard.revenueLegendCollected}
             </span>
         </div>
     );
@@ -154,6 +145,19 @@ export default function Dashboard({
     clientEvolution: ClientEvolutionPoint[];
     slot: string;
 }) {
+    const { t } = useLocale();
+    const formatCurrency = useCurrencyFormatter();
+
+    const breadcrumbs: BreadcrumbItem[] = [
+        {
+            title: t.dashboard.title,
+            href: dashboard(),
+        },
+    ];
+
+    const slotLabel = (value: string) =>
+        t.paymentSlots[value as keyof typeof t.paymentSlots] ?? value;
+
     const selectSeason = (nextSeason: string) => {
         router.get(
             dashboard(),
@@ -172,13 +176,15 @@ export default function Dashboard({
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Tableau de bord" />
+            <Head title={t.dashboard.title} />
 
             <div className="flex h-full flex-1 flex-col gap-6 overflow-x-auto rounded-xl p-4">
                 <div className="flex flex-wrap items-end justify-between gap-4">
                     <Heading
-                        title="Tableau de bord"
-                        description={`Suivi de la saison ${season} en temps réel`}
+                        title={t.dashboard.title}
+                        description={interpolate(t.dashboard.description, {
+                            season,
+                        })}
                     />
 
                     <Select
@@ -188,14 +194,16 @@ export default function Dashboard({
                     >
                         <SelectTrigger
                             id="season"
-                            aria-label="Saison"
+                            aria-label={t.dashboard.seasonLabel}
                             className="w-[180px]"
                         >
                             <CalendarRange
                                 aria-hidden="true"
                                 className="size-4 text-muted-foreground"
                             />
-                            <SelectValue placeholder="Saison" />
+                            <SelectValue
+                                placeholder={t.dashboard.seasonLabel}
+                            />
                         </SelectTrigger>
                         <SelectContent>
                             {seasons.map((seasonOption) => (
@@ -215,7 +223,7 @@ export default function Dashboard({
                     <Card className="@container/card">
                         <CardHeader>
                             <CardDescription>
-                                Revenus de la saison {season}
+                                {interpolate(t.dashboard.revenue, { season })}
                             </CardDescription>
                             <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
                                 {formatCurrency(summary.revenue)}
@@ -226,8 +234,9 @@ export default function Dashboard({
                                         aria-hidden="true"
                                         className={''}
                                     />
-                                    {summary.contracts_count} contrat
-                                    {summary.contracts_count === 1 ? '' : 's'}
+                                    {interpolate(t.dashboard.contracts, {
+                                        count: String(summary.contracts_count),
+                                    })}
                                 </Badge>
                             </CardAction>
                         </CardHeader>
@@ -235,8 +244,10 @@ export default function Dashboard({
 
                     <Card className="@container/card">
                         <CardHeader>
-                            <CardDescription>Montant encaissé</CardDescription>
-                            <CardTitle className="text-2xl font-semibold tabular-nums text-success @[250px]/card:text-3xl">
+                            <CardDescription>
+                                {t.dashboard.collected}
+                            </CardDescription>
+                            <CardTitle className="text-2xl font-semibold text-success tabular-nums @[250px]/card:text-3xl">
                                 {formatCurrency(summary.collected)}
                             </CardTitle>
                             <CardAction>
@@ -246,13 +257,12 @@ export default function Dashboard({
                                         className={''}
                                     />
                                     {summary.revenue > 0
-                                        ? Math.round(
+                                        ? `${Math.round(
                                               (summary.collected /
                                                   summary.revenue) *
                                                   100,
-                                          )
-                                        : 0}
-                                    %
+                                          )}%`
+                                        : '0%'}
                                 </Badge>
                             </CardAction>
                         </CardHeader>
@@ -260,19 +270,18 @@ export default function Dashboard({
 
                     <Card className="@container/card">
                         <CardHeader>
-                            <CardDescription>Solde à percevoir</CardDescription>
+                            <CardDescription>
+                                {t.dashboard.outstanding}
+                            </CardDescription>
                             <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
                                 {formatCurrency(summary.outstanding)}
                             </CardTitle>
                             <CardAction>
                                 <Badge variant="outline">
-                                    <Wallet
-                                        aria-hidden="true"
-                                        className={''}
-                                    />
+                                    <Wallet aria-hidden="true" className={''} />
                                     {summary.outstanding > 0
-                                        ? 'À suivre'
-                                        : 'À jour'}
+                                        ? t.dashboard.outstandingFollow
+                                        : t.dashboard.upToDate}
                                 </Badge>
                             </CardAction>
                         </CardHeader>
@@ -288,10 +297,10 @@ export default function Dashboard({
                                     aria-hidden="true"
                                     className="size-4 text-muted-foreground"
                                 />
-                                Évolution des revenus
+                                {t.dashboard.revenueChartTitle}
                             </CardTitle>
                             <CardDescription>
-                                Revenus et encaissements par saison
+                                {t.dashboard.revenueChartDescription}
                             </CardDescription>
                             <CardAction>
                                 <ChartLegend />
@@ -312,10 +321,10 @@ export default function Dashboard({
                                     aria-hidden="true"
                                     className="size-4 text-muted-foreground"
                                 />
-                                Évolution de la clientèle
+                                {t.dashboard.clientChartTitle}
                             </CardTitle>
                             <CardDescription>
-                                Nouveaux clients et clientèle cumulative
+                                {t.dashboard.clientChartDescription}
                             </CardDescription>
                             <CardAction>
                                 <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
@@ -324,14 +333,14 @@ export default function Dashboard({
                                             aria-hidden="true"
                                             className="size-2.5 rounded-sm bg-chart-4"
                                         />
-                                        Nouveaux
+                                        {t.dashboard.clientLegendNew}
                                     </span>
                                     <span className="flex items-center gap-1.5">
                                         <span
                                             aria-hidden="true"
                                             className="h-0.5 w-4 rounded-sm bg-chart-1"
                                         />
-                                        Total
+                                        {t.dashboard.clientLegendTotal}
                                     </span>
                                 </div>
                             </CardAction>
@@ -353,13 +362,15 @@ export default function Dashboard({
                                 aria-hidden="true"
                                 className="size-4 text-muted-foreground"
                             />
-                            Versements impayés
+                            {t.dashboard.unpaidTitle}
                             <Badge variant="outline" className="font-mono">
                                 {unpaidInstallments.length}
                             </Badge>
                         </CardTitle>
                         <CardDescription>
-                            Clients à relancer pour la saison {season}
+                            {interpolate(t.dashboard.unpaidDescription, {
+                                season,
+                            })}
                         </CardDescription>
                         <CardAction>
                             <Select
@@ -370,18 +381,22 @@ export default function Dashboard({
                                 <SelectTrigger
                                     id="slot"
                                     size="sm"
-                                    aria-label="Versement"
+                                    aria-label={t.dashboard.paymentSlotLabel}
                                     className="w-[170px]"
                                 >
-                                    <SelectValue placeholder="Versement" />
+                                    <SelectValue
+                                        placeholder={
+                                            t.dashboard.paymentSlotLabel
+                                        }
+                                    />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {PAYMENT_SLOTS.map((paymentSlot) => (
+                                    {PAYMENT_SLOT_VALUES.map((paymentSlot) => (
                                         <SelectItem
-                                            key={paymentSlot.value}
-                                            value={paymentSlot.value}
+                                            key={paymentSlot}
+                                            value={paymentSlot}
                                         >
-                                            {paymentSlot.label}
+                                            {slotLabel(paymentSlot)}
                                         </SelectItem>
                                     ))}
                                 </SelectContent>
@@ -392,14 +407,20 @@ export default function Dashboard({
                         <Table>
                             <TableHeader>
                                 <TableRow className="bg-muted/40">
-                                    <TableHead>Client</TableHead>
-                                    <TableHead>Adresse</TableHead>
-                                    <TableHead>Téléphone</TableHead>
-                                    <TableHead className="text-right">
-                                        Montant dû
+                                    <TableHead>
+                                        {t.dashboard.tableClient}
+                                    </TableHead>
+                                    <TableHead>
+                                        {t.dashboard.tableAddress}
+                                    </TableHead>
+                                    <TableHead>
+                                        {t.dashboard.tablePhone}
                                     </TableHead>
                                     <TableHead className="text-right">
-                                        Actions
+                                        {t.dashboard.tableAmountDue}
+                                    </TableHead>
+                                    <TableHead className="text-right">
+                                        {t.common.actions}
                                     </TableHead>
                                 </TableRow>
                             </TableHeader>
@@ -466,7 +487,15 @@ export default function Dashboard({
                                                         variant="ghost"
                                                         size="icon"
                                                         className="size-8 text-muted-foreground hover:text-foreground"
-                                                        aria-label={`Voir le contrat de ${installment.client.displayName}`}
+                                                        aria-label={interpolate(
+                                                            t.dashboard
+                                                                .viewContract,
+                                                            {
+                                                                client: installment
+                                                                    .client
+                                                                    .displayName,
+                                                            },
+                                                        )}
                                                     >
                                                         <Link
                                                             href={ContractController.show.url(
@@ -490,7 +519,10 @@ export default function Dashboard({
                                 ) : (
                                     <EmptyRow
                                         colSpan={5}
-                                        hint={`Tous les ${SLOT_LABELS[slot] ?? 'versements'} de la saison ${season} sont payés.`}
+                                        hint={interpolate(t.dashboard.allPaid, {
+                                            slot: slotLabel(slot),
+                                            season,
+                                        })}
                                     />
                                 )}
                             </TableBody>
@@ -506,28 +538,30 @@ export default function Dashboard({
                                 aria-hidden="true"
                                 className="size-4 text-muted-foreground"
                             />
-                            Revenus par saison
+                            {t.dashboard.recapTitle}
                         </CardTitle>
                         <CardDescription>
-                            Récapitulatif de toutes les saisons
+                            {t.dashboard.recapDescription}
                         </CardDescription>
                     </CardHeader>
                     <div className="overflow-x-auto">
                         <Table>
                             <TableHeader>
                                 <TableRow className="bg-muted/40">
-                                    <TableHead>Saison</TableHead>
-                                    <TableHead className="text-right">
-                                        Contrats
+                                    <TableHead>
+                                        {t.dashboard.recapSeason}
                                     </TableHead>
                                     <TableHead className="text-right">
-                                        Revenus
+                                        {t.dashboard.recapContracts}
                                     </TableHead>
                                     <TableHead className="text-right">
-                                        Encaissé
+                                        {t.dashboard.recapRevenue}
                                     </TableHead>
                                     <TableHead className="text-right">
-                                        À percevoir
+                                        {t.dashboard.recapCollected}
+                                    </TableHead>
+                                    <TableHead className="text-right">
+                                        {t.dashboard.recapOutstanding}
                                     </TableHead>
                                 </TableRow>
                             </TableHeader>
@@ -550,7 +584,10 @@ export default function Dashboard({
                                                             variant="outline"
                                                             className="border-glacier-500/25 bg-glacier-500/10 text-glacier-600 dark:text-glacier-400"
                                                         >
-                                                            En cours
+                                                            {
+                                                                t.dashboard
+                                                                    .recapCurrent
+                                                            }
                                                         </Badge>
                                                     )}
                                                 </span>
@@ -565,14 +602,16 @@ export default function Dashboard({
                                                 {formatCurrency(row.collected)}
                                             </TableCell>
                                             <TableCell className="text-right font-mono text-xs tabular-nums">
-                                                {formatCurrency(row.outstanding)}
+                                                {formatCurrency(
+                                                    row.outstanding,
+                                                )}
                                             </TableCell>
                                         </TableRow>
                                     ))
                                 ) : (
                                     <EmptyRow
                                         colSpan={5}
-                                        hint="Aucun contrat n'est encore enregistré."
+                                        hint={t.dashboard.noContractsYet}
                                     />
                                 )}
                             </TableBody>

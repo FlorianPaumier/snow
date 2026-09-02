@@ -60,7 +60,7 @@ it('locks paid installments when editing a contract', function (): void {
 
     $page = loginViaUi($admin);
 
-    $page->navigate("/contracts/{$contract->id}/edit");
+    $page->navigate(sprintf('/contracts/%s/edit', $contract->id));
     $page->wait(2);
 
     $page->assertDisabled('#payments-deposit')
@@ -86,13 +86,13 @@ it('is accessible on the contract pages', function (): void {
     $page->assertNoAccessibilityIssues(3)
         ->assertNoSmoke();
 
-    $page->navigate("/contracts/{$contract->id}");
+    $page->navigate('/contracts/'.$contract->id);
     $page->wait(2);
     settleForAccessibilityScan($page);
     $page->assertNoAccessibilityIssues(3)
         ->assertNoSmoke();
 
-    $page->navigate("/contracts/{$contract->id}/edit");
+    $page->navigate(sprintf('/contracts/%s/edit', $contract->id));
     $page->wait(2);
     settleForAccessibilityScan($page);
     $page->assertNoAccessibilityIssues(3)

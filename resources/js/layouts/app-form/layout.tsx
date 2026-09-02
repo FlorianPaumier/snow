@@ -5,6 +5,7 @@ import type { PropsWithChildren } from 'react';
 import Heading from '@/components/heading';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
+import { useLocale } from '@/hooks/use-locale';
 import AppLayout from '@/layouts/app-layout';
 import { cn } from '@/lib/utils';
 import type { BreadcrumbItem } from '@/types';
@@ -45,6 +46,8 @@ export default function AppFormLayout({
     backLabel?: string;
     headTitle?: string;
 }>) {
+    const { t } = useLocale();
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title={headTitle ?? title} />
@@ -59,7 +62,7 @@ export default function AppFormLayout({
                     >
                         <Link href={backHref} prefetch>
                             <ArrowLeft className="size-4" />
-                            {backLabel ?? 'Back'}
+                            {backLabel ?? t.common.back}
                         </Link>
                     </Button>
                 )}
@@ -94,10 +97,12 @@ export function FormFooter({
 
 /** Secondary cancel action rendered inside a FormFooter. */
 export function CancelButton({ href }: { href: LinkHref }) {
+    const { t } = useLocale();
+
     return (
         <Button asChild variant="outline" type="button">
             <Link href={href} prefetch>
-                Cancel
+                {t.common.cancel}
             </Link>
         </Button>
     );

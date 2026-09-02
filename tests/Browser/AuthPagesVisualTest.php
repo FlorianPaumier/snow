@@ -44,7 +44,7 @@ it('matches the login challenge page visual', function (): void {
         ->resize(1440, 900)
         ->fill('#email', $user->email)
         ->fill('#password', 'password1234')
-        ->press('Log in');
+        ->press('Se connecter');
 
     $page->wait(2);
 

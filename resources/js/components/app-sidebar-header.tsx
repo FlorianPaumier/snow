@@ -20,9 +20,7 @@ export function AppSidebarHeader({
                 <Breadcrumbs breadcrumbs={breadcrumbs} />
             </div>
 
-            {pageTitle && (
-                <h1 className="sr-only">{pageTitle}</h1>
-            )}
+            {pageTitle && <h1 className="sr-only">{pageTitle}</h1>}
         </header>
     );
 }

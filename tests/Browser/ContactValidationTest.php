@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use Illuminate\Support\Facades\Mail;
+
 /**
  * The contact page is the only page with hand-rolled client-side validation
  * (min lengths, email pattern, touched-based re-validation) and it maps

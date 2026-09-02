@@ -11,6 +11,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
+import { useLocale } from '@/hooks/use-locale';
 import AppFormLayout, {
     CancelButton,
     FormFooter,
@@ -19,19 +20,21 @@ import AppFormLayout, {
 import { index } from '@/routes/users';
 import type { BreadcrumbItem } from '@/types';
 
-const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Users', href: index() },
-    { title: 'New user', href: '/users/create' },
-];
-
 export default function Create() {
+    const { t } = useLocale();
+
+    const breadcrumbs: BreadcrumbItem[] = [
+        { title: t.users.title, href: index() },
+        { title: t.users.newUserTitle, href: '/users/create' },
+    ];
+
     return (
         <AppFormLayout
-            title="New user"
-            description="Add a new user by providing a name, email, and role"
+            title={t.users.newUserTitle}
+            description={t.users.newUserDescription}
             breadcrumbs={breadcrumbs}
             backHref={index().url}
-            backLabel="Users"
+            backLabel={t.users.title}
         >
             <Form
                 {...UserManagementController.store.form()}
@@ -42,20 +45,20 @@ export default function Create() {
                 {({ processing, errors }) => (
                     <>
                         <div className="grid gap-2">
-                            <Label htmlFor="name">Name</Label>
+                            <Label htmlFor="name">{t.users.nameField}</Label>
                             <Input
                                 id="name"
                                 type="text"
                                 required
                                 autoFocus
                                 name="name"
-                                placeholder="Full name"
+                                placeholder={t.auth.fullNamePlaceholder}
                             />
                             <InputError message={errors.name} />
                         </div>
 
                         <div className="grid gap-2">
-                            <Label htmlFor="email">Email address</Label>
+                            <Label htmlFor="email">{t.users.emailField}</Label>
                             <Input
                                 id="email"
                                 type="email"
@@ -67,25 +70,27 @@ export default function Create() {
                         </div>
 
                         <div className="grid gap-2">
-                            <Label htmlFor="password">Password</Label>
+                            <Label htmlFor="password">
+                                {t.users.passwordField}
+                            </Label>
                             <PasswordInput
                                 id="password"
                                 required
                                 name="password"
-                                placeholder="Password"
+                                placeholder={t.users.passwordField}
                             />
                             <InputError message={errors.password} />
                         </div>
 
                         <div className="grid gap-2">
                             <Label htmlFor="password_confirmation">
-                                Confirm password
+                                {t.users.confirmPasswordField}
                             </Label>
                             <PasswordInput
                                 id="password_confirmation"
                                 required
                                 name="password_confirmation"
-                                placeholder="Confirm password"
+                                placeholder={t.users.confirmPasswordField}
                             />
                             <InputError
                                 message={errors.password_confirmation}
@@ -93,17 +98,25 @@ export default function Create() {
                         </div>
 
                         <div className="grid gap-2">
-                            <Label htmlFor="role">Role</Label>
+                            <Label htmlFor="role">{t.users.roleField}</Label>
                             <Select name="role" defaultValue="user">
                                 <SelectTrigger id="role" className="w-full">
-                                    <SelectValue placeholder="Select a role" />
+                                    <SelectValue
+                                        placeholder={
+                                            t.users.selectRolePlaceholder
+                                        }
+                                    />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="admin">Admin</SelectItem>
-                                    <SelectItem value="worker">
-                                        Worker
+                                    <SelectItem value="admin">
+                                        {t.users.roleAdmin}
                                     </SelectItem>
-                                    <SelectItem value="user">User</SelectItem>
+                                    <SelectItem value="worker">
+                                        {t.users.roleWorker}
+                                    </SelectItem>
+                                    <SelectItem value="user">
+                                        {t.users.roleUser}
+                                    </SelectItem>
                                 </SelectContent>
                             </Select>
                             <InputError message={errors.role} />
@@ -112,7 +125,7 @@ export default function Create() {
                         <FormFooter>
                             <CancelButton href={index().url} />
                             <SubmitButton processing={processing}>
-                                Create user
+                                {t.users.createUserButton}
                             </SubmitButton>
                         </FormFooter>
                     </>

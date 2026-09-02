@@ -38,8 +38,9 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
+import { useLocale } from '@/hooks/use-locale';
 import AppLayout from '@/layouts/app-layout';
-import { formatCurrency } from '@/lib/utils';
+import { interpolate, useCurrencyFormatter } from '@/lib/utils';
 import type { BreadcrumbItem } from '@/types';
 
 type ContractRecord = {
@@ -77,10 +78,6 @@ type MethodOption = {
     label: string;
 };
 
-const breadcrumbsBase: BreadcrumbItem[] = [
-    { title: 'Contrats', href: '/contracts' },
-];
-
 export default function Show({
     contract,
     methods,
@@ -88,6 +85,8 @@ export default function Show({
     contract: ContractRecord;
     methods: MethodOption[];
 }) {
+    const { t } = useLocale();
+    const formatCurrency = useCurrencyFormatter();
     const { status, errors, auth } = usePage().props;
     const canManageContracts = auth.can?.manageContracts ?? false;
     const [markPaidTarget, setMarkPaidTarget] = useState<
@@ -96,7 +95,6 @@ export default function Show({
     const [method, setMethod] = useState('');
 
     const breadcrumbs: BreadcrumbItem[] = [
-        ...breadcrumbsBase,
         {
             title: `${contract.client.displayName} · ${contract.season}`,
             href: ContractController.show.url({ contract: contract.id }),
@@ -132,14 +130,15 @@ export default function Show({
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head
-                title={`Contrat ${contract.client.displayName} ${contract.season}`}
+                title={interpolate(t.contracts.pageHeadTitle, {
+                    client: contract.client.displayName,
+                    season: contract.season,
+                })}
             />
 
             <div className="flex h-full flex-1 flex-col gap-6 p-4">
                 {typeof status === 'string' && (
-                    <p className="text-sm text-green-600 dark:text-green-400">
-                        {status}
-                    </p>
+                    <p className="text-sm text-success">{status}</p>
                 )}
 
                 {typeof errors.contract === 'string' && (
@@ -163,8 +162,13 @@ export default function Show({
                                 {contract.client.clientNumber}
                             </p>
                             <Heading
-                                title={`Contrat ${contract.season}`}
-                                description={`Signé avec ${contract.client.displayName}`}
+                                title={interpolate(t.contracts.showTitle, {
+                                    season: contract.season,
+                                })}
+                                description={interpolate(
+                                    t.contracts.signedWith,
+                                    { client: contract.client.displayName },
+                                )}
                             />
                             <div className="flex flex-wrap items-center gap-2">
                                 <Link
@@ -173,7 +177,7 @@ export default function Show({
                                     })}
                                     className="text-xs text-muted-foreground hover:text-foreground"
                                 >
-                                    Voir la fiche du client
+                                    {t.contracts.viewClientRecord}
                                 </Link>
                                 <Badge
                                     variant="outline"
@@ -190,14 +194,16 @@ export default function Show({
                         <div className="p-5">
                             <h3 className="mb-3 flex items-center gap-2 text-sm font-medium">
                                 <User aria-hidden="true" className="size-4" />
-                                Services
+                                {t.contracts.servicesSection}
                             </h3>
                             <Table>
                                 <TableHeader>
                                     <TableRow>
-                                        <TableHead>Service</TableHead>
+                                        <TableHead>
+                                            {t.contracts.fieldService}
+                                        </TableHead>
                                         <TableHead className="text-right">
-                                            Montant
+                                            {t.contracts.fieldAmount}
                                         </TableHead>
                                     </TableRow>
                                 </TableHeader>
@@ -214,7 +220,7 @@ export default function Show({
                                     ))}
                                     <TableRow className="bg-muted/30">
                                         <TableCell className="text-sm font-medium">
-                                            Total des services
+                                            {t.contracts.totalServices}
                                         </TableCell>
                                         <TableCell className="text-right font-mono text-xs font-medium tabular-nums">
                                             {formatCurrency(contract.total)}
@@ -233,18 +239,22 @@ export default function Show({
                                     aria-hidden="true"
                                     className="size-4"
                                 />
-                                Versements
+                                {t.contracts.installments}
                             </h3>
                             <Table>
                                 <TableHeader>
                                     <TableRow>
-                                        <TableHead>Versement</TableHead>
-                                        <TableHead className="text-right">
-                                            Montant
+                                        <TableHead>
+                                            {t.contracts.installmentColumn}
                                         </TableHead>
-                                        <TableHead>Statut</TableHead>
                                         <TableHead className="text-right">
-                                            Actions
+                                            {t.contracts.fieldAmount}
+                                        </TableHead>
+                                        <TableHead>
+                                            {t.contracts.columnStatus}
+                                        </TableHead>
+                                        <TableHead className="text-right">
+                                            {t.common.actions}
                                         </TableHead>
                                     </TableRow>
                                 </TableHeader>
@@ -271,7 +281,10 @@ export default function Show({
                                                         variant="outline"
                                                         className="border-border bg-muted text-muted-foreground"
                                                     >
-                                                        À encaisser
+                                                        {
+                                                            t.contracts
+                                                                .statusPending
+                                                        }
                                                     </Badge>
                                                 )}
                                             </TableCell>
@@ -289,13 +302,22 @@ export default function Show({
                                                                         payment,
                                                                     )
                                                                 }
-                                                                aria-label={`Annuler l'encaissement du ${payment.slotLabel}`}
+                                                                aria-label={interpolate(
+                                                                    t.contracts
+                                                                        .unmarkPaidAria,
+                                                                    {
+                                                                        slot: payment.slotLabel,
+                                                                    },
+                                                                )}
                                                             >
                                                                 <Undo2
                                                                     aria-hidden="true"
                                                                     className="size-4"
                                                                 />
-                                                                Annuler
+                                                                {
+                                                                    t.contracts
+                                                                        .confirmUnmark
+                                                                }
                                                             </Button>
                                                         ) : (
                                                             <Button
@@ -310,10 +332,19 @@ export default function Show({
                                                                         '',
                                                                     );
                                                                 }}
-                                                                aria-label={`Encaisser le ${payment.slotLabel}`}
+                                                                aria-label={interpolate(
+                                                                    t.contracts
+                                                                        .markPaid,
+                                                                    {
+                                                                        slot: payment.slotLabel,
+                                                                    },
+                                                                )}
                                                                 data-test={`mark-paid-${payment.slot}`}
                                                             >
-                                                                Encaisser
+                                                                {
+                                                                    t.contracts
+                                                                        .confirmCollect
+                                                                }
                                                             </Button>
                                                         )}
                                                     </div>
@@ -323,16 +354,23 @@ export default function Show({
                                     ))}
                                     <TableRow className="bg-muted/30">
                                         <TableCell className="text-sm font-medium">
-                                            Encaissé
+                                            {t.contracts.collectedSummary}
                                         </TableCell>
                                         <TableCell
                                             colSpan={3}
                                             className="text-right font-mono text-xs font-medium text-success tabular-nums"
                                         >
-                                            {formatCurrency(contract.collected)}{' '}
-                                            / Solde{' '}
-                                            {formatCurrency(
-                                                contract.outstanding,
+                                            {interpolate(
+                                                t.contracts
+                                                    .collectedOverBalance,
+                                                {
+                                                    collected: formatCurrency(
+                                                        contract.collected,
+                                                    ),
+                                                    outstanding: formatCurrency(
+                                                        contract.outstanding,
+                                                    ),
+                                                },
                                             )}
                                         </TableCell>
                                     </TableRow>
@@ -353,7 +391,7 @@ export default function Show({
                                             prefetch
                                         >
                                             <Pencil aria-hidden="true" />{' '}
-                                            Modifier le contrat
+                                            {t.contracts.editContractAction}
                                         </Link>
                                     </Button>
                                     <Button
@@ -368,8 +406,8 @@ export default function Show({
                                         }
                                         data-test="delete-contract"
                                     >
-                                        <Trash2 aria-hidden="true" /> Supprimer
-                                        le contrat
+                                        <Trash2 aria-hidden="true" />{' '}
+                                        {t.contracts.deleteContractAction}
                                     </Button>
                                 </div>
                             </>
@@ -391,15 +429,16 @@ export default function Show({
                 <DialogContent className="sm:max-w-md">
                     <DialogHeader>
                         <DialogTitle>
-                            Encaisser le {markPaidTarget?.slotLabel} (
-                            {markPaidTarget
-                                ? formatCurrency(markPaidTarget.amount)
-                                : ''}
-                            )
+                            {markPaidTarget !== null &&
+                                interpolate(t.contracts.markPaidDialogTitle, {
+                                    slot: markPaidTarget.slotLabel,
+                                    amount: formatCurrency(
+                                        markPaidTarget.amount,
+                                    ),
+                                })}
                         </DialogTitle>
                         <DialogDescription>
-                            Choisissez le mode de paiement. La date
-                            d'encaissement sera aujourd'hui.
+                            {t.contracts.markPaidDialogDescription}
                         </DialogDescription>
                     </DialogHeader>
 
@@ -410,7 +449,9 @@ export default function Show({
                             onValueChange={setMethod}
                         >
                             <SelectTrigger id="method" className="w-full">
-                                <SelectValue placeholder="Mode de paiement" />
+                                <SelectValue
+                                    placeholder={t.contracts.paymentMethod}
+                                />
                             </SelectTrigger>
                             <SelectContent>
                                 {methods.map((methodOption) => (
@@ -439,7 +480,7 @@ export default function Show({
                                 setMethod('');
                             }}
                         >
-                            Annuler
+                            {t.common.cancel}
                         </Button>
                         <Button
                             type="button"
@@ -447,7 +488,7 @@ export default function Show({
                             onClick={confirmMarkPaid}
                             data-test="confirm-mark-paid"
                         >
-                            Encaisser
+                            {t.contracts.confirmCollect}
                         </Button>
                     </DialogFooter>
                 </DialogContent>

@@ -4,40 +4,48 @@ import Heading from '@/components/heading';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { useCurrentUrl } from '@/hooks/use-current-url';
+import { useLocale } from '@/hooks/use-locale';
 import { cn, toUrl } from '@/lib/utils';
 import { edit as editAppearance } from '@/routes/appearance';
 import { index as billingIndex } from '@/routes/billing';
+import { edit as editLocale } from '@/routes/locale';
 import { edit as editPassword } from '@/routes/password';
 import { edit } from '@/routes/user-profile';
 import type { NavItem } from '@/types';
 
-const sidebarNavItems: NavItem[] = [
-    {
-        title: 'Profile',
-        href: edit(),
-        icon: null,
-    },
-    {
-        title: 'Password',
-        href: editPassword(),
-        icon: null,
-    },
-    {
-        title: 'Appearance',
-        href: editAppearance(),
-        icon: null,
-    },
-];
-
-const billingNavItem: NavItem = {
-    title: 'Billing',
-    href: billingIndex(),
-    icon: null,
-};
-
 export default function SettingsLayout({ children }: PropsWithChildren) {
     const { isCurrentOrParentUrl } = useCurrentUrl();
     const { auth } = usePage().props;
+    const { t } = useLocale();
+
+    const sidebarNavItems: NavItem[] = [
+        {
+            title: t.settings.profile,
+            href: edit(),
+            icon: null,
+        },
+        {
+            title: t.settings.password,
+            href: editPassword(),
+            icon: null,
+        },
+        {
+            title: t.settings.appearance,
+            href: editAppearance(),
+            icon: null,
+        },
+        {
+            title: t.settings.language,
+            href: editLocale(),
+            icon: null,
+        },
+    ];
+
+    const billingNavItem: NavItem = {
+        title: t.settings.billing,
+        href: billingIndex(),
+        icon: null,
+    };
 
     // Billing is only visible to organization admins...
     const items = auth.can?.manageBilling
@@ -52,18 +60,18 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
     return (
         <div className="px-4 py-6">
             <Heading
-                title="Settings"
-                description="Manage your profile and account settings"
+                title={t.settings.title}
+                description={t.settings.description}
             />
 
             <div className="flex flex-col lg:flex-row lg:space-x-12">
                 <aside
                     className="w-full max-w-xl lg:w-48"
-                    aria-label="Settings menu"
+                    aria-label={t.settings.title}
                 >
                     <nav
                         className="flex flex-col space-y-1 space-x-0"
-                        aria-label="Settings"
+                        aria-label={t.settings.title}
                     >
                         {items.map((item, index) => (
                             <Button

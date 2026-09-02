@@ -13,7 +13,9 @@ import {
     InputOTPSlot,
 } from '@/components/ui/input-otp';
 import { Spinner } from '@/components/ui/spinner';
+import { useLocale } from '@/hooks/use-locale';
 import AuthLayout from '@/layouts/auth-layout';
+import { interpolate } from '@/lib/utils';
 import { login } from '@/routes';
 import { resend, store } from '@/routes/login-challenge';
 
@@ -23,12 +25,14 @@ type Props = {
 };
 
 export default function LoginChallenge({ email, status }: Props) {
+    const { t } = useLocale();
+
     return (
         <AuthLayout
-            title="Confirm it's you"
-            description={`Enter the 6-digit code we sent to ${email}`}
+            title={t.auth.challengeTitle}
+            description={interpolate(t.auth.challengeSubtitle, { email })}
         >
-            <Head title="Confirm it's you" />
+            <Head title={t.auth.challengeTitle} />
 
             <div className="space-y-6">
                 {status === 'login-challenge-code-sent' && (
@@ -36,7 +40,7 @@ export default function LoginChallenge({ email, status }: Props) {
                         className="rounded-lg border border-info/25 bg-info/10 px-4 py-3 text-center text-sm font-medium text-info"
                         data-test="login-challenge-code-sent"
                     >
-                        A new login code has been sent to your email address.
+                        {t.auth.challengeCodeSent}
                     </div>
                 )}
 
@@ -52,19 +56,19 @@ export default function LoginChallenge({ email, status }: Props) {
                             data-test="resend-login-code-button"
                         >
                             {processing && <Spinner />}
-                            Resend code
+                            {t.auth.challengeResend}
                         </Button>
                     )}
                 </Form>
 
                 <p className="text-center text-sm text-muted-foreground">
-                    Didn&apos;t request this?{' '}
+                    {t.auth.challengeNotYou}{' '}
                     <TextLink
                         href={login()}
                         className="text-sm"
                         data-test="back-to-login-link"
                     >
-                        Back to login
+                        {t.auth.challengeBackToLogin}
                     </TextLink>
                 </p>
             </div>
@@ -73,6 +77,7 @@ export default function LoginChallenge({ email, status }: Props) {
 }
 
 function CodeForm() {
+    const { t } = useLocale();
     const [code, setCode] = useState('');
     const formRef = useRef<FormComponentRef>(null);
 
@@ -92,7 +97,7 @@ function CodeForm() {
                             autoFocus
                             autoComplete="one-time-code"
                             inputMode="numeric"
-                            aria-label="Login code"
+                            aria-label={t.auth.loginCodeAria}
                             value={code}
                             onChange={(value) => {
                                 setCode(value);
@@ -140,7 +145,7 @@ function CodeForm() {
                         data-test="confirm-login-button"
                     >
                         {processing && <Spinner />}
-                        Confirm login
+                        {t.auth.challengeConfirmButton}
                     </Button>
                 </div>
             )}

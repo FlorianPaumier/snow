@@ -1,6 +1,7 @@
 import { Link, usePage } from '@inertiajs/react';
 import { Snowflake } from 'lucide-react';
 import AppLogoIcon from '@/components/app-logo-icon';
+import { useLocale } from '@/hooks/use-locale';
 import { home } from '@/routes';
 import type { AuthLayoutProps } from '@/types';
 
@@ -10,6 +11,7 @@ export default function AuthSplitLayout({
     description,
 }: AuthLayoutProps) {
     const { name } = usePage().props;
+    const { t } = useLocale();
 
     return (
         <div className="relative grid min-h-svh lg:grid-cols-2">
@@ -33,17 +35,17 @@ export default function AuthSplitLayout({
                     </div>
                     <div className="space-y-3">
                         <h2 className="text-3xl font-semibold tracking-tight text-balance text-white">
-                            Snow operations, coordinated with cold precision.
+                            {t.auth.brandHeadline}
                         </h2>
                         <p className="text-sm leading-relaxed text-balance text-glacier-200/80">
-                            Dispatch crews, track properties, and storm-mode
-                            your workflow — all from one clear console.
+                            {t.auth.brandSubline}
                         </p>
                     </div>
                 </div>
 
                 <p className="relative z-20 text-xs text-glacier-300/60">
-                    © {new Date().getFullYear()} {name}. All rights reserved.
+                    © {new Date().getFullYear()} {name}.{' '}
+                    {t.auth.allRightsReserved}
                 </p>
             </aside>
 

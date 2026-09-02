@@ -13,7 +13,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('subscription_items', function (Blueprint $table) {
+        Schema::create('subscription_items', function (Blueprint $table): void {
             $table->id();
             $table->foreignId('subscription_id');
             $table->string('stripe_id')->unique();

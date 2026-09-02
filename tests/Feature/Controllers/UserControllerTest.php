@@ -36,7 +36,7 @@ it('may register a new user', function (): void {
 
     // The user is queried unscoped: no authenticated user exists during
     // registration, and the organization scope would hide the row...
-    $user = User::withoutGlobalScopes()->where('email', 'test@example.com')->first();
+    $user = User::query()->withoutGlobalScopes()->where('email', 'test@example.com')->first();
 
     expect($user)->not->toBeNull()
         ->and($user->name)->toBe('Test User')

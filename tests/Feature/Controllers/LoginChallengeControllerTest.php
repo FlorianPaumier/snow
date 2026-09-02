@@ -169,3 +169,13 @@ it('redirects resend to login when there is no challenged user', function (): vo
 
     $response->assertRedirectToRoute('login');
 });
+
+it('redirects to login when the challenge session points at an unknown user', function (): void {
+    $this->withSession([
+        'login.id' => '00000000-0000-0000-0000-000000000000',
+        'login.remember' => false,
+    ])->fromRoute('login-challenge.show')
+        ->post(route('login-challenge.store'), [
+            'code' => '123456',
+        ])->assertRedirectToRoute('login');
+});

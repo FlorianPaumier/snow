@@ -10,6 +10,7 @@ use App\Models\ContractService;
 use App\Models\Payment;
 use App\Models\User;
 use App\ValueObjects\Season;
+use Database\Factories\ClientFactory;
 use Illuminate\Support\Facades\Auth;
 
 // The organization scope requires an authenticated user to see any data;
@@ -23,7 +24,7 @@ beforeEach(function (): void {
 /**
  * Client factory bound to the acting user's organization.
  */
-function revenueEvolutionClient(): Database\Factories\ClientFactory
+function revenueEvolutionClient(): ClientFactory
 {
     $user = test()->user;
 

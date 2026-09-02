@@ -92,7 +92,7 @@ final class ClientFactory extends Factory
         $prefix = sprintf('%s-', $type->value);
 
         if (! array_key_exists($type->value, $this->sequences)) {
-            $highest = Client::withoutGlobalScopes()
+            $highest = Client::query()->withoutGlobalScopes()
                 ->where('clientNumber', 'like', sprintf('%s%%', $prefix))
                 ->max('clientNumber');
 

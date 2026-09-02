@@ -24,10 +24,14 @@ it('blocks creating a third user on the starter plan', function (): void {
     $response->assertRedirectToRoute('users.create')
         ->assertSessionHas(
             'status',
-            'Your starter plan allows 2 users. Upgrade to add more.',
+            __('statuses.plan_limit', [
+                'plan' => 'starter',
+                'count' => 2,
+                'resource' => __('statuses.resource_users'),
+            ]),
         );
 
-    expect(User::withoutGlobalScopes()->where('organization_id', $organization->id)->count())->toBe(2);
+    expect(User::query()->withoutGlobalScopes()->where('organization_id', $organization->id)->count())->toBe(2);
 });
 
 it('allows creating users on the fleet plan without a limit', function (): void {
@@ -37,7 +41,7 @@ it('allows creating users on the fleet plan without a limit', function (): void 
     // Fleet has no user limit; create several beyond the starter cap...
     User::factory()->count(5)->forOrganization($organization)->create();
 
-    expect(User::withoutGlobalScopes()->where('organization_id', $organization->id)->count())->toBe(6);
+    expect(User::query()->withoutGlobalScopes()->where('organization_id', $organization->id)->count())->toBe(6);
 });
 
 it('blocks creating clients beyond the starter plan limit', function (): void {
@@ -65,10 +69,14 @@ it('blocks creating clients beyond the starter plan limit', function (): void {
     $response->assertRedirectToRoute('clients.create')
         ->assertSessionHas(
             'status',
-            'Your starter plan allows 25 clients. Upgrade to add more.',
+            __('statuses.plan_limit', [
+                'plan' => 'starter',
+                'count' => 25,
+                'resource' => __('statuses.resource_clients'),
+            ]),
         );
 
-    expect(Client::withoutGlobalScopes()->where('organization_id', $organization->id)->count())->toBe(25);
+    expect(Client::query()->withoutGlobalScopes()->where('organization_id', $organization->id)->count())->toBe(25);
 });
 
 it('grants starter limits while on trial', function (): void {
@@ -85,5 +93,5 @@ it('grants starter limits while on trial', function (): void {
             'role' => 'user',
         ]);
 
-    expect(User::withoutGlobalScopes()->where('organization_id', $organization->id)->count())->toBe(2);
+    expect(User::query()->withoutGlobalScopes()->where('organization_id', $organization->id)->count())->toBe(2);
 });

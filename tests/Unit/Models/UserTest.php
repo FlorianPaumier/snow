@@ -43,16 +43,16 @@ test('seeder creates one user per role', function (): void {
     $this->seed(DatabaseSeeder::class);
 
     foreach ([UserRole::ROLE_ADMIN, UserRole::ROLE_WORKER, UserRole::ROLE_USER] as $role) {
-        expect(User::withoutGlobalScopes()->where('role', $role)->count())->toBeGreaterThanOrEqual(1);
+        expect(User::query()->withoutGlobalScopes()->where('role', $role)->count())->toBeGreaterThanOrEqual(1);
     }
 
-    expect(User::withoutGlobalScopes()->where('email', 'admin@snow.test')->exists())->toBeTrue();
+    expect(User::query()->withoutGlobalScopes()->where('email', 'admin@snow.test')->exists())->toBeTrue();
 });
 
 test('seeded users can authenticate with the seeded password', function (string $email): void {
     $this->seed(DatabaseSeeder::class);
 
-    $user = User::withoutGlobalScopes()->where('email', $email)->firstOrFail();
+    $user = User::query()->withoutGlobalScopes()->where('email', $email)->firstOrFail();
 
     expect(Hash::check('password', $user->password))->toBeTrue();
 })->with([
@@ -65,5 +65,5 @@ test('seeder is idempotent', function (): void {
     $this->seed(DatabaseSeeder::class);
     $this->seed(DatabaseSeeder::class);
 
-    expect(User::withoutGlobalScopes()->whereIn('email', ['admin@snow.test', 'worker@snow.test', 'user@snow.test'])->count())->toBe(3);
+    expect(User::query()->withoutGlobalScopes()->whereIn('email', ['admin@snow.test', 'worker@snow.test', 'user@snow.test'])->count())->toBe(3);
 });

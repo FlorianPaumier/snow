@@ -1,3 +1,6 @@
+import { useLocale } from '@/hooks/use-locale';
+import { interpolate } from '@/lib/utils';
+
 export type ClientEvolutionPoint = {
     season: string;
     new_clients: number;
@@ -22,10 +25,12 @@ export default function ClientEvolutionChart({
     data: ClientEvolutionPoint[];
     currentSeason: string;
 }) {
+    const { t } = useLocale();
+
     if (data.length === 0) {
         return (
             <p className="flex h-40 items-center justify-center text-sm text-muted-foreground">
-                Aucun client à afficher pour le moment.
+                {t.dashboard.noClients}
             </p>
         );
     }
@@ -47,9 +52,12 @@ export default function ClientEvolutionChart({
         .join(' ');
 
     const summary = data
-        .map(
-            (point) =>
-                `${point.season} : ${point.new_clients} nouveau${point.new_clients === 1 ? '' : 'x'} client${point.new_clients === 1 ? '' : 's'}, ${point.total_clients} au total`,
+        .map((point) =>
+            interpolate(t.dashboard.clientChartSummaryPoint, {
+                season: point.season,
+                newClients: point.new_clients,
+                total: point.total_clients,
+            }),
         )
         .join(' ; ');
 
@@ -58,7 +66,9 @@ export default function ClientEvolutionChart({
             viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
             className="h-auto w-full"
             role="img"
-            aria-label={`Évolution de la clientèle par saison — ${summary}`}
+            aria-label={interpolate(t.dashboard.clientChartAlt, {
+                details: summary,
+            })}
         >
             {/* Horizontal gridlines with axis labels... */}
             {gridlineRatios(maxValue).map((ratio) => {
@@ -73,7 +83,9 @@ export default function ClientEvolutionChart({
                             y2={y}
                             className="stroke-border"
                             strokeWidth={1}
-                            strokeDasharray={ratio.ratio === 0 ? undefined : '3 3'}
+                            strokeDasharray={
+                                ratio.ratio === 0 ? undefined : '3 3'
+                            }
                         />
                         <text
                             x={PADDING.left - 8}
@@ -91,7 +103,8 @@ export default function ClientEvolutionChart({
             {data.map((point, index) => {
                 const barX =
                     PADDING.left + index * step + (step - BAR_WIDTH) / 2;
-                const barY = PADDING.top + innerHeight - scale(point.new_clients);
+                const barY =
+                    PADDING.top + innerHeight - scale(point.new_clients);
                 const isCurrent = point.season === currentSeason;
 
                 return (
@@ -101,11 +114,16 @@ export default function ClientEvolutionChart({
                         y={barY}
                         width={BAR_WIDTH}
                         height={scale(point.new_clients)}
-                        className={isCurrent ? 'fill-chart-4' : 'fill-chart-4/60'}
+                        className={
+                            isCurrent ? 'fill-chart-4' : 'fill-chart-4/60'
+                        }
                         rx={3}
                     >
                         <title>
-                            {`${point.season} — ${point.new_clients} nouveau${point.new_clients === 1 ? '' : 'x'} client${point.new_clients === 1 ? '' : 's'}`}
+                            {interpolate(t.dashboard.clientChartPointNew, {
+                                season: point.season,
+                                count: point.new_clients,
+                            })}
                         </title>
                     </rect>
                 );
@@ -122,12 +140,22 @@ export default function ClientEvolutionChart({
             />
             {data.map((point, index) => {
                 const x = PADDING.left + index * step + step / 2;
-                const y = PADDING.top + innerHeight - scale(point.total_clients);
+                const y =
+                    PADDING.top + innerHeight - scale(point.total_clients);
 
                 return (
-                    <circle key={point.season} cx={x} cy={y} r={3.5} className="fill-chart-1">
+                    <circle
+                        key={point.season}
+                        cx={x}
+                        cy={y}
+                        r={3.5}
+                        className="fill-chart-1"
+                    >
                         <title>
-                            {`${point.season} — ${point.total_clients} clients au total`}
+                            {interpolate(t.dashboard.clientChartPointTotal, {
+                                season: point.season,
+                                count: point.total_clients,
+                            })}
                         </title>
                     </circle>
                 );
@@ -161,10 +189,15 @@ export default function ClientEvolutionChart({
 /**
  * Integer gridlines (counts are small): quarter ticks of the axis maximum.
  */
-function gridlineRatios(maxValue: number): Array<{ value: number; ratio: number }> {
+function gridlineRatios(
+    maxValue: number,
+): Array<{ value: number; ratio: number }> {
     const ticks = [0, 1, 2, 3, 4].filter((tick) => tick <= maxValue);
 
     return ticks.length > 1
         ? ticks.map((tick) => ({ value: tick, ratio: tick / maxValue }))
-        : [{ value: 0, ratio: 0 }, { value: 1, ratio: 1 }];
+        : [
+              { value: 0, ratio: 0 },
+              { value: 1, ratio: 1 },
+          ];
 }

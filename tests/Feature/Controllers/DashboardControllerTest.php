@@ -9,7 +9,7 @@ use App\Models\ContractService;
 use App\Models\Payment;
 use App\Models\User;
 use App\ValueObjects\Season;
-use Carbon\Carbon;
+use Illuminate\Support\Facades\Date;
 
 beforeEach(function (): void {
     $this->admin = User::factory()->admin()->create();
@@ -97,7 +97,7 @@ it('rejects an invalid slot', function (): void {
 });
 
 it('lists unpaid second installments with the client display name', function (): void {
-    Carbon::setTestNow('2026-08-30');
+    Date::setTestNow('2026-08-30');
 
     $debtor = Client::factory()->forOrganization($this->admin->organization)->create([
         'firstName' => 'Marc',

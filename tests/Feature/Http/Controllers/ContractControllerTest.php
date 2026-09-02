@@ -203,6 +203,7 @@ it('validates create payloads', function (array $payload): void {
         ->assertSessionHasErrors();
 })->with([
     'missing client' => [['clientId' => null, 'season' => '2026-2027', 'services' => [['label' => 'Entrée', 'amount' => 100]], 'payments' => ['deposit' => 100, 'first' => 0, 'second' => 0, 'balance' => 0]]],
+    'client id as array' => [['clientId' => ['not-a-uuid'], 'season' => '2026-2027', 'services' => [['label' => 'Entrée', 'amount' => 100]], 'payments' => ['deposit' => 100, 'first' => 0, 'second' => 0, 'balance' => 0]]],
     'invalid season format' => [['clientId' => '00000000-0000-0000-0000-000000000000', 'season' => 'ete-2026', 'services' => [['label' => 'Entrée', 'amount' => 100]], 'payments' => ['deposit' => 100, 'first' => 0, 'second' => 0, 'balance' => 0]]],
     'empty services' => [['clientId' => '00000000-0000-0000-0000-000000000000', 'season' => '2026-2027', 'services' => [], 'payments' => ['deposit' => 0, 'first' => 0, 'second' => 0, 'balance' => 0]]],
     'unbalanced payments' => [['clientId' => '00000000-0000-0000-0000-000000000000', 'season' => '2026-2027', 'services' => [['label' => 'Entrée', 'amount' => 400]], 'payments' => ['deposit' => 100, 'first' => 100, 'second' => 100, 'balance' => 50]]],
@@ -375,4 +376,46 @@ it('renders the show page with services, payments and totals', function (): void
             ->where('contract.collected', 15000)
             ->where('contract.outstanding', 42500)
             ->has('methods'));
+});
+
+it('renders the contract creation page with client, season and slot options', function (): void {
+    $admin = User::factory()->admin()->create();
+    Client::factory()->company()->forOrganization($admin->organization)->create();
+
+    $this->actingAs($admin)
+        ->get(route('contracts.create'))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->component('contract/create')
+            ->has('clients')
+            ->has('seasons')
+            ->has('slots'));
+});
+
+it('skips the totals cross-check when the update payload shapes are malformed', function (): void {
+    $admin = User::factory()->admin()->create();
+    $client = Client::factory()->forOrganization($admin->organization)->create();
+    $contract = Contract::factory()->forClient($client)->create();
+
+    // Non-array services already fail the declared rules; the totals
+    // cross-check must bow out instead of crashing on the shape...
+    $this->actingAs($admin)
+        ->put(route('contracts.update', $contract), [
+            'clientId' => $client->id,
+            'season' => $contract->season,
+            'services' => 'not-an-array',
+            'payments' => ['deposit' => 0, 'first' => 0, 'second' => 0, 'balance' => 0],
+        ])->assertSessionHasErrors('services');
+});
+
+it('displays company names as the client display name in the index', function (): void {
+    $admin = User::factory()->admin()->create();
+    $client = Client::factory()->company()->forOrganization($admin->organization)->create(['companyName' => 'Déneigement Nordique Inc.']);
+    Contract::factory()->forClient($client)->create();
+
+    $this->actingAs($admin)
+        ->get(route('contracts.index'))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->where('contracts.data.0.client.displayName', 'Déneigement Nordique Inc.'));
 });

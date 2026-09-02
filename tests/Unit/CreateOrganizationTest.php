@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\Hash;
 it('creates an organization with its admin owner and a trial', function (): void {
     Event::fake([Registered::class]);
 
-    $organization = app(CreateOrganization::class)->handle([
+    $organization = resolve(CreateOrganization::class)->handle([
         'name' => 'Acme Déneigement',
         'userName' => 'Owner Name',
         'email' => 'owner@acme.test',
@@ -24,7 +24,7 @@ it('creates an organization with its admin owner and a trial', function (): void
         ->and($organization->trial_ends_at)->not->toBeNull()
         ->and($organization->trial_ends_at->diffInDays(now()))->toBeLessThanOrEqual(14);
 
-    $user = User::withoutGlobalScopes()->where('email', 'owner@acme.test')->firstOrFail();
+    $user = User::query()->withoutGlobalScopes()->where('email', 'owner@acme.test')->firstOrFail();
 
     expect($user->organization_id)->toBe($organization->id)
         ->and($user->role)->toBe(UserRole::ROLE_ADMIN)
@@ -38,7 +38,7 @@ it('rolls back the organization when the user creation fails', function (): void
     User::factory()->create(['email' => 'dupe@acme.test']);
 
     try {
-        app(CreateOrganization::class)->handle([
+        resolve(CreateOrganization::class)->handle([
             'name' => 'Acme Déneigement',
             'userName' => 'Owner Name',
             'email' => 'dupe@acme.test',
@@ -49,5 +49,5 @@ it('rolls back the organization when the user creation fails', function (): void
         // Expected...
     }
 
-    expect(Organization::withoutGlobalScopes()->where('name', 'Acme Déneigement')->exists())->toBeFalse();
+    expect(Organization::query()->withoutGlobalScopes()->where('name', 'Acme Déneigement')->exists())->toBeFalse();
 });

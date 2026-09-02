@@ -12,6 +12,7 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { useLocale } from '@/hooks/use-locale';
 import AppFormLayout, {
     CancelButton,
     FormFooter,
@@ -21,21 +22,22 @@ import AppFormLayout, {
 import { index } from '@/routes/clients';
 import type { BreadcrumbItem } from '@/types';
 
-const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Clients', href: index().url },
-    { title: 'New client', href: '/clients/create' },
-];
-
 export default function Create() {
+    const { t } = useLocale();
     const [type, setType] = useState('individual');
+
+    const breadcrumbs: BreadcrumbItem[] = [
+        { title: t.clients.title, href: index().url },
+        { title: t.clients.newClient, href: '/clients/create' },
+    ];
 
     return (
         <AppFormLayout
-            title="New client"
-            description="Add a new client by providing their identity, contact details, and address"
+            title={t.clients.newClient}
+            description={t.clients.newClientDescription}
             breadcrumbs={breadcrumbs}
             backHref={index().url}
-            backLabel="Clients"
+            backLabel={t.clients.title}
         >
             <Form
                 {...ClientController.store.form()}
@@ -58,25 +60,29 @@ export default function Create() {
                 {({ processing, errors }) => (
                     <>
                         <FormSection
-                            title="Identity"
-                            description="Who this client is"
+                            title={t.clients.identitySection}
+                            description={t.clients.identityDescription}
                         >
                             <div className="grid gap-2">
-                                <Label htmlFor="type">Type</Label>
+                                <Label htmlFor="type">{t.common.type}</Label>
                                 <Select
                                     name="type"
                                     defaultValue="individual"
                                     onValueChange={setType}
                                 >
                                     <SelectTrigger id="type" className="w-full">
-                                        <SelectValue placeholder="Select a type" />
+                                        <SelectValue
+                                            placeholder={
+                                                t.clients.typePlaceholder
+                                            }
+                                        />
                                     </SelectTrigger>
                                     <SelectContent>
                                         <SelectItem value="individual">
-                                            Individual
+                                            {t.clients.typeIndividual}
                                         </SelectItem>
                                         <SelectItem value="company">
-                                            Company
+                                            {t.clients.typeCompany}
                                         </SelectItem>
                                     </SelectContent>
                                 </Select>
@@ -86,13 +92,15 @@ export default function Create() {
                             {type === 'company' && (
                                 <div className="grid gap-2">
                                     <Label htmlFor="companyName">
-                                        Company name
+                                        {t.clients.fieldCompanyTypeName}
                                     </Label>
                                     <Input
                                         id="companyName"
                                         type="text"
                                         name="companyName"
-                                        placeholder="Company name"
+                                        placeholder={
+                                            t.clients.fieldCompanyTypeName
+                                        }
                                     />
                                     <InputError message={errors.companyName} />
                                 </div>
@@ -100,39 +108,43 @@ export default function Create() {
                         </FormSection>
 
                         <FormSection
-                            title="Contact"
-                            description="How to reach this client — at least one phone number is required"
+                            title={t.clients.contactSection}
+                            description={t.clients.contactDescription}
                         >
                             <div className="grid gap-6 sm:grid-cols-2">
                                 <div className="grid gap-2">
                                     <Label htmlFor="firstName">
-                                        First name
+                                        {t.clients.fieldFirstName}
                                     </Label>
                                     <Input
                                         id="firstName"
                                         type="text"
                                         required
                                         name="firstName"
-                                        placeholder="First name"
+                                        placeholder={t.clients.fieldFirstName}
                                     />
                                     <InputError message={errors.firstName} />
                                 </div>
 
                                 <div className="grid gap-2">
-                                    <Label htmlFor="lastName">Last name</Label>
+                                    <Label htmlFor="lastName">
+                                        {t.clients.fieldLastName}
+                                    </Label>
                                     <Input
                                         id="lastName"
                                         type="text"
                                         required
                                         name="lastName"
-                                        placeholder="Last name"
+                                        placeholder={t.clients.fieldLastName}
                                     />
                                     <InputError message={errors.lastName} />
                                 </div>
                             </div>
 
                             <div className="grid gap-2">
-                                <Label htmlFor="email">Email address</Label>
+                                <Label htmlFor="email">
+                                    {t.clients.fieldEmail}
+                                </Label>
                                 <Input
                                     id="email"
                                     type="email"
@@ -146,7 +158,7 @@ export default function Create() {
                             <div className="grid gap-6 sm:grid-cols-2">
                                 <div className="grid gap-2">
                                     <Label htmlFor="phoneDay">
-                                        Daytime phone
+                                        {t.clients.fieldPhoneDay}
                                     </Label>
                                     <Input
                                         id="phoneDay"
@@ -159,7 +171,7 @@ export default function Create() {
 
                                 <div className="grid gap-2">
                                     <Label htmlFor="cellPhone">
-                                        Cell phone
+                                        {t.clients.fieldCellPhone}
                                     </Label>
                                     <Input
                                         id="cellPhone"
@@ -173,37 +185,41 @@ export default function Create() {
                         </FormSection>
 
                         <FormSection
-                            title="Address"
-                            description="Where services are delivered"
+                            title={t.clients.addressSection}
+                            description={t.clients.addressDescription}
                         >
                             <div className="grid gap-2">
-                                <Label htmlFor="addressStreet">Street</Label>
+                                <Label htmlFor="addressStreet">
+                                    {t.clients.fieldStreet}
+                                </Label>
                                 <Input
                                     id="addressStreet"
                                     type="text"
                                     required
                                     name="addressStreet"
-                                    placeholder="1234 Rue Sainte-Catherine"
+                                    placeholder={t.clients.streetPlaceholder}
                                 />
                                 <InputError message={errors.addressStreet} />
                             </div>
 
                             <div className="grid gap-6 sm:grid-cols-3">
                                 <div className="grid gap-2">
-                                    <Label htmlFor="addressCity">City</Label>
+                                    <Label htmlFor="addressCity">
+                                        {t.clients.fieldCity}
+                                    </Label>
                                     <Input
                                         id="addressCity"
                                         type="text"
                                         required
                                         name="addressCity"
-                                        placeholder="Montréal"
+                                        placeholder={t.clients.cityPlaceholder}
                                     />
                                     <InputError message={errors.addressCity} />
                                 </div>
 
                                 <div className="grid gap-2">
                                     <Label htmlFor="addressPostalCode">
-                                        Postal code
+                                        {t.clients.fieldPostalCode}
                                     </Label>
                                     <Input
                                         id="addressPostalCode"
@@ -219,7 +235,7 @@ export default function Create() {
 
                                 <div className="grid gap-2">
                                     <Label htmlFor="addressCountry">
-                                        Country
+                                        {t.clients.fieldCountry}
                                     </Label>
                                     <Input
                                         id="addressCountry"
@@ -236,15 +252,17 @@ export default function Create() {
                         </FormSection>
 
                         <FormSection
-                            title="Notes"
-                            description="Internal remarks about this client (optional)"
+                            title={t.clients.notesSection}
+                            description={t.clients.notesDescription}
                         >
                             <div className="grid gap-2">
-                                <Label htmlFor="remark">Remark</Label>
+                                <Label htmlFor="remark">
+                                    {t.clients.fieldRemark}
+                                </Label>
                                 <Textarea
                                     id="remark"
                                     name="remark"
-                                    placeholder="Access instructions, preferences, anything the crew should know…"
+                                    placeholder={t.clients.remarkPlaceholder}
                                 />
                                 <InputError message={errors.remark} />
                             </div>
@@ -253,7 +271,7 @@ export default function Create() {
                         <FormFooter>
                             <CancelButton href={index().url} />
                             <SubmitButton processing={processing}>
-                                Create client
+                                {t.clients.buttonCreateClient}
                             </SubmitButton>
                         </FormFooter>
                     </>

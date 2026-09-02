@@ -14,17 +14,17 @@ it('shows an error when the login credentials do not match', function (): void {
     visit('/login')
         ->fill('#email', 'unknown@example.com')
         ->fill('#password', 'wrong-password')
-        ->press('Log in')
+        ->press('Se connecter')
         ->assertPathIs('/login')
-        ->assertSee('These credentials do not match our records.');
+        ->assertSee('Ces identifiants ne correspondent pas à nos enregistrements.');
 });
 
 it('keeps the login page accessible while showing validation errors', function (): void {
     visit('/login')
         ->fill('#email', 'unknown@example.com')
         ->fill('#password', 'wrong-password')
-        ->press('Log in')
-        ->assertSee('These credentials do not match our records.')
+        ->press('Se connecter')
+        ->assertSee('Ces identifiants ne correspondent pas à nos enregistrements.')
         ->assertNoAccessibilityIssues(3)
         ->assertNoSmoke();
 });
@@ -44,9 +44,9 @@ it('is accessible on the login, register, and forgot password pages', function (
 
 it('blocks an empty login submission client-side', function (): void {
     visit('/login')
-        ->press('Log in')
+        ->press('Se connecter')
         ->assertPathIs('/login')
-        ->assertDontSee('These credentials do not match our records.');
+        ->assertDontSee('Ces identifiants ne correspondent pas à nos enregistrements.');
 });
 
 it('shows an error when the register password confirmation does not match', function (): void {
@@ -56,9 +56,9 @@ it('shows an error when the register password confirmation does not match', func
         ->fill('#email', 'jean@example.com')
         ->fill('#password', 'super-secret-password')
         ->fill('#password_confirmation', 'different-password')
-        ->press('Create account')
+        ->press('Créer le compte')
         ->assertPathIs('/register')
-        ->assertSee('The password field confirmation does not match.');
+        ->assertSee('La confirmation du champ mot de passe ne correspond pas.');
 });
 
 it('shows an error when registering with an existing email', function (): void {
@@ -70,9 +70,9 @@ it('shows an error when registering with an existing email', function (): void {
         ->fill('#email', $user->email)
         ->fill('#password', 'super-secret-password')
         ->fill('#password_confirmation', 'super-secret-password')
-        ->press('Create account')
+        ->press('Créer le compte')
         ->assertPathIs('/register')
-        ->assertSee('The email has already been taken.');
+        ->assertSee('La valeur du champ adresse courriel est déjà utilisée.');
 });
 
 it('blocks a non-email address client-side on forgot password', function (): void {
@@ -80,16 +80,16 @@ it('blocks a non-email address client-side on forgot password', function (): voi
     // browser's native validation blocks the submission...
     visit('/forgot-password')
         ->fill('#email', 'not-an-email')
-        ->press('Email password reset link')
+        ->press('Envoyer le lien de réinitialisation par courriel')
         ->assertPathIs('/forgot-password')
-        ->assertDontSee('The email field must be a valid email address.');
+        ->assertDontSee('Le champ adresse courriel doit être une adresse courriel valide.');
 });
 
 it('shows the reset link status for an unknown email', function (): void {
     visit('/forgot-password')
         ->fill('#email', 'unknown@example.com')
-        ->press('Email password reset link')
-        ->assertSeeIn('@forgot-password-status', 'A reset link will be sent if the account exists.');
+        ->press('Envoyer le lien de réinitialisation par courriel')
+        ->assertSeeIn('@forgot-password-status', 'Un lien de réinitialisation sera envoyé si le compte existe.');
 });
 
 it('shows an error when the login challenge code is invalid', function (): void {
@@ -101,10 +101,10 @@ it('shows an error when the login challenge code is invalid', function (): void 
     visit('/login')
         ->fill('#email', $user->email)
         ->fill('#password', 'password')
-        ->press('Log in')
+        ->press('Se connecter')
         ->assertPathIs('/login-challenge')
         ->fill('#code', '654321')
-        ->assertSee('The provided code is invalid or has expired.')
+        ->assertSee('Le code fourni est invalide ou a expiré.')
         ->assertPathIs('/login-challenge');
 });
 
@@ -114,7 +114,7 @@ it('keeps the confirm button disabled until the code is complete', function (): 
     $page = visit('/login')
         ->fill('#email', $user->email)
         ->fill('#password', 'password')
-        ->press('Log in')
+        ->press('Se connecter')
         ->assertPathIs('/login-challenge');
 
     $page->assertButtonDisabled('@confirm-login-button');
@@ -135,8 +135,8 @@ it('shows an error when the confirmed password is wrong', function (): void {
     $page->wait(2);
 
     $page->fill('#password', 'wrong-password')
-        ->press('Confirm password')
-        ->assertSee('The provided password was incorrect.')
+        ->press('Confirmer le mot de passe')
+        ->assertSee('Le mot de passe fourni est incorrect.')
         ->assertNoAccessibilityIssues(3)
         ->assertNoSmoke();
 });
@@ -147,7 +147,7 @@ it('is accessible on the login challenge page', function (): void {
     $page = visit('/login')
         ->fill('#email', $user->email)
         ->fill('#password', 'password')
-        ->press('Log in')
+        ->press('Se connecter')
         ->assertPathIs('/login-challenge');
 
     settleForAccessibilityScan($page);

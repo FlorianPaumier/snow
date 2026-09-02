@@ -5,13 +5,17 @@ import { useAppearance } from "@/hooks/use-appearance"
 import { useFlashToast } from "@/hooks/use-flash-toast"
 
 function Toaster({ ...props }: ToasterProps) {
-  const { appearance } = useAppearance()
+  // The toast must match the page's resolved theme, not the raw
+  // preference: 'system' is resolved by the page's .dark class, and a
+  // mismatch paints dark text on a light toast (or the reverse) until
+  // hydration catches up.
+  const { resolvedAppearance } = useAppearance()
 
   useFlashToast()
 
   return (
     <Sonner
-      theme={appearance}
+      theme={resolvedAppearance}
       className="toaster group"
       position="bottom-right"
       style={

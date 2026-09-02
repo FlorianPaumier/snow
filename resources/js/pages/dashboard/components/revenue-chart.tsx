@@ -1,4 +1,5 @@
-import { formatCurrency } from '@/lib/utils';
+import { useLocale } from '@/hooks/use-locale';
+import { interpolate, useCurrencyFormatter } from '@/lib/utils';
 
 export type RevenuePoint = {
     season: string;
@@ -24,10 +25,13 @@ export default function RevenueChart({
     data: RevenuePoint[];
     currentSeason: string;
 }) {
+    const { t } = useLocale();
+    const formatCurrency = useCurrencyFormatter();
+
     if (data.length === 0) {
         return (
             <p className="flex h-40 items-center justify-center text-sm text-muted-foreground">
-                Aucun revenu à afficher pour le moment.
+                {t.dashboard.noRevenue}
             </p>
         );
     }
@@ -43,9 +47,12 @@ export default function RevenueChart({
     const step = innerWidth / data.length;
 
     const summary = data
-        .map(
-            (point) =>
-                `${point.season} : ${formatCurrency(point.revenue)} dont ${formatCurrency(point.collected)} encaissés`,
+        .map((point) =>
+            interpolate(t.dashboard.chartSummaryPoint, {
+                season: point.season,
+                revenue: formatCurrency(point.revenue),
+                collected: formatCurrency(point.collected),
+            }),
         )
         .join(' ; ');
 
@@ -54,7 +61,9 @@ export default function RevenueChart({
             viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
             className="h-auto w-full"
             role="img"
-            aria-label={`Évolution des revenus par saison — ${summary}`}
+            aria-label={interpolate(t.dashboard.revenueChartAlt, {
+                details: summary,
+            })}
         >
             {/* Horizontal gridlines with axis labels... */}
             {[0, 0.25, 0.5, 0.75, 1].map((ratio) => {
@@ -85,7 +94,8 @@ export default function RevenueChart({
 
             {/* Grouped bars: revenue (glacier) then collected (green)... */}
             {data.map((point, index) => {
-                const groupX = PADDING.left + index * step + (step - groupWidth) / 2;
+                const groupX =
+                    PADDING.left + index * step + (step - groupWidth) / 2;
                 const isCurrent = point.season === currentSeason;
 
                 return (
@@ -95,23 +105,37 @@ export default function RevenueChart({
                             y={PADDING.top + innerHeight - scale(point.revenue)}
                             width={BAR_WIDTH}
                             height={scale(point.revenue)}
-                            className={isCurrent ? 'fill-chart-1' : 'fill-chart-1/60'}
+                            className={
+                                isCurrent ? 'fill-chart-1' : 'fill-chart-1/60'
+                            }
                             rx={3}
                         >
                             <title>
-                                {`${point.season} — Revenus : ${formatCurrency(point.revenue)}`}
+                                {interpolate(t.dashboard.chartPointRevenue, {
+                                    season: point.season,
+                                    amount: formatCurrency(point.revenue),
+                                })}
                             </title>
                         </rect>
                         <rect
                             x={groupX + BAR_WIDTH + GAP / 2}
-                            y={PADDING.top + innerHeight - scale(point.collected)}
+                            y={
+                                PADDING.top +
+                                innerHeight -
+                                scale(point.collected)
+                            }
                             width={BAR_WIDTH}
                             height={scale(point.collected)}
-                            className={isCurrent ? 'fill-chart-3' : 'fill-chart-3/60'}
+                            className={
+                                isCurrent ? 'fill-chart-3' : 'fill-chart-3/60'
+                            }
                             rx={3}
                         >
                             <title>
-                                {`${point.season} — Encaissé : ${formatCurrency(point.collected)}`}
+                                {interpolate(t.dashboard.chartPointCollected, {
+                                    season: point.season,
+                                    amount: formatCurrency(point.collected),
+                                })}
                             </title>
                         </rect>
                         <text
@@ -140,11 +164,7 @@ function niceCeiling(value: number): number {
     const magnitude = 10 ** Math.floor(Math.log10(value));
     const scaled = value / magnitude;
 
-    const nice = scaled <= 1
-        ? 1
-        : scaled <= 1.5
-          ? 1.5
-          : Math.ceil(scaled);
+    const nice = scaled <= 1 ? 1 : scaled <= 1.5 ? 1.5 : Math.ceil(scaled);
 
     return nice * magnitude;
 }

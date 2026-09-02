@@ -20,7 +20,7 @@ final class DatabaseSeeder extends Seeder
 
         // The organization scope hides rows without an authenticated user;
         // seeders run unscoped...
-        User::withoutGlobalScopes()->updateOrCreate(['email' => 'admin@snow.test'], [
+        User::query()->withoutGlobalScopes()->updateOrCreate(['email' => 'admin@snow.test'], [
             'organization_id' => $organization->id,
             'name' => 'Admin User',
             // The "hashed" cast on the model hashes this automatically.
@@ -28,14 +28,14 @@ final class DatabaseSeeder extends Seeder
             'role' => UserRole::ROLE_ADMIN,
         ]);
 
-        User::withoutGlobalScopes()->updateOrCreate(['email' => 'worker@snow.test'], [
+        User::query()->withoutGlobalScopes()->updateOrCreate(['email' => 'worker@snow.test'], [
             'organization_id' => $organization->id,
             'name' => 'Worker User',
             'password' => 'password',
             'role' => UserRole::ROLE_WORKER,
         ]);
 
-        User::withoutGlobalScopes()->updateOrCreate(['email' => 'user@snow.test'], [
+        User::query()->withoutGlobalScopes()->updateOrCreate(['email' => 'user@snow.test'], [
             'organization_id' => $organization->id,
             'name' => 'Regular User',
             'password' => 'password',

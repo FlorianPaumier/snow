@@ -6,6 +6,7 @@ use App\Actions\UpdateClient;
 use App\Enums\ClientType;
 use App\Models\Client;
 use App\Models\User;
+use Illuminate\Support\Facades\Auth;
 
 // The organization scope requires an authenticated user to see any data;
 // records must belong to that user's organization to be visible...
@@ -59,4 +60,42 @@ it('clears the company name when the type changes to individual', function (): v
     ]);
 
     expect($client->refresh()->companyName)->toBeNull();
+});
+
+it('keeps the existing company name when an update omits it', function (): void {
+    $client = Client::factory()->company()->create(['companyName' => 'Les Entreprises Inc.']);
+    $action = resolve(UpdateClient::class);
+
+    $action->handle($client, [
+        'type' => ClientType::CLIENT_COMPANY,
+        'firstName' => $client->firstName,
+        'lastName' => $client->lastName,
+        'email' => $client->email,
+        'addressStreet' => $client->address->street,
+        'addressCity' => $client->address->city,
+        'addressPostalCode' => $client->address->postalCode,
+        'addressCountry' => $client->address->country,
+    ]);
+
+    expect($client->refresh()->companyName)->toBe('Les Entreprises Inc.');
+});
+
+it('accepts the client type as a string value', function (): void {
+    $client = Client::factory()->company()->create(['companyName' => 'Ancienne Compagnie']);
+    $action = resolve(UpdateClient::class);
+
+    // Form requests deliver the enum's string value, not the instance...
+    $action->handle($client, [
+        'type' => 'individual',
+        'firstName' => $client->firstName,
+        'lastName' => $client->lastName,
+        'email' => $client->email,
+        'addressStreet' => $client->address->street,
+        'addressCity' => $client->address->city,
+        'addressPostalCode' => $client->address->postalCode,
+        'addressCountry' => $client->address->country,
+    ]);
+
+    expect($client->refresh()->companyName)->toBeNull()
+        ->and($client->refresh()->type)->toBe(ClientType::CLIENT_INDIVIDUAL);
 });

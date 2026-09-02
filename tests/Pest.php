@@ -9,6 +9,8 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Process;
 use Illuminate\Support\Sleep;
 use Illuminate\Support\Str;
+use Pest\Browser\Api\AwaitableWebpage;
+use Pest\Browser\Api\PendingAwaitablePage;
 use Tests\TestCase;
 
 pest()->extend(TestCase::class)
@@ -38,7 +40,7 @@ function something(): void
  * the challenge code is pre-hashed with a known value. The mail fake does
  * not apply to the browser's separate HTTP requests either way.
  */
-function loginViaUi(User $user, string $code = '123456'): Pest\Browser\Api\AwaitableWebpage
+function loginViaUi(User $user, string $code = '123456'): AwaitableWebpage
 {
     session([
         'login.id' => $user->getKey(),
@@ -51,7 +53,7 @@ function loginViaUi(User $user, string $code = '123456'): Pest\Browser\Api\Await
     ])->save();
 
     return visit('/login-challenge')
-        ->assertSee("Enter the 6-digit code we sent to {$user->email}")
+        ->assertSee('Entrez le code à 6 chiffres envoyé à '.$user->email)
         ->typeSlowly('#code', $code, 10)
         ->wait(1)
         ->assertPathIs('/dashboard')
@@ -67,7 +69,7 @@ function loginViaUi(User $user, string $code = '123456'): Pest\Browser\Api\Await
  * Inertia-rendered shell, so the shell must exist before axe samples the
  * page — otherwise the scan can race the first paint.
  *
- * @param  Pest\Browser\Api\PendingAwaitablePage|Pest\Browser\Api\AwaitableWebpage  $page
+ * @param  PendingAwaitablePage|AwaitableWebpage  $page
  */
 function settleForAccessibilityScan($page): void
 {

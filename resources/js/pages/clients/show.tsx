@@ -28,8 +28,9 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
+import { useLocale } from '@/hooks/use-locale';
 import AppLayout from '@/layouts/app-layout';
-import { formatCurrency } from '@/lib/utils';
+import { interpolate, useCurrencyFormatter } from '@/lib/utils';
 import { index, show } from '@/routes/clients';
 import { index as contractsIndex } from '@/routes/contracts';
 import type { BreadcrumbItem } from '@/types';
@@ -68,15 +69,19 @@ type ContractSummary = {
 /* ── Type vocabulary: tinted renderings of one state ── */
 const TYPE_META: Record<
     string,
-    { label: string; badge: string; iconSquare: string }
+    {
+        labelKey: 'typeIndividual' | 'typeCompany';
+        badge: string;
+        iconSquare: string;
+    }
 > = {
     individual: {
-        label: 'Individual',
+        labelKey: 'typeIndividual',
         badge: 'border-glacier-500/20 bg-glacier-500/10 text-glacier-700 dark:text-glacier-400',
         iconSquare: 'bg-glacier-500/10 text-glacier-700 dark:text-glacier-400',
     },
     company: {
-        label: 'Company',
+        labelKey: 'typeCompany',
         badge: 'border-ember-500/25 bg-ember-500/10 text-ember-700 dark:text-ember-400',
         iconSquare: 'bg-ember-500/10 text-ember-700 dark:text-ember-400',
     },
@@ -109,6 +114,8 @@ function InfoRow({
 }
 
 export default function Show({ client }: { client: ClientRecord }) {
+    const { t } = useLocale();
+    const formatCurrency = useCurrencyFormatter();
     const { status, errors, auth } = usePage().props;
     const canManageClients = auth.can?.manageClients ?? false;
     const typeMeta = TYPE_META[client.type] ?? TYPE_META.individual;
@@ -118,7 +125,7 @@ export default function Show({ client }: { client: ClientRecord }) {
             : `${client.firstName} ${client.lastName}`;
 
     const breadcrumbs: BreadcrumbItem[] = [
-        { title: 'Clients', href: index().url },
+        { title: t.clients.title, href: index().url },
         { title: displayName, href: show.url({ client: client.id }) },
     ];
 
@@ -128,9 +135,7 @@ export default function Show({ client }: { client: ClientRecord }) {
 
             <div className="flex h-full flex-1 flex-col gap-6 p-4">
                 {typeof status === 'string' && (
-                    <p className="text-sm text-green-600 dark:text-green-400">
-                        {status}
-                    </p>
+                    <p className="text-sm text-success">{status}</p>
                 )}
 
                 <div className="mx-auto flex w-full max-w-3xl flex-col gap-6">
@@ -157,7 +162,12 @@ export default function Show({ client }: { client: ClientRecord }) {
                                 description={
                                     client.type === 'company' &&
                                     client.companyName
-                                        ? `${client.firstName} ${client.lastName} · contact`
+                                        ? interpolate(
+                                              t.clients.companyContact,
+                                              {
+                                                  name: `${client.firstName} ${client.lastName}`,
+                                              },
+                                          )
                                         : undefined
                                 }
                             />
@@ -170,7 +180,7 @@ export default function Show({ client }: { client: ClientRecord }) {
                                         aria-hidden="true"
                                         className="size-1.5 shrink-0 rounded-full bg-current"
                                     />
-                                    {typeMeta.label}
+                                    {t.clients[typeMeta.labelKey]}
                                 </Badge>
                                 <Link
                                     href={contractsIndex.url({
@@ -182,8 +192,14 @@ export default function Show({ client }: { client: ClientRecord }) {
                                         variant="outline"
                                         className="border-border bg-muted text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
                                     >
-                                        {client.contractsCount} contract
-                                        {client.contractsCount === 1 ? '' : 's'}
+                                        {interpolate(t.clients.contractCount, {
+                                            count: client.contractsCount,
+                                            plural:
+                                                client.contractsCount === 1
+                                                    ? ''
+                                                    : t.clients
+                                                          .contractCountPlural,
+                                        })}
                                     </Badge>
                                 </Link>
                             </div>
@@ -195,14 +211,14 @@ export default function Show({ client }: { client: ClientRecord }) {
                         <div className="grid gap-1 p-5 sm:grid-cols-2">
                             <InfoRow
                                 icon={<Mail aria-hidden="true" />}
-                                label="Email"
+                                label={t.clients.emailLabel}
                             >
                                 {client.email}
                             </InfoRow>
                             {client.phoneDay && (
                                 <InfoRow
                                     icon={<Phone aria-hidden="true" />}
-                                    label="Daytime phone"
+                                    label={t.clients.fieldPhoneDay}
                                 >
                                     {client.phoneDay}
                                 </InfoRow>
@@ -210,14 +226,14 @@ export default function Show({ client }: { client: ClientRecord }) {
                             {client.cellPhone && (
                                 <InfoRow
                                     icon={<Smartphone aria-hidden="true" />}
-                                    label="Cell phone"
+                                    label={t.clients.fieldCellPhone}
                                 >
                                     {client.cellPhone}
                                 </InfoRow>
                             )}
                             <InfoRow
                                 icon={<CalendarDays aria-hidden="true" />}
-                                label="Client since"
+                                label={t.clients.clientSince}
                             >
                                 {client.created_at}
                             </InfoRow>
@@ -229,7 +245,7 @@ export default function Show({ client }: { client: ClientRecord }) {
                         <div className="p-5">
                             <InfoRow
                                 icon={<MapPin aria-hidden="true" />}
-                                label="Service address"
+                                label={t.clients.serviceAddress}
                                 mono
                             >
                                 {client.address.street}, {client.address.city}{' '}
@@ -244,7 +260,7 @@ export default function Show({ client }: { client: ClientRecord }) {
                                 <div className="p-5">
                                     <InfoRow
                                         icon={<FileText aria-hidden="true" />}
-                                        label="Remarks"
+                                        label={t.clients.remarks}
                                     >
                                         {client.remark}
                                     </InfoRow>
@@ -264,8 +280,8 @@ export default function Show({ client }: { client: ClientRecord }) {
                                             })}
                                             prefetch
                                         >
-                                            <Pencil aria-hidden="true" /> Edit
-                                            client
+                                            <Pencil aria-hidden="true" />{' '}
+                                            {t.clients.editClient}
                                         </Link>
                                     </Button>
                                     <Form
@@ -279,8 +295,8 @@ export default function Show({ client }: { client: ClientRecord }) {
                                             variant="destructive"
                                             data-test="delete-client"
                                         >
-                                            <Trash2 aria-hidden="true" /> Delete
-                                            client
+                                            <Trash2 aria-hidden="true" />{' '}
+                                            {t.clients.buttonDeleteClient}
                                         </Button>
                                     </Form>
                                 </div>
@@ -312,7 +328,7 @@ export default function Show({ client }: { client: ClientRecord }) {
                                     aria-hidden="true"
                                     className="size-4"
                                 />
-                                Contrats
+                                {t.clients.contractsTitle}
                                 <span className="font-mono text-xs text-muted-foreground">
                                     {client.contractsCount}
                                 </span>
@@ -323,7 +339,7 @@ export default function Show({ client }: { client: ClientRecord }) {
                                 })}
                                 className="text-xs text-muted-foreground hover:text-foreground"
                             >
-                                Voir tous les contrats
+                                {t.clients.viewAllContracts}
                             </Link>
                         </div>
 
@@ -332,19 +348,23 @@ export default function Show({ client }: { client: ClientRecord }) {
                                 <Table>
                                     <TableHeader>
                                         <TableRow>
-                                            <TableHead>Saison</TableHead>
-                                            <TableHead className="text-right">
-                                                Total
+                                            <TableHead>
+                                                {t.common.season}
                                             </TableHead>
                                             <TableHead className="text-right">
-                                                Encaissé
+                                                {t.contracts.columnTotal}
                                             </TableHead>
                                             <TableHead className="text-right">
-                                                Solde
+                                                {t.contracts.columnCollected}
                                             </TableHead>
-                                            <TableHead>Créé le</TableHead>
                                             <TableHead className="text-right">
-                                                Actions
+                                                {t.contracts.columnBalance}
+                                            </TableHead>
+                                            <TableHead>
+                                                {t.common.createdAt}
+                                            </TableHead>
+                                            <TableHead className="text-right">
+                                                {t.common.actions}
                                             </TableHead>
                                         </TableRow>
                                     </TableHeader>
@@ -387,7 +407,13 @@ export default function Show({ client }: { client: ClientRecord }) {
                                                             variant="ghost"
                                                             size="icon"
                                                             className="size-8 text-muted-foreground hover:text-foreground"
-                                                            aria-label={`Voir le contrat ${contract.season}`}
+                                                            aria-label={interpolate(
+                                                                t.clients
+                                                                    .viewContractOf,
+                                                                {
+                                                                    season: contract.season,
+                                                                },
+                                                            )}
                                                         >
                                                             <Link
                                                                 href={ContractController.show.url(
@@ -418,10 +444,10 @@ export default function Show({ client }: { client: ClientRecord }) {
                                     className="size-6 text-muted-foreground"
                                 />
                                 <p className="text-sm font-medium">
-                                    Aucun contrat pour ce client
+                                    {t.clients.noContractsForClient}
                                 </p>
                                 <p className="text-xs text-muted-foreground">
-                                    Les ententes de saison apparaîtront ici.
+                                    {t.clients.contractsEmpty}
                                 </p>
                             </div>
                         )}

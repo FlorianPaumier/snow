@@ -376,3 +376,12 @@ it('renders the show page with the client contracts and their totals', function 
             ->where('client.contracts.1.season', '2025-2026')
             ->where('client.contracts.1.total', 0));
 });
+
+it('renders the client creation page for admins', function (): void {
+    $admin = User::factory()->admin()->create();
+
+    $this->actingAs($admin)
+        ->get(route('clients.create'))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page->component('clients/create'));
+});

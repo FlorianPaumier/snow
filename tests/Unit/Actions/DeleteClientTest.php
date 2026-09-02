@@ -34,8 +34,8 @@ it('refuses to delete a client that has contracts', function (): void {
     try {
         $action->handle($client);
         $this->fail('The deletion should have been refused.');
-    } catch (ValidationException $exception) {
-        expect($exception->errors())->toHaveKey('client')
+    } catch (ValidationException $validationException) {
+        expect($validationException->errors())->toHaveKey('client')
             ->and($client->fresh())->not->toBeNull();
     }
 });

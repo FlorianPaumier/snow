@@ -10,6 +10,7 @@ use App\Models\ContractService;
 use App\Models\Payment;
 use App\ValueObjects\Season;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Collection;
 
 final class ContractSeeder extends Seeder
 {
@@ -23,8 +24,8 @@ final class ContractSeeder extends Seeder
             Season::current(),
         ];
 
-        /** @var \Illuminate\Support\Collection<int, Client> $clients */
-        $clients = Client::withoutGlobalScopes()->get();
+        /** @var Collection<int, Client> $clients */
+        $clients = Client::query()->withoutGlobalScopes()->get();
 
         // Clients join progressively across the seasons so the dashboard's
         // evolution charts show growth (oldest: ~40%, then ~70%, then all)...
@@ -38,13 +39,13 @@ final class ContractSeeder extends Seeder
             foreach ($clients->take($clientCountsBySeason[$seasonIndex]) as $client) {
                 // updateOrCreate keeps the seeder idempotent: one contract per
                 // client per season (the unique constraint enforces it too)...
-                $contract = Contract::withoutGlobalScopes()->updateOrCreate(
+                $contract = Contract::query()->withoutGlobalScopes()->updateOrCreate(
                     ['season' => $season->label, 'client_id' => $client->id],
                     ['season' => $season->label, 'client_id' => $client->id, 'organization_id' => $client->organization_id],
                 );
 
-                ContractService::withoutGlobalScopes()->where('contract_id', $contract->id)->delete();
-                Payment::withoutGlobalScopes()->where('contract_id', $contract->id)->delete();
+                ContractService::query()->withoutGlobalScopes()->where('contract_id', $contract->id)->delete();
+                Payment::query()->withoutGlobalScopes()->where('contract_id', $contract->id)->delete();
 
                 $services = [
                     ['label' => 'Déneigement entrée', 'amount' => 42500, 'position' => 1],
@@ -52,7 +53,7 @@ final class ContractSeeder extends Seeder
                 ];
 
                 foreach ($services as $service) {
-                    ContractService::withoutGlobalScopes()->create([
+                    ContractService::query()->withoutGlobalScopes()->create([
                         ...$service,
                         'organization_id' => $client->organization_id,
                         'contract_id' => $contract->id,
@@ -80,7 +81,7 @@ final class ContractSeeder extends Seeder
         foreach ($installments as $index => $installment) {
             $paid = $index < $paidCount;
 
-            Payment::withoutGlobalScopes()->create([
+            Payment::query()->withoutGlobalScopes()->create([
                 'organization_id' => $contract->organization_id,
                 'contract_id' => $contract->id,
                 'slot' => $installment['slot'],

@@ -174,7 +174,7 @@ it('throttles login attempts after too many failures', function (): void {
         ->assertSessionHasErrors('email');
 
     $errors = session('errors');
-    expect($errors->get('email')[0])->toContain('Too many login attempts');
+    expect($errors->get('email')[0])->toContain('Trop de tentatives de connexion');
 });
 
 it('clears rate limit after a successful login attempt', function (): void {

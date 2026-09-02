@@ -35,7 +35,7 @@ it('may update profile information', function (): void {
         ->assertSessionHas(SessionKey::FLASH_DATA, [
             'toast' => [
                 'type' => 'success',
-                'message' => __('Profile updated.'),
+                'message' => __('statuses.profile_updated'),
             ],
         ]);
 

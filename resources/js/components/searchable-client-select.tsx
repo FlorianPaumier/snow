@@ -7,6 +7,7 @@ import {
 } from '@headlessui/react';
 import { Check, ChevronDown, Search } from 'lucide-react';
 import { useId, useState } from 'react';
+import { useLocale } from '@/hooks/use-locale';
 import { cn } from '@/lib/utils';
 
 type ClientOption = {
@@ -20,14 +21,17 @@ type ClientOption = {
  * narrowed by typing a name or a client number. The value stays the client's
  * id (so Inertia forms serialize it as a plain `clientId` string), while
  * the combobox itself works with the full option objects for display.
+ *
+ * Placeholder strings default to the active locale's translations; the
+ * props remain available for callers that need to override them.
  */
 export default function SearchableClientSelect({
     clients,
     name,
     id,
     defaultValue = '',
-    placeholder = 'Choisir un client',
-    searchPlaceholder = 'Aucun client correspondant',
+    placeholder,
+    searchPlaceholder,
     className,
 }: {
     clients: ClientOption[];
@@ -38,6 +42,7 @@ export default function SearchableClientSelect({
     searchPlaceholder?: string;
     className?: string;
 }) {
+    const { t } = useLocale();
     const [query, setQuery] = useState('');
     const [selectedId, setSelectedId] = useState(defaultValue);
     const reactId = useId();
@@ -71,7 +76,7 @@ export default function SearchableClientSelect({
                     <ComboboxInput
                         id={comboboxId}
                         className="h-9 w-full rounded-md border border-input bg-transparent pr-8 pl-8 text-sm shadow-xs transition-[color,box-shadow] outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-input/30 dark:hover:bg-input/50"
-                        placeholder={placeholder}
+                        placeholder={placeholder ?? t.clients.chooseClient}
                         autoComplete="off"
                         displayValue={(client: ClientOption) =>
                             client?.displayName ?? ''
@@ -80,7 +85,7 @@ export default function SearchableClientSelect({
                     />
                     <ComboboxButton
                         className="absolute inset-y-0 right-0 flex items-center rounded-r-md px-2 text-muted-foreground hover:text-foreground"
-                        aria-label="Ouvrir la liste des clients"
+                        aria-label={t.clients.openClientList}
                         data-test="client-select-open"
                     >
                         <ChevronDown aria-hidden="true" className="size-4" />
@@ -93,7 +98,7 @@ export default function SearchableClientSelect({
                 >
                     {filtered.length === 0 ? (
                         <p className="px-3 py-2 text-sm text-muted-foreground">
-                            {searchPlaceholder}
+                            {searchPlaceholder ?? t.clients.noMatchingClient}
                         </p>
                     ) : (
                         filtered.map((client) => (

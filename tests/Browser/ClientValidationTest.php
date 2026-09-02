@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Models\Client;
 use App\Models\User;
+use Pest\Browser\Api\AwaitableWebpage;
 
 /**
  * Browser coverage for the client management pages: the phone required_without
@@ -25,9 +26,11 @@ it('requires at least one phone number on create', function (): void {
         ->fill('#addressCity', 'Montréal')
         ->fill('#addressPostalCode', 'H3G 1M7')
         ->fill('#addressCountry', 'Canada')
-        ->press('Create client');
+        ->press('Créer le client');
 
-    $page->assertSee('The phone day field is required when cell phone is not present.')
+    // French is the default locale, so the server-side required_without
+    // rule surfaces through the French validation translations...
+    $page->assertSee('Le champ téléphone de jour est obligatoire quand cellulaire est absent.')
         ->assertPathIs('/clients/create');
 });
 
@@ -37,7 +40,7 @@ it('requires at least one phone number on create', function (): void {
  * portal's animations, so the option is clicked through the DOM directly
  * once the trigger has opened the list.
  */
-function pickSelectOption(Pest\Browser\Api\AwaitableWebpage $page, string $trigger, string $option): void
+function pickSelectOption(AwaitableWebpage $page, string $trigger, string $option): void
 {
     $page->click('#'.$trigger);
     $page->wait(1);
@@ -59,10 +62,10 @@ it('shows and hides the company name field with the client type', function (): v
     // The company name input only exists for company-type clients...
     $page->assertMissing('#companyName');
 
-    pickSelectOption($page, 'type', 'Company');
+    pickSelectOption($page, 'type', 'Compagnie');
     $page->assertVisible('#companyName');
 
-    pickSelectOption($page, 'type', 'Individual');
+    pickSelectOption($page, 'type', 'Particulier');
     $page->assertMissing('#companyName');
 });
 
@@ -73,7 +76,7 @@ it('requires a company name for company clients', function (): void {
     $page->navigate('/clients/create');
     $page->wait(2);
 
-    pickSelectOption($page, 'type', 'Company');
+    pickSelectOption($page, 'type', 'Compagnie');
 
     $page->fill('#companyName', ' ')
         ->fill('#firstName', 'Jean')
@@ -84,9 +87,9 @@ it('requires a company name for company clients', function (): void {
         ->fill('#addressCity', 'Montréal')
         ->fill('#addressPostalCode', 'H3G 1M7')
         ->fill('#addressCountry', 'Canada')
-        ->press('Create client');
+        ->press('Créer le client');
 
-    $page->assertSee('The company name field is required when type is company.')
+    $page->assertSee('Le champ nom de la compagnie est obligatoire quand type est company.')
         ->assertPathIs('/clients/create');
 });
 
@@ -95,7 +98,7 @@ it('prefills the edit form and keeps the client number immutable', function (): 
     $client = Client::factory()->forOrganization($admin->organization)->create();
     $page = loginViaUi($admin);
 
-    $page->navigate("/clients/{$client->id}/edit");
+    $page->navigate(sprintf('/clients/%s/edit', $client->id));
     $page->wait(2);
 
     $page->assertValue('#firstName', $client->firstName)
@@ -126,13 +129,13 @@ it('is accessible on the client edit and show pages', function (): void {
     $client = Client::factory()->forOrganization($admin->organization)->create();
     $page = loginViaUi($admin);
 
-    $page->navigate("/clients/{$client->id}/edit");
+    $page->navigate(sprintf('/clients/%s/edit', $client->id));
     $page->wait(2);
     settleForAccessibilityScan($page);
     $page->assertNoAccessibilityIssues(3)
         ->assertNoSmoke();
 
-    $page->navigate("/clients/{$client->id}");
+    $page->navigate('/clients/'.$client->id);
     $page->wait(2);
     settleForAccessibilityScan($page);
     $page->assertNoAccessibilityIssues(3)

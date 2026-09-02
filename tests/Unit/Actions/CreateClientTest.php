@@ -81,3 +81,46 @@ it('may create a company client with an ember... in its own sequence', function 
         ->and($company->clientNumber)->toBe('company-0001')
         ->and($company->companyName)->toBe('Gestion Tremblay Inc.');
 });
+
+it('skips the limit check when the organization has an unlimited plan', function (): void {
+    // The fleet plan has no client ceiling...
+    $this->user->organization->subscriptions()->create([
+        'type' => 'fleet',
+        'stripe_id' => 'sub_create_client_unlimited',
+        'stripe_status' => 'active',
+        'stripe_price' => 'price_fleet',
+        'quantity' => 1,
+        'trial_ends_at' => null,
+        'ends_at' => null,
+    ]);
+
+    Client::factory()->count(30)->forOrganization($this->user->organization)->create();
+
+    $client = resolve(CreateClient::class)->handle([
+        'type' => ClientType::CLIENT_INDIVIDUAL,
+        'firstName' => 'Au-delà',
+        'lastName' => 'De la limite',
+        'email' => 'beyond@example.com',
+        'addressStreet' => '1 Rue Sans Limite',
+        'addressCity' => 'Québec',
+        'addressPostalCode' => 'G1R 1R1',
+        'addressCountry' => 'CA',
+    ]);
+
+    expect($client)->toBeInstanceOf(Client::class);
+});
+
+it('creates a client without plan enforcement when unauthenticated', function (): void {
+    Auth::logout();
+
+    expect(fn () => resolve(CreateClient::class)->handle([
+        'type' => ClientType::CLIENT_INDIVIDUAL,
+        'firstName' => 'Console',
+        'lastName' => 'Context',
+        'email' => 'console@example.com',
+        'addressStreet' => '1 Rue Console',
+        'addressCity' => 'Québec',
+        'addressPostalCode' => 'G1R 1R1',
+        'addressCountry' => 'CA',
+    ]))->toThrow(Exception::class);
+});

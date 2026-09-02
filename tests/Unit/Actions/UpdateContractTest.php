@@ -7,6 +7,7 @@ use App\Enums\PaymentSlot;
 use App\Models\Client;
 use App\Models\Contract;
 use App\Models\User;
+use Illuminate\Support\Facades\Auth;
 
 // The organization scope requires an authenticated user to see any data;
 // records must belong to that user's organization to be visible...

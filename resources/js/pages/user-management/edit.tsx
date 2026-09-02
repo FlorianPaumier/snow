@@ -11,12 +11,14 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
+import { useLocale } from '@/hooks/use-locale';
 import AppFormLayout, {
     CancelButton,
     FormFooter,
     FormSection,
     SubmitButton,
 } from '@/layouts/app-form/layout';
+import { interpolate } from '@/lib/utils';
 import { index } from '@/routes/users';
 import type { BreadcrumbItem } from '@/types';
 
@@ -28,18 +30,25 @@ type EditableUser = {
 };
 
 export default function Edit({ user }: { user: EditableUser }) {
+    const { t } = useLocale();
+
     const breadcrumbs: BreadcrumbItem[] = [
-        { title: 'Users', href: index() },
-        { title: `Edit ${user.name}`, href: `/users/${user.id}/edit` },
+        { title: t.users.title, href: index() },
+        {
+            title: interpolate(t.users.editUserBreadcrumbs, {
+                name: user.name,
+            }),
+            href: `/users/${user.id}/edit`,
+        },
     ];
 
     return (
         <AppFormLayout
-            title={`Edit ${user.name}`}
-            description="Update the user's name, email, password, and role"
+            title={interpolate(t.users.editUserTitle, { name: user.name })}
+            description={t.users.editUserDescription}
             breadcrumbs={breadcrumbs}
             backHref={index().url}
-            backLabel="Users"
+            backLabel={t.users.title}
         >
             <Form
                 {...UserManagementController.update.form({ user: user.id })}
@@ -49,11 +58,13 @@ export default function Edit({ user }: { user: EditableUser }) {
                 {({ processing, errors }) => (
                     <>
                         <FormSection
-                            title="Details"
-                            description="Who this person is and how to reach them"
+                            title={t.users.detailsSection}
+                            description={t.users.detailsSectionDescription}
                         >
                             <div className="grid gap-2">
-                                <Label htmlFor="name">Name</Label>
+                                <Label htmlFor="name">
+                                    {t.users.nameField}
+                                </Label>
                                 <Input
                                     id="name"
                                     type="text"
@@ -66,7 +77,9 @@ export default function Edit({ user }: { user: EditableUser }) {
                             </div>
 
                             <div className="grid gap-2">
-                                <Label htmlFor="email">Email address</Label>
+                                <Label htmlFor="email">
+                                    {t.users.emailField}
+                                </Label>
                                 <Input
                                     id="email"
                                     type="email"
@@ -78,20 +91,26 @@ export default function Edit({ user }: { user: EditableUser }) {
                             </div>
 
                             <div className="grid gap-2">
-                                <Label htmlFor="role">Role</Label>
+                                <Label htmlFor="role">
+                                    {t.users.roleField}
+                                </Label>
                                 <Select name="role" defaultValue={user.role}>
                                     <SelectTrigger id="role" className="w-full">
-                                        <SelectValue placeholder="Select a role" />
+                                        <SelectValue
+                                            placeholder={
+                                                t.users.selectRolePlaceholder
+                                            }
+                                        />
                                     </SelectTrigger>
                                     <SelectContent>
                                         <SelectItem value="admin">
-                                            Admin
+                                            {t.users.roleAdmin}
                                         </SelectItem>
                                         <SelectItem value="worker">
-                                            Worker
+                                            {t.users.roleWorker}
                                         </SelectItem>
                                         <SelectItem value="user">
-                                            User
+                                            {t.users.roleUser}
                                         </SelectItem>
                                     </SelectContent>
                                 </Select>
@@ -100,27 +119,31 @@ export default function Edit({ user }: { user: EditableUser }) {
                         </FormSection>
 
                         <FormSection
-                            title="Password"
-                            description="Leave blank to keep the current password"
+                            title={t.users.passwordSection}
+                            description={t.users.passwordSectionDescription}
                         >
                             <div className="grid gap-2">
-                                <Label htmlFor="password">New password</Label>
+                                <Label htmlFor="password">
+                                    {t.settings.passwordField}
+                                </Label>
                                 <PasswordInput
                                     id="password"
                                     name="password"
-                                    placeholder="New password"
+                                    placeholder={t.settings.passwordField}
                                 />
                                 <InputError message={errors.password} />
                             </div>
 
                             <div className="grid gap-2">
                                 <Label htmlFor="password_confirmation">
-                                    Confirm new password
+                                    {t.users.confirmNewPasswordField}
                                 </Label>
                                 <PasswordInput
                                     id="password_confirmation"
                                     name="password_confirmation"
-                                    placeholder="Confirm new password"
+                                    placeholder={
+                                        t.users.confirmNewPasswordField
+                                    }
                                 />
                                 <InputError
                                     message={errors.password_confirmation}
@@ -131,7 +154,7 @@ export default function Edit({ user }: { user: EditableUser }) {
                         <FormFooter>
                             <CancelButton href={index().url} />
                             <SubmitButton processing={processing}>
-                                Save changes
+                                {t.users.saveChangesButton}
                             </SubmitButton>
                         </FormFooter>
                     </>

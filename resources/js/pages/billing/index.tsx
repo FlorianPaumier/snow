@@ -11,18 +11,13 @@ import {
     CardHeader,
     CardTitle,
 } from '@/components/ui/card';
+import { useLocale } from '@/hooks/use-locale';
 import AppLayout from '@/layouts/app-layout';
 import SettingsLayout from '@/layouts/settings/layout';
+import { interpolate } from '@/lib/utils';
 import { contact } from '@/routes';
 import { checkout, index, portal } from '@/routes/billing';
 import type { BreadcrumbItem } from '@/types';
-
-const breadcrumbs: BreadcrumbItem[] = [
-    {
-        title: 'Billing',
-        href: index(),
-    },
-];
 
 type Plan = {
     key: string;
@@ -39,42 +34,62 @@ export default function BillingIndex({
     plans: Plan[];
 }) {
     const { auth } = usePage().props;
+    const { t } = useLocale();
     const subscription = auth.subscription;
+
+    const breadcrumbs: BreadcrumbItem[] = [
+        {
+            title: t.billing.title,
+            href: index(),
+        },
+    ];
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Billing" />
+            <Head title={t.billing.title} />
 
-            <h1 className="sr-only">Billing</h1>
+            <h1 className="sr-only">{t.billing.title}</h1>
 
             <SettingsLayout>
                 <div className="space-y-6">
                     <Heading
                         variant="small"
-                        title="Subscription"
-                        description={`Plan and billing for ${organization.name}`}
+                        title={t.billing.subscriptionTitle}
+                        description={interpolate(
+                            t.billing.subscriptionDescription,
+                            { name: organization.name },
+                        )}
                     />
 
                     <Card>
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2">
-                                Current plan
+                                {t.billing.currentPlan}
                                 {subscription?.onTrial && (
-                                    <Badge variant="secondary">Trial</Badge>
+                                    <Badge variant="secondary">
+                                        {t.billing.trial}
+                                    </Badge>
                                 )}
                             </CardTitle>
                             <CardDescription>
                                 {subscription?.plan
-                                    ? `You are subscribed to the ${subscription.plan} plan (${subscription.status}).`
+                                    ? interpolate(t.billing.subscribedPlan, {
+                                          plan: subscription.plan,
+                                          status: subscription.status,
+                                      })
                                     : subscription?.onTrial
-                                      ? `Your free trial runs until ${subscription.trialEndsAt ?? 'its end'}. Pick a plan below to keep going.`
-                                      : 'Pick a plan below to get started.'}
+                                      ? subscription.trialEndsAt
+                                          ? interpolate(t.billing.trialUntil, {
+                                                date: subscription.trialEndsAt,
+                                            })
+                                          : t.billing.trialUntilUnknown
+                                      : t.billing.pickPlan}
                             </CardDescription>
                         </CardHeader>
                         <CardContent>
                             <Form {...portal.form()}>
                                 <Button variant="outline" type="submit">
-                                    Manage billing in Stripe
+                                    {t.billing.manageInStripe}
                                 </Button>
                             </Form>
                         </CardContent>
@@ -87,12 +102,17 @@ export default function BillingIndex({
                                     <CardTitle>{plan.name}</CardTitle>
                                     <CardDescription>
                                         {plan.maxUsers === null
-                                            ? 'Unlimited users'
-                                            : `${plan.maxUsers} users`}
+                                            ? t.billing.unlimitedUsers
+                                            : interpolate(t.billing.userCount, {
+                                                  count: plan.maxUsers,
+                                              })}
                                         {' · '}
                                         {plan.maxClients === null
-                                            ? 'unlimited clients'
-                                            : `${plan.maxClients} clients`}
+                                            ? t.billing.unlimitedClients
+                                            : interpolate(
+                                                  t.billing.clientCount,
+                                                  { count: plan.maxClients },
+                                              )}
                                     </CardDescription>
                                 </CardHeader>
                                 <CardContent>
@@ -112,7 +132,7 @@ export default function BillingIndex({
                                                 type="submit"
                                                 className="w-full"
                                             >
-                                                Subscribe monthly
+                                                {t.billing.subscribeMonthly}
                                             </Button>
                                         </Form>
                                         <Form {...checkout.form()}>
@@ -131,7 +151,7 @@ export default function BillingIndex({
                                                 variant="outline"
                                                 className="w-full"
                                             >
-                                                Subscribe annually
+                                                {t.billing.subscribeAnnually}
                                             </Button>
                                         </Form>
                                     </div>
@@ -141,8 +161,11 @@ export default function BillingIndex({
                     </div>
 
                     <p className="text-sm text-muted-foreground">
-                        Prices are managed in Stripe. Need a custom arrangement?{' '}
-                        <TextLink href={contact()}>Contact us</TextLink>.
+                        {t.billing.pricesNote}{' '}
+                        <TextLink href={contact()}>
+                            {t.billing.contactUs}
+                        </TextLink>
+                        .
                     </p>
                 </div>
             </SettingsLayout>

@@ -151,7 +151,7 @@ it('may update password', function (): void {
         ->assertSessionHas(SessionKey::FLASH_DATA, [
             'toast' => [
                 'type' => 'success',
-                'message' => __('Password updated.'),
+                'message' => __('statuses.password_updated'),
             ],
         ]);
 

@@ -19,9 +19,9 @@ it('shows an error when the current password is wrong', function (): void {
     $page->fill('#current_password', 'wrong-password')
         ->fill('#password', 'brand-new-password')
         ->fill('#password_confirmation', 'brand-new-password')
-        ->press('Save password');
+        ->press('Enregistrer');
 
-    $page->assertSee('The password is incorrect.')
+    $page->assertSee('Le mot de passe fourni est incorrect.')
         ->assertPathIs('/settings/password');
 });
 
@@ -35,9 +35,9 @@ it('shows an error when the new password confirmation does not match', function 
     $page->fill('#current_password', 'password')
         ->fill('#password', 'brand-new-password')
         ->fill('#password_confirmation', 'different-password')
-        ->press('Save password');
+        ->press('Enregistrer');
 
-    $page->assertSee('The password field confirmation does not match.')
+    $page->assertSee('La confirmation du champ mot de passe ne correspond pas.')
         ->assertPathIs('/settings/password');
 });
 
@@ -50,9 +50,9 @@ it('shows an error when the profile email is already taken', function (): void {
     $page->wait(2);
 
     $page->fill('#email', 'taken@example.com')
-        ->press('Save');
+        ->press('Enregistrer');
 
-    $page->assertSee('The email has already been taken.')
+    $page->assertSee('La valeur du champ adresse courriel est déjà utilisée.')
         ->assertPathIs('/settings/profile');
 });
 
@@ -70,15 +70,15 @@ it('shows an error for a wrong password in the delete account dialog', function 
     $page->fill('#password', 'wrong-password')
         ->click('@confirm-delete-user-button');
 
-    $page->assertSee('The password is incorrect.');
+    $page->assertSee('Le mot de passe fourni est incorrect.');
 
     // Cancelling clears the errors for the next attempt...
-    $page->click('Cancel');
+    $page->click('Annuler');
     $page->wait(1);
 
     $page->click('@delete-user-button');
     $page->wait(1);
-    $page->assertDontSee('The password is incorrect.');
+    $page->assertDontSee('Le mot de passe fourni est incorrect.');
 });
 
 it('is accessible on the settings and dashboard pages', function (): void {

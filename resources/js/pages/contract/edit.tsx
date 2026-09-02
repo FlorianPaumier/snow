@@ -1,5 +1,7 @@
 import ContractController from '@/actions/App/Http/Controllers/ContractController';
+import { useLocale } from '@/hooks/use-locale';
 import AppFormLayout from '@/layouts/app-form/layout';
+import { interpolate } from '@/lib/utils';
 import { index } from '@/routes/contracts';
 import type { BreadcrumbItem } from '@/types';
 import ContractForm from './components/contract-form';
@@ -34,10 +36,14 @@ export default function Edit({
     seasons: string[];
     slots: SlotOption[];
 }) {
+    const { t } = useLocale();
+
     const breadcrumbs: BreadcrumbItem[] = [
-        { title: 'Contrats', href: index().url },
+        { title: t.contracts.title, href: index().url },
         {
-            title: `Modifier ${contract.season}`,
+            title: interpolate(t.contracts.editBreadcrumb, {
+                season: contract.season,
+            }),
             href: ContractController.edit.url({ contract: contract.id }),
         },
     ];
@@ -65,11 +71,13 @@ export default function Edit({
 
     return (
         <AppFormLayout
-            title={`Modifier le contrat ${contract.season}`}
-            description="Mettre à jour les services et les versements de l'entente"
+            title={interpolate(t.contracts.editContractTitle, {
+                season: contract.season,
+            })}
+            description={t.contracts.editContractDescription}
             breadcrumbs={breadcrumbs}
             backHref={ContractController.show.url({ contract: contract.id })}
-            backLabel="Contrat"
+            backLabel={t.contracts.title}
         >
             <ContractForm
                 action={
@@ -80,7 +88,7 @@ export default function Edit({
                 cancelHref={ContractController.show.url({
                     contract: contract.id,
                 })}
-                submitLabel="Enregistrer les modifications"
+                submitLabel={t.contracts.saveChanges}
                 initialClientId={contract.clientId}
                 initialSeason={contract.season}
                 initialServices={initialServices}

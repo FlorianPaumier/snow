@@ -29,9 +29,9 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
+import { cn, toUrl } from '@/lib/utils';
 import { index as billingIndex } from '@/routes/billing';
 import register from '@/routes/register';
-import { cn, toUrl } from '@/lib/utils';
 
 /* ── Billing period toggle ──────────────────────────────────────── */
 function BillingToggle({
@@ -345,11 +345,13 @@ export default function Pricing() {
 
     // Signed-in admins land on billing; everyone else starts a trial by
     // registering. "Talk to sales" stays a contact link...
-    const ctaHref = toUrl(auth.user
-        ? auth.can?.manageBilling
-            ? billingIndex()
-            : ROUTES.contact
-        : register.store());
+    const ctaHref = toUrl(
+        auth.user
+            ? auth.can?.manageBilling
+                ? billingIndex()
+                : ROUTES.contact
+            : register.store(),
+    );
 
     return (
         <MarketingLayout title="Pricing — Frostline OPS" route={ROUTES.pricing}>

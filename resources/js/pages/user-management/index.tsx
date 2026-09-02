@@ -23,7 +23,9 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
+import { useLocale } from '@/hooks/use-locale';
 import AppLayout from '@/layouts/app-layout';
+import { interpolate } from '@/lib/utils';
 import { create, index } from '@/routes/users';
 import type { BreadcrumbItem } from '@/types';
 
@@ -51,17 +53,10 @@ type Filters = {
     direction: 'asc' | 'desc';
 };
 
-const SORTABLE_COLUMNS = [
-    { value: 'name', label: 'Name' },
-    { value: 'email', label: 'Email' },
-    { value: 'role', label: 'Role' },
-    { value: 'created_at', label: 'Created' },
-] as const;
-
 /* ── Role vocabulary: tinted renderings of one state ── */
 const ROLE_BADGES: Record<string, string> = {
-    admin: 'border-emerald-500/25 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400',
-    worker: 'border-sky-500/25 bg-sky-500/10 text-sky-700 dark:text-sky-400',
+    admin: 'border-ember-500/25 bg-ember-500/10 text-ember-700 dark:text-ember-400',
+    worker: 'border-glacier-500/25 bg-glacier-500/10 text-glacier-700 dark:text-glacier-400',
     user: 'border-border bg-muted text-muted-foreground',
 };
 
@@ -92,13 +87,6 @@ const initialsOf = (user: ManagedUser) =>
         .join('')
         .toUpperCase();
 
-const breadcrumbs: BreadcrumbItem[] = [
-    {
-        title: 'Users',
-        href: '/users',
-    },
-];
-
 export default function Index({
     users,
     filters,
@@ -106,8 +94,23 @@ export default function Index({
     users: Pagination;
     filters: Filters;
 }) {
+    const { t } = useLocale();
     const { status } = usePage().props;
     const [search, setSearch] = useState(filters.search);
+
+    const SORTABLE_COLUMNS = [
+        { value: 'name', label: t.users.nameField },
+        { value: 'email', label: t.users.emailField },
+        { value: 'role', label: t.users.columnRole },
+        { value: 'created_at', label: t.users.columnCreated },
+    ] as const;
+
+    const breadcrumbs: BreadcrumbItem[] = [
+        {
+            title: t.users.title,
+            href: '/users',
+        },
+    ];
 
     // Debounced search: reload the page with the updated query string...
     useEffect(() => {
@@ -168,26 +171,24 @@ export default function Index({
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Users" />
+            <Head title={t.users.title} />
 
             <div className="flex h-full flex-1 flex-col gap-6 rounded-xl p-4">
                 <div className="flex flex-wrap items-end justify-between gap-4">
                     <Heading
-                        title="Users"
-                        description="Manage the people on your team"
+                        title={t.users.title}
+                        description={t.users.descriptionTeam}
                     />
 
                     <Button asChild>
                         <Link href={create()} prefetch>
-                            <Plus /> New user
+                            <Plus /> {t.users.newUser}
                         </Link>
                     </Button>
                 </div>
 
                 {typeof status === 'string' && (
-                    <p className="text-sm text-green-600 dark:text-green-400">
-                        {status}
-                    </p>
+                    <p className="text-sm text-success">{status}</p>
                 )}
 
                 <div className="overflow-hidden rounded-xl border">
@@ -207,8 +208,8 @@ export default function Index({
                                 onKeyDown={(event) => {
                                     if (event.key === 'Escape') setSearch('');
                                 }}
-                                placeholder="Filter names, emails…"
-                                aria-label="Filter users"
+                                placeholder={t.users.searchPlaceholderUsers}
+                                aria-label={t.users.searchAriaLabel}
                                 className="h-9 pl-8"
                             />
                         </div>
@@ -216,7 +217,9 @@ export default function Index({
                             className="font-mono text-xs text-muted-foreground sm:ml-auto"
                             aria-live="polite"
                         >
-                            {users.total} user{users.total === 1 ? '' : 's'}
+                            {interpolate(t.users.userCount, {
+                                count: users.total,
+                            })}
                         </p>
                     </div>
 
@@ -239,7 +242,7 @@ export default function Index({
                                         </TableHead>
                                     ))}
                                     <TableHead className="text-right">
-                                        Actions
+                                        {t.common.actions}
                                     </TableHead>
                                 </TableRow>
                             </TableHeader>
@@ -285,7 +288,11 @@ export default function Index({
                                                         variant="ghost"
                                                         size="icon"
                                                         className="size-8 text-muted-foreground hover:text-foreground"
-                                                        aria-label={`Edit ${user.name}`}
+                                                        aria-label={interpolate(
+                                                            t.users
+                                                                .editUserAria,
+                                                            { name: user.name },
+                                                        )}
                                                     >
                                                         <Link
                                                             href={UserManagementController.edit.url(
@@ -312,7 +319,13 @@ export default function Index({
                                                             variant="ghost"
                                                             size="icon"
                                                             className="size-8 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
-                                                            aria-label={`Delete ${user.name}`}
+                                                            aria-label={interpolate(
+                                                                t.users
+                                                                    .deleteUserAria,
+                                                                {
+                                                                    name: user.name,
+                                                                },
+                                                            )}
                                                         >
                                                             <Trash2
                                                                 aria-hidden="true"
@@ -332,11 +345,10 @@ export default function Index({
                                         >
                                             <div className="flex flex-col items-center gap-1.5">
                                                 <p className="text-sm font-medium">
-                                                    No matching users
+                                                    {t.users.emptyTitle}
                                                 </p>
                                                 <p className="text-xs text-muted-foreground">
-                                                    Try a different name, email,
-                                                    or role.
+                                                    {t.users.emptyHint}
                                                 </p>
                                             </div>
                                         </TableCell>
@@ -350,7 +362,11 @@ export default function Index({
                     {users.total > users.per_page && (
                         <div className="flex flex-wrap items-center justify-between gap-4 border-t px-4 py-3">
                             <p className="text-xs text-muted-foreground">
-                                Showing {users.from}–{users.to} of {users.total}
+                                {interpolate(t.common.paginationSummary, {
+                                    from: users.from ?? 0,
+                                    to: users.to ?? 0,
+                                    total: users.total,
+                                })}
                             </p>
                             <div className="flex items-center gap-2">
                                 <Button
@@ -361,7 +377,7 @@ export default function Index({
                                         goToPage(users.current_page - 1)
                                     }
                                 >
-                                    Previous
+                                    {t.common.previous}
                                 </Button>
                                 <span className="font-mono text-xs text-muted-foreground">
                                     {users.current_page}/{users.last_page}
@@ -376,7 +392,7 @@ export default function Index({
                                         goToPage(users.current_page + 1)
                                     }
                                 >
-                                    Next
+                                    {t.common.next}
                                 </Button>
                             </div>
                         </div>

@@ -13,42 +13,44 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
+import { useLocale } from '@/hooks/use-locale';
 import { dashboard } from '@/routes';
 import { index as clientsIndex } from '@/routes/clients';
 import { index as contractsIndex } from '@/routes/contracts';
 import { index as usersIndex } from '@/routes/users';
 import type { NavItem } from '@/types';
 
-const mainNavItems: NavItem[] = [
-    {
-        title: 'Tableau de bord',
-        href: dashboard(),
-        icon: LayoutGrid,
-    },
-    {
-        title: 'Clients',
-        href: clientsIndex(),
-        icon: Building2,
-    },
-    {
-        title: 'Contrats',
-        href: contractsIndex(),
-        icon: FileText,
-    },
-];
-
-const userManagementNavItems: NavItem[] = [
-    {
-        title: 'Users',
-        href: usersIndex(),
-        icon: Users,
-    },
-];
-
-const footerNavItems: NavItem[] = [];
-
 export function AppSidebar() {
     const { auth } = usePage().props;
+    const { t } = useLocale();
+
+    const mainNavItems: NavItem[] = [
+        {
+            title: t.nav.dashboard,
+            href: dashboard(),
+            icon: LayoutGrid,
+        },
+        {
+            title: t.nav.clients,
+            href: clientsIndex(),
+            icon: Building2,
+        },
+        {
+            title: t.nav.contracts,
+            href: contractsIndex(),
+            icon: FileText,
+        },
+    ];
+
+    const userManagementNavItems: NavItem[] = [
+        {
+            title: t.nav.users,
+            href: usersIndex(),
+            icon: Users,
+        },
+    ];
+
+    const footerNavItems: NavItem[] = [];
 
     const items = auth.can?.manageUsers
         ? [...mainNavItems, ...userManagementNavItems]

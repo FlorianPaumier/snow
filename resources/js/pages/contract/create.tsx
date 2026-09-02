@@ -1,4 +1,5 @@
 import ContractController from '@/actions/App/Http/Controllers/ContractController';
+import { useLocale } from '@/hooks/use-locale';
 import AppFormLayout from '@/layouts/app-form/layout';
 import { index } from '@/routes/contracts';
 import type { BreadcrumbItem } from '@/types';
@@ -15,11 +16,6 @@ type SlotOption = {
     label: string;
 };
 
-const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Contrats', href: index().url },
-    { title: 'Nouveau contrat', href: '/contracts/create' },
-];
-
 export default function Create({
     clients,
     seasons,
@@ -29,20 +25,27 @@ export default function Create({
     seasons: string[];
     slots: SlotOption[];
 }) {
+    const { t } = useLocale();
+
+    const breadcrumbs: BreadcrumbItem[] = [
+        { title: t.contracts.title, href: index().url },
+        { title: t.contracts.newContract, href: '/contracts/create' },
+    ];
+
     return (
         <AppFormLayout
-            title="Nouveau contrat"
-            description="Créer une entente de saison pour un client"
+            title={t.contracts.newContract}
+            description={t.contracts.newContractDescription}
             breadcrumbs={breadcrumbs}
             backHref={index().url}
-            backLabel="Contrats"
+            backLabel={t.contracts.title}
         >
             <ContractForm
                 action={
                     ContractController.store.form() as Record<string, unknown>
                 }
                 cancelHref={index().url}
-                submitLabel="Créer le contrat"
+                submitLabel={t.contracts.createContract}
                 initialSeason={seasons[1] ?? seasons[0] ?? ''}
                 initialPayments={Object.fromEntries(
                     slots.map((slot) => [slot.value, { amount: '' }]),

@@ -14,13 +14,14 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
+import { useLocale } from '@/hooks/use-locale';
 import {
     CancelButton,
     FormFooter,
     FormSection,
     SubmitButton,
 } from '@/layouts/app-form/layout';
-import { formatCurrency } from '@/lib/utils';
+import { interpolate, useCurrencyFormatter } from '@/lib/utils';
 
 type ClientOption = {
     id: string;
@@ -73,6 +74,8 @@ export default function ContractForm({
     seasons: string[];
     slots: SlotOption[];
 }) {
+    const { t } = useLocale();
+    const formatCurrency = useCurrencyFormatter();
     const [services, setServices] = useState<ServiceRow[]>(initialServices);
     const [payments, setPayments] =
         useState<Record<string, PaymentRow>>(initialPayments);
@@ -154,25 +157,35 @@ export default function ContractForm({
             {({ processing, errors }) => (
                 <>
                     <FormSection
-                        title="Saison et client"
-                        description="À qui s'adresse l'entente et pour quelle saison"
+                        title={t.contracts.clientAndSeasonSection}
+                        description={t.contracts.clientAndSeasonDescription}
                     >
                         <div className="grid gap-2">
-                            <Label htmlFor="clientId">Client</Label>
+                            <Label htmlFor="clientId">
+                                {t.contracts.fieldClient}
+                            </Label>
                             <SearchableClientSelect
                                 name="clientId"
                                 id="clientId"
                                 clients={clients}
                                 defaultValue={initialClientId}
+                                placeholder={t.clients.chooseClient}
+                                searchPlaceholder={t.clients.noMatchingClient}
                             />
                             <InputError message={errors.clientId} />
                         </div>
 
                         <div className="grid gap-2">
-                            <Label htmlFor="season">Saison</Label>
+                            <Label htmlFor="season">
+                                {t.contracts.fieldSeason}
+                            </Label>
                             <Select name="season" defaultValue={initialSeason}>
                                 <SelectTrigger id="season" className="w-full">
-                                    <SelectValue placeholder="Choisir une saison" />
+                                    <SelectValue
+                                        placeholder={
+                                            t.contracts.seasonPlaceholder
+                                        }
+                                    />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {seasons.map((seasonOption) => (
@@ -190,8 +203,8 @@ export default function ContractForm({
                     </FormSection>
 
                     <FormSection
-                        title="Services"
-                        description="Les travaux inclus dans l'entente"
+                        title={t.contracts.servicesSection}
+                        description={t.contracts.servicesDescription}
                     >
                         <div className="flex flex-col gap-4">
                             {services.map((service, index) => (
@@ -203,12 +216,11 @@ export default function ContractForm({
                                         <Label
                                             htmlFor={`services-${index}-label`}
                                         >
-                                            Service
+                                            {t.contracts.fieldService}
                                         </Label>
                                         <Input
                                             id={`services-${index}-label`}
                                             type="text"
-                                            required
                                             name={`services[${index}][label]`}
                                             value={service.label}
                                             onChange={(event) =>
@@ -218,21 +230,23 @@ export default function ContractForm({
                                                     event.target.value,
                                                 )
                                             }
-                                            placeholder="Déneigement entrée"
+                                            placeholder={
+                                                t.contracts
+                                                    .serviceLabelPlaceholder
+                                            }
                                         />
                                     </div>
                                     <div className="grid gap-2">
                                         <Label
                                             htmlFor={`services-${index}-amount`}
                                         >
-                                            Montant
+                                            {t.contracts.fieldAmount}
                                         </Label>
                                         <Input
                                             id={`services-${index}-amount`}
                                             type="number"
                                             min="0"
                                             step="0.01"
-                                            required
                                             name={`services[${index}][amount]`}
                                             value={service.amount}
                                             onChange={(event) =>
@@ -242,7 +256,10 @@ export default function ContractForm({
                                                     event.target.value,
                                                 )
                                             }
-                                            placeholder="425.00"
+                                            placeholder={
+                                                t.contracts
+                                                    .serviceAmountPlaceholder
+                                            }
                                         />
                                     </div>
                                     <Button
@@ -252,7 +269,10 @@ export default function ContractForm({
                                         className="mt-8 size-9 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
                                         onClick={() => removeService(index)}
                                         disabled={services.length <= 1}
-                                        aria-label={`Retirer le service ${index + 1}`}
+                                        aria-label={interpolate(
+                                            t.contracts.removeService,
+                                            { index: index + 1 },
+                                        )}
                                     >
                                         <Trash2
                                             aria-hidden="true"
@@ -270,15 +290,16 @@ export default function ContractForm({
                                 onClick={addService}
                                 data-test="add-service"
                             >
-                                <Plus className="size-4" /> Ajouter un service
+                                <Plus className="size-4" />{' '}
+                                {t.contracts.addService}
                             </Button>
                         </div>
                         <InputError message={errors['services.0.label']} />
                     </FormSection>
 
                     <FormSection
-                        title="Versements"
-                        description="Le total des versements doit correspondre au total des services"
+                        title={t.contracts.paymentsSection}
+                        description={t.contracts.paymentsDescription}
                     >
                         <div className="grid gap-4 sm:grid-cols-2">
                             {slots.map((slot) => {
@@ -286,6 +307,10 @@ export default function ContractForm({
                                     amount: '',
                                 };
                                 const locked = payment.paid === true;
+                                const slotLabel =
+                                    t.paymentSlots[
+                                        slot.value as keyof typeof t.paymentSlots
+                                    ] ?? slot.label;
 
                                 return (
                                     <div
@@ -296,13 +321,16 @@ export default function ContractForm({
                                             htmlFor={`payments-${slot.value}`}
                                             className="flex items-center gap-2"
                                         >
-                                            {slot.label}
+                                            {slotLabel}
                                             {locked && (
                                                 <Badge
                                                     variant="outline"
                                                     className="border-success/25 bg-success/10 text-success"
                                                 >
-                                                    Encaissé
+                                                    {
+                                                        t.contracts
+                                                            .statusCollected
+                                                    }
                                                 </Badge>
                                             )}
                                         </Label>
@@ -311,7 +339,6 @@ export default function ContractForm({
                                             type="number"
                                             min="0"
                                             step="0.01"
-                                            required
                                             disabled={locked}
                                             name={`payments[${slot.value}]`}
                                             value={payment.amount}
@@ -321,7 +348,10 @@ export default function ContractForm({
                                                     event.target.value,
                                                 )
                                             }
-                                            placeholder="150.00"
+                                            placeholder={
+                                                t.contracts
+                                                    .paymentAmountPlaceholder
+                                            }
                                         />
                                         <InputError
                                             message={
@@ -344,13 +374,13 @@ export default function ContractForm({
                         >
                             <div className="flex items-center gap-6">
                                 <p className="text-xs text-muted-foreground">
-                                    Services{' '}
+                                    {t.contracts.totalsServices}{' '}
                                     <span className="font-mono text-sm font-medium text-foreground tabular-nums">
                                         {formatCurrency(servicesTotal)}
                                     </span>
                                 </p>
                                 <p className="text-xs text-muted-foreground">
-                                    Versements{' '}
+                                    {t.contracts.totalsPayments}{' '}
                                     <span className="font-mono text-sm font-medium text-foreground tabular-nums">
                                         {formatCurrency(paymentsTotal)}
                                     </span>
@@ -362,7 +392,7 @@ export default function ContractForm({
                                     role="alert"
                                     data-test="totals-warning"
                                 >
-                                    Les totaux ne correspondent pas
+                                    {t.contracts.totalsMismatch}
                                 </p>
                             )}
                         </div>

@@ -25,7 +25,9 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
+import { useLocale } from '@/hooks/use-locale';
 import AppLayout from '@/layouts/app-layout';
+import { interpolate } from '@/lib/utils';
 import { create, index } from '@/routes/clients';
 import type { BreadcrumbItem } from '@/types';
 
@@ -56,22 +58,18 @@ type Filters = {
     direction: 'asc' | 'desc';
 };
 
-const SORTABLE_COLUMNS = [
-    { value: 'clientNumber', label: 'Client #' },
-    { value: 'firstName', label: 'Client' },
-    { value: 'type', label: 'Type' },
-    { value: 'created_at', label: 'Created' },
-] as const;
-
 /* ── Type vocabulary: tinted renderings of one state ── */
-const TYPE_BADGES: Record<string, { label: string; className: string }> = {
+const TYPE_BADGES: Record<
+    string,
+    { labelKey: 'typeIndividual' | 'typeCompany'; className: string }
+> = {
     individual: {
-        label: 'Individual',
+        labelKey: 'typeIndividual',
         className:
             'border-glacier-500/20 bg-glacier-500/10 text-glacier-700 dark:text-glacier-400',
     },
     company: {
-        label: 'Company',
+        labelKey: 'typeCompany',
         className:
             'border-ember-500/25 bg-ember-500/10 text-ember-700 dark:text-ember-400',
     },
@@ -114,13 +112,6 @@ const initialsOf = (client: ManagedClient) => {
     return `${client.firstName[0] ?? ''}${client.lastName[0] ?? ''}`.toUpperCase();
 };
 
-const breadcrumbs: BreadcrumbItem[] = [
-    {
-        title: 'Clients',
-        href: '/clients',
-    },
-];
-
 export default function Index({
     clients,
     filters,
@@ -128,9 +119,24 @@ export default function Index({
     clients: Pagination;
     filters: Filters;
 }) {
+    const { t } = useLocale();
     const { status, errors } = usePage().props;
     const [search, setSearch] = useState(filters.search);
     const canManageClients = usePage().props.auth.can?.manageClients ?? false;
+
+    const SORTABLE_COLUMNS = [
+        { value: 'clientNumber', label: t.clients.columnNumber },
+        { value: 'firstName', label: t.clients.columnClient },
+        { value: 'type', label: t.common.type },
+        { value: 'created_at', label: t.clients.columnCreated },
+    ] as const;
+
+    const breadcrumbs: BreadcrumbItem[] = [
+        {
+            title: t.clients.title,
+            href: '/clients',
+        },
+    ];
 
     // Debounced search: reload the page with the updated query string...
     useEffect(() => {
@@ -191,28 +197,26 @@ export default function Index({
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Clients" />
+            <Head title={t.clients.title} />
 
             <div className="flex h-full flex-1 flex-col gap-6 rounded-xl p-4">
                 <div className="flex flex-wrap items-end justify-between gap-4">
                     <Heading
-                        title="Clients"
-                        description="Manage the people and companies you serve"
+                        title={t.clients.title}
+                        description={t.clients.description}
                     />
 
                     {canManageClients && (
                         <Button asChild data-test="new-client">
                             <Link href={create()} prefetch>
-                                <Plus /> New client
+                                <Plus /> {t.clients.newClient}
                             </Link>
                         </Button>
                     )}
                 </div>
 
                 {typeof status === 'string' && (
-                    <p className="text-sm text-green-600 dark:text-green-400">
-                        {status}
-                    </p>
+                    <p className="text-sm text-success">{status}</p>
                 )}
 
                 {typeof errors.client === 'string' && (
@@ -242,8 +246,8 @@ export default function Index({
                                 onKeyDown={(event) => {
                                     if (event.key === 'Escape') setSearch('');
                                 }}
-                                placeholder="Filter names, companies, numbers…"
-                                aria-label="Filter clients"
+                                placeholder={t.clients.searchPlaceholder}
+                                aria-label={t.clients.filterAriaLabel}
                                 className="h-9 pl-8"
                                 data-test="client-search"
                             />
@@ -252,8 +256,13 @@ export default function Index({
                             className="font-mono text-xs text-muted-foreground sm:ml-auto"
                             aria-live="polite"
                         >
-                            {clients.total} client
-                            {clients.total === 1 ? '' : 's'}
+                            {interpolate(t.clients.clientCount, {
+                                count: clients.total,
+                                plural:
+                                    clients.total === 1
+                                        ? ''
+                                        : t.clients.clientCountPlural,
+                            })}
                         </p>
                     </div>
 
@@ -276,136 +285,171 @@ export default function Index({
                                         </TableHead>
                                     ))}
                                     <TableHead className="text-right">
-                                        Actions
+                                        {t.common.actions}
                                     </TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
                                 {clients.data.length > 0 ? (
-                                    clients.data.map((client) => (
-                                        <TableRow
-                                            key={client.id}
-                                            className="border-border/50 bg-muted/10 hover:bg-muted/25 dark:bg-muted/5 dark:hover:bg-muted/15"
-                                        >
-                                            <TableCell className="font-mono text-xs font-medium">
-                                                {client.clientNumber}
-                                            </TableCell>
-                                            <TableCell>
-                                                <span className="flex items-center gap-2">
-                                                    <Avatar className="size-7">
-                                                        <AvatarFallback
-                                                            className={
-                                                                client.type ===
-                                                                'company'
-                                                                    ? 'bg-ember-500/15 text-[10px] font-medium text-ember-700 dark:text-ember-400'
-                                                                    : 'bg-glacier-500/15 text-[10px] font-medium text-glacier-700 dark:text-glacier-400'
-                                                            }
-                                                        >
-                                                            {initialsOf(client)}
-                                                        </AvatarFallback>
-                                                    </Avatar>
-                                                    <span className="flex flex-col">
-                                                        <span className="text-sm">
-                                                            {displayName(
-                                                                client,
-                                                            )}
-                                                        </span>
-                                                        <span className="text-xs text-muted-foreground">
-                                                            {client.email}
+                                    clients.data.map((client) => {
+                                        const typeBadge =
+                                            TYPE_BADGES[client.type];
+
+                                        return (
+                                            <TableRow
+                                                key={client.id}
+                                                className="border-border/50 bg-muted/10 hover:bg-muted/25 dark:bg-muted/5 dark:hover:bg-muted/15"
+                                            >
+                                                <TableCell className="font-mono text-xs font-medium">
+                                                    {client.clientNumber}
+                                                </TableCell>
+                                                <TableCell>
+                                                    <span className="flex items-center gap-2">
+                                                        <Avatar className="size-7">
+                                                            <AvatarFallback
+                                                                className={
+                                                                    client.type ===
+                                                                    'company'
+                                                                        ? 'bg-ember-500/15 text-[10px] font-medium text-ember-700 dark:text-ember-400'
+                                                                        : 'bg-glacier-500/15 text-[10px] font-medium text-glacier-700 dark:text-glacier-400'
+                                                                }
+                                                            >
+                                                                {initialsOf(
+                                                                    client,
+                                                                )}
+                                                            </AvatarFallback>
+                                                        </Avatar>
+                                                        <span className="flex flex-col">
+                                                            <span className="text-sm">
+                                                                {displayName(
+                                                                    client,
+                                                                )}
+                                                            </span>
+                                                            <span className="text-xs text-muted-foreground">
+                                                                {client.email}
+                                                            </span>
                                                         </span>
                                                     </span>
-                                                </span>
-                                            </TableCell>
-                                            <TableCell>
-                                                <StatusBadge
-                                                    label={
-                                                        TYPE_BADGES[client.type]
-                                                            ?.label ??
-                                                        client.type
-                                                    }
-                                                    className={
-                                                        TYPE_BADGES[client.type]
-                                                            ?.className ??
-                                                        'border-border bg-muted text-muted-foreground'
-                                                    }
-                                                />
-                                            </TableCell>
-                                            <TableCell className="text-right text-xs text-muted-foreground">
-                                                {client.created_at}
-                                            </TableCell>
-                                            <TableCell>
-                                                <div className="flex items-center justify-end gap-0.5">
-                                                    <Button
-                                                        asChild
-                                                        variant="ghost"
-                                                        size="icon"
-                                                        className="size-8 text-muted-foreground hover:text-foreground"
-                                                        aria-label={`View ${displayName(client)}`}
-                                                    >
-                                                        <Link
-                                                            href={ClientController.show.url(
+                                                </TableCell>
+                                                <TableCell>
+                                                    <StatusBadge
+                                                        label={
+                                                            typeBadge
+                                                                ? t.clients[
+                                                                      typeBadge
+                                                                          .labelKey
+                                                                  ]
+                                                                : client.type
+                                                        }
+                                                        className={
+                                                            typeBadge?.className ??
+                                                            'border-border bg-muted text-muted-foreground'
+                                                        }
+                                                    />
+                                                </TableCell>
+                                                <TableCell className="text-right text-xs text-muted-foreground">
+                                                    {client.created_at}
+                                                </TableCell>
+                                                <TableCell>
+                                                    <div className="flex items-center justify-end gap-0.5">
+                                                        <Button
+                                                            asChild
+                                                            variant="ghost"
+                                                            size="icon"
+                                                            className="size-8 text-muted-foreground hover:text-foreground"
+                                                            aria-label={interpolate(
+                                                                t.clients
+                                                                    .viewClient,
                                                                 {
-                                                                    client: client.id,
+                                                                    client: displayName(
+                                                                        client,
+                                                                    ),
                                                                 },
                                                             )}
-                                                            prefetch
                                                         >
-                                                            <Eye
-                                                                aria-hidden="true"
-                                                                className="size-4"
-                                                            />
-                                                        </Link>
-                                                    </Button>
-                                                    {canManageClients && (
-                                                        <>
-                                                            <Button
-                                                                asChild
-                                                                variant="ghost"
-                                                                size="icon"
-                                                                className="size-8 text-muted-foreground hover:text-foreground"
-                                                                aria-label={`Edit ${displayName(client)}`}
-                                                            >
-                                                                <Link
-                                                                    href={ClientController.edit.url(
-                                                                        {
-                                                                            client: client.id,
-                                                                        },
-                                                                    )}
-                                                                    prefetch
-                                                                >
-                                                                    <Pencil
-                                                                        aria-hidden="true"
-                                                                        className="size-4"
-                                                                    />
-                                                                </Link>
-                                                            </Button>
-                                                            <Form
-                                                                {...ClientController.destroy.form(
+                                                            <Link
+                                                                href={ClientController.show.url(
                                                                     {
                                                                         client: client.id,
                                                                     },
                                                                 )}
-                                                                className="contents"
+                                                                prefetch
                                                             >
+                                                                <Eye
+                                                                    aria-hidden="true"
+                                                                    className="size-4"
+                                                                />
+                                                            </Link>
+                                                        </Button>
+                                                        {canManageClients && (
+                                                            <>
                                                                 <Button
-                                                                    type="submit"
+                                                                    asChild
                                                                     variant="ghost"
                                                                     size="icon"
-                                                                    className="size-8 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
-                                                                    aria-label={`Delete ${displayName(client)}`}
+                                                                    className="size-8 text-muted-foreground hover:text-foreground"
+                                                                    aria-label={interpolate(
+                                                                        t
+                                                                            .clients
+                                                                            .editClientOf,
+                                                                        {
+                                                                            client: displayName(
+                                                                                client,
+                                                                            ),
+                                                                        },
+                                                                    )}
                                                                 >
-                                                                    <Trash2
-                                                                        aria-hidden="true"
-                                                                        className="size-4"
-                                                                    />
+                                                                    <Link
+                                                                        href={ClientController.edit.url(
+                                                                            {
+                                                                                client: client.id,
+                                                                            },
+                                                                        )}
+                                                                        prefetch
+                                                                    >
+                                                                        <Pencil
+                                                                            aria-hidden="true"
+                                                                            className="size-4"
+                                                                        />
+                                                                    </Link>
                                                                 </Button>
-                                                            </Form>
-                                                        </>
-                                                    )}
-                                                </div>
-                                            </TableCell>
-                                        </TableRow>
-                                    ))
+                                                                <Form
+                                                                    {...ClientController.destroy.form(
+                                                                        {
+                                                                            client: client.id,
+                                                                        },
+                                                                    )}
+                                                                    className="contents"
+                                                                >
+                                                                    <Button
+                                                                        type="submit"
+                                                                        variant="ghost"
+                                                                        size="icon"
+                                                                        className="size-8 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                                                                        aria-label={interpolate(
+                                                                            t
+                                                                                .clients
+                                                                                .deleteClientOf,
+                                                                            {
+                                                                                client: displayName(
+                                                                                    client,
+                                                                                ),
+                                                                            },
+                                                                        )}
+                                                                    >
+                                                                        <Trash2
+                                                                            aria-hidden="true"
+                                                                            className="size-4"
+                                                                        />
+                                                                    </Button>
+                                                                </Form>
+                                                            </>
+                                                        )}
+                                                    </div>
+                                                </TableCell>
+                                            </TableRow>
+                                        );
+                                    })
                                 ) : (
                                     <TableRow>
                                         <TableCell
@@ -418,11 +462,10 @@ export default function Index({
                                                     className="size-6 text-muted-foreground"
                                                 />
                                                 <p className="text-sm font-medium">
-                                                    No matching clients
+                                                    {t.clients.emptyState}
                                                 </p>
                                                 <p className="text-xs text-muted-foreground">
-                                                    Try a different name,
-                                                    company, or client number.
+                                                    {t.clients.emptyStateHint}
                                                 </p>
                                             </div>
                                         </TableCell>
@@ -436,8 +479,11 @@ export default function Index({
                     {clients.total > clients.per_page && (
                         <div className="flex flex-wrap items-center justify-between gap-4 border-t px-4 py-3">
                             <p className="text-xs text-muted-foreground">
-                                Showing {clients.from}–{clients.to} of{' '}
-                                {clients.total}
+                                {interpolate(t.clients.paginationSummary, {
+                                    from: clients.from ?? 0,
+                                    to: clients.to ?? 0,
+                                    total: clients.total,
+                                })}
                             </p>
                             <div className="flex items-center gap-2">
                                 <Button
@@ -448,7 +494,7 @@ export default function Index({
                                         goToPage(clients.current_page - 1)
                                     }
                                 >
-                                    Previous
+                                    {t.common.previous}
                                 </Button>
                                 <span className="font-mono text-xs text-muted-foreground">
                                     {clients.current_page}/{clients.last_page}
@@ -464,7 +510,7 @@ export default function Index({
                                         goToPage(clients.current_page + 1)
                                     }
                                 >
-                                    Next
+                                    {t.common.next}
                                 </Button>
                             </div>
                         </div>

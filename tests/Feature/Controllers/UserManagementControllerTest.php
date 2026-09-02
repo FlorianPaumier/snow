@@ -206,3 +206,12 @@ it('deletes a user', function (): void {
 
     expect($user->fresh())->toBeNull();
 });
+
+it('renders the user creation page for admins', function (): void {
+    $admin = User::factory()->admin()->create();
+
+    $this->actingAs($admin)
+        ->get(route('users.create'))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page->component('user-management/create'));
+});

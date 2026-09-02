@@ -30,8 +30,9 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
+import { useLocale } from '@/hooks/use-locale';
 import AppLayout from '@/layouts/app-layout';
-import { formatCurrency } from '@/lib/utils';
+import { interpolate, useCurrencyFormatter } from '@/lib/utils';
 import { create, index } from '@/routes/contracts';
 import type { BreadcrumbItem } from '@/types';
 
@@ -67,13 +68,6 @@ type Filters = {
     direction: 'asc' | 'desc';
 };
 
-const breadcrumbs: BreadcrumbItem[] = [
-    {
-        title: 'Contrats',
-        href: '/contracts',
-    },
-];
-
 const initialsOf = (name: string) =>
     name
         .split(/\s+/)
@@ -92,9 +86,18 @@ export default function Index({
     filters: Filters;
     seasons: string[];
 }) {
+    const { t } = useLocale();
+    const formatCurrency = useCurrencyFormatter();
     const { status, errors, auth } = usePage().props;
     const canManageContracts = auth.can?.manageContracts ?? false;
     const [search, setSearch] = useState(filters.search);
+
+    const breadcrumbs: BreadcrumbItem[] = [
+        {
+            title: t.contracts.title,
+            href: '/contracts',
+        },
+    ];
 
     // Debounced search: reload the page with the updated query string...
     useEffect(() => {
@@ -144,13 +147,13 @@ export default function Index({
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Contrats" />
+            <Head title={t.contracts.title} />
 
             <div className="flex h-full flex-1 flex-col gap-6 rounded-xl p-4">
                 <div className="flex flex-wrap items-end justify-between gap-4">
                     <Heading
-                        title="Contrats"
-                        description="Les ententes de saison et leurs versements"
+                        title={t.contracts.title}
+                        description={t.contracts.description}
                     />
 
                     <div className="flex flex-wrap items-center gap-3">
@@ -163,7 +166,7 @@ export default function Index({
                         >
                             <SelectTrigger
                                 id="season"
-                                aria-label="Saison"
+                                aria-label={t.common.season}
                                 className="w-[160px]"
                                 data-test="season-filter"
                             >
@@ -171,11 +174,11 @@ export default function Index({
                                     aria-hidden="true"
                                     className="size-4 text-muted-foreground"
                                 />
-                                <SelectValue placeholder="Saison" />
+                                <SelectValue placeholder={t.common.season} />
                             </SelectTrigger>
                             <SelectContent>
                                 <SelectItem value="all">
-                                    Toutes les saisons
+                                    {t.contracts.allSeasons}
                                 </SelectItem>
                                 {seasons.map((seasonOption) => (
                                     <SelectItem
@@ -191,7 +194,7 @@ export default function Index({
                         {canManageContracts && (
                             <Button asChild data-test="new-contract">
                                 <Link href={create()} prefetch>
-                                    <Plus /> Nouveau contrat
+                                    <Plus /> {t.contracts.newContract}
                                 </Link>
                             </Button>
                         )}
@@ -199,9 +202,7 @@ export default function Index({
                 </div>
 
                 {typeof status === 'string' && (
-                    <p className="text-sm text-green-600 dark:text-green-400">
-                        {status}
-                    </p>
+                    <p className="text-sm text-success">{status}</p>
                 )}
 
                 {typeof errors.contract === 'string' && (
@@ -231,8 +232,8 @@ export default function Index({
                                 onKeyDown={(event) => {
                                     if (event.key === 'Escape') setSearch('');
                                 }}
-                                placeholder="Filtrer par client ou numéro…"
-                                aria-label="Filtrer les contrats"
+                                placeholder={t.contracts.filterPlaceholder}
+                                aria-label={t.contracts.filterAriaLabel}
                                 className="h-9 pl-8"
                                 data-test="contract-search"
                             />
@@ -241,8 +242,13 @@ export default function Index({
                             className="font-mono text-xs text-muted-foreground sm:ml-auto"
                             aria-live="polite"
                         >
-                            {contracts.total} contrat
-                            {contracts.total === 1 ? '' : 's'}
+                            {interpolate(t.contracts.contractCount, {
+                                count: contracts.total,
+                                plural:
+                                    contracts.total === 1
+                                        ? ''
+                                        : t.contracts.contractCountPlural,
+                            })}
                         </p>
                     </div>
 
@@ -250,20 +256,24 @@ export default function Index({
                         <Table>
                             <TableHeader>
                                 <TableRow>
-                                    <TableHead>Client</TableHead>
-                                    <TableHead>Saison</TableHead>
-                                    <TableHead className="text-right">
-                                        Total
+                                    <TableHead>
+                                        {t.contracts.columnClient}
+                                    </TableHead>
+                                    <TableHead>
+                                        {t.contracts.columnSeason}
                                     </TableHead>
                                     <TableHead className="text-right">
-                                        Encaissé
+                                        {t.contracts.columnTotal}
                                     </TableHead>
                                     <TableHead className="text-right">
-                                        Solde
+                                        {t.contracts.columnCollected}
                                     </TableHead>
-                                    <TableHead>Créé le</TableHead>
                                     <TableHead className="text-right">
-                                        Actions
+                                        {t.contracts.columnBalance}
+                                    </TableHead>
+                                    <TableHead>{t.common.createdAt}</TableHead>
+                                    <TableHead className="text-right">
+                                        {t.common.actions}
                                     </TableHead>
                                 </TableRow>
                             </TableHeader>
@@ -331,7 +341,15 @@ export default function Index({
                                                         variant="ghost"
                                                         size="icon"
                                                         className="size-8 text-muted-foreground hover:text-foreground"
-                                                        aria-label={`Voir le contrat de ${contract.client.displayName}`}
+                                                        aria-label={interpolate(
+                                                            t.contracts
+                                                                .viewContract,
+                                                            {
+                                                                client: contract
+                                                                    .client
+                                                                    .displayName,
+                                                            },
+                                                        )}
                                                     >
                                                         <Link
                                                             href={ContractController.show.url(
@@ -355,7 +373,15 @@ export default function Index({
                                                                 variant="ghost"
                                                                 size="icon"
                                                                 className="size-8 text-muted-foreground hover:text-foreground"
-                                                                aria-label={`Modifier le contrat de ${contract.client.displayName}`}
+                                                                aria-label={interpolate(
+                                                                    t.contracts
+                                                                        .editContractOf,
+                                                                    {
+                                                                        client: contract
+                                                                            .client
+                                                                            .displayName,
+                                                                    },
+                                                                )}
                                                             >
                                                                 <Link
                                                                     href={ContractController.edit.url(
@@ -386,7 +412,16 @@ export default function Index({
                                                                     variant="ghost"
                                                                     size="icon"
                                                                     className="size-8 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
-                                                                    aria-label={`Supprimer le contrat de ${contract.client.displayName}`}
+                                                                    aria-label={interpolate(
+                                                                        t
+                                                                            .contracts
+                                                                            .deleteContractOf,
+                                                                        {
+                                                                            client: contract
+                                                                                .client
+                                                                                .displayName,
+                                                                        },
+                                                                    )}
                                                                 >
                                                                     <Trash2
                                                                         aria-hidden="true"
@@ -412,11 +447,10 @@ export default function Index({
                                                     className="size-6 text-muted-foreground"
                                                 />
                                                 <p className="text-sm font-medium">
-                                                    Aucun contrat correspondant
+                                                    {t.contracts.emptyState}
                                                 </p>
                                                 <p className="text-xs text-muted-foreground">
-                                                    Essayez une autre saison ou
-                                                    un autre client.
+                                                    {t.contracts.emptyStateHint}
                                                 </p>
                                             </div>
                                         </TableCell>
@@ -430,8 +464,11 @@ export default function Index({
                     {contracts.total > contracts.per_page && (
                         <div className="flex flex-wrap items-center justify-between gap-4 border-t px-4 py-3">
                             <p className="text-xs text-muted-foreground">
-                                {contracts.from}–{contracts.to} sur{' '}
-                                {contracts.total}
+                                {interpolate(t.contracts.paginationSummary, {
+                                    from: contracts.from ?? 0,
+                                    to: contracts.to ?? 0,
+                                    total: contracts.total,
+                                })}
                             </p>
                             <div className="flex items-center gap-2">
                                 <Button
@@ -442,7 +479,7 @@ export default function Index({
                                         goToPage(contracts.current_page - 1)
                                     }
                                 >
-                                    Précédent
+                                    {t.common.previous}
                                 </Button>
                                 <span className="font-mono text-xs text-muted-foreground">
                                     {contracts.current_page}/
@@ -459,7 +496,7 @@ export default function Index({
                                         goToPage(contracts.current_page + 1)
                                     }
                                 >
-                                    Suivant
+                                    {t.common.next}
                                 </Button>
                             </div>
                         </div>

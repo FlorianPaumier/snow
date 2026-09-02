@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\ValueObjects\Season;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Date;
 
 test('builds a season from its start year', function (): void {
     $season = Season::fromYears(2026);
@@ -50,7 +51,21 @@ test('navigates between seasons', function (): void {
 });
 
 test('current season matches today', function (): void {
-    Carbon::setTestNow('2026-08-30');
+    Date::setTestNow('2026-08-30');
 
     expect(Season::current()->label)->toBe('2026-2027');
+});
+
+test('the constructor enforces consecutive years even when bypassed directly', function (): void {
+    // fromYears() and fromString() can never produce a non-consecutive
+    // season; the constructor guard is the last line of defense if a new
+    // factory is ever added...
+    $constructor = new ReflectionClass(Season::class)->getConstructor();
+
+    expect(fn (): mixed => $constructor->invoke(
+        new ReflectionClass(Season::class)->newInstanceWithoutConstructor(),
+        '2024-2026',
+        2024,
+        2026,
+    ))->toThrow(InvalidArgumentException::class);
 });

@@ -7,6 +7,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
+import { useLocale } from '@/hooks/use-locale';
 import AuthLayout from '@/layouts/auth-layout';
 import { register } from '@/routes';
 import { store } from '@/routes/login';
@@ -23,12 +24,14 @@ export default function Login({
     canResetPassword,
     canRegister,
 }: Props) {
+    const { t } = useLocale();
+
     return (
         <AuthLayout
-            title="Log in to your account"
-            description="Enter your email and password below to log in"
+            title={t.auth.logInTitle}
+            description={t.auth.logInDescription}
         >
-            <Head title="Log in" />
+            <Head title={t.auth.logInButton} />
 
             <Form
                 {...store.form()}
@@ -48,7 +51,9 @@ export default function Login({
 
                         <div className="grid gap-6">
                             <div className="grid gap-2">
-                                <Label htmlFor="email">Email address</Label>
+                                <Label htmlFor="email">
+                                    {t.auth.emailLabel}
+                                </Label>
                                 <Input
                                     id="email"
                                     type="email"
@@ -63,13 +68,15 @@ export default function Login({
 
                             <div className="grid gap-2">
                                 <div className="flex items-center">
-                                    <Label htmlFor="password">Password</Label>
+                                    <Label htmlFor="password">
+                                        {t.auth.passwordLabel}
+                                    </Label>
                                     {canResetPassword && (
                                         <TextLink
                                             href={request()}
                                             className="ml-auto text-sm"
                                         >
-                                            Forgot password?
+                                            {t.auth.forgotPassword}
                                         </TextLink>
                                     )}
                                 </div>
@@ -78,17 +85,16 @@ export default function Login({
                                     name="password"
                                     required
                                     autoComplete="current-password"
-                                    placeholder="Password"
+                                    placeholder={t.auth.passwordLabel}
                                 />
                                 <InputError message={errors.password} />
                             </div>
 
                             <div className="flex items-center space-x-3">
-                                <Checkbox
-                                    id="remember"
-                                    name="remember"
-                                />
-                                <Label htmlFor="remember">Remember me</Label>
+                                <Checkbox id="remember" name="remember" />
+                                <Label htmlFor="remember">
+                                    {t.auth.rememberMe}
+                                </Label>
                             </div>
 
                             <Button
@@ -98,15 +104,15 @@ export default function Login({
                                 data-test="login-button"
                             >
                                 {processing && <Spinner />}
-                                Log in
+                                {t.auth.logInButton}
                             </Button>
                         </div>
 
                         {canRegister && (
                             <div className="text-center text-sm text-muted-foreground">
-                                Don't have an account?{' '}
+                                {t.auth.needAccount}{' '}
                                 <TextLink href={register()}>
-                                    Sign up
+                                    {t.auth.signUp}
                                 </TextLink>
                             </div>
                         )}

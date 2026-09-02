@@ -12,12 +12,14 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { useLocale } from '@/hooks/use-locale';
 import AppFormLayout, {
     CancelButton,
     FormFooter,
     FormSection,
     SubmitButton,
 } from '@/layouts/app-form/layout';
+import { interpolate } from '@/lib/utils';
 import { index, show } from '@/routes/clients';
 import type { BreadcrumbItem } from '@/types';
 
@@ -39,23 +41,28 @@ type EditableClient = {
 };
 
 export default function Edit({ client }: { client: EditableClient }) {
+    const { t } = useLocale();
     const [type, setType] = useState(client.type);
 
     const breadcrumbs: BreadcrumbItem[] = [
-        { title: 'Clients', href: index().url },
+        { title: t.clients.title, href: index().url },
         {
-            title: `Edit ${client.firstName} ${client.lastName}`,
+            title: interpolate(t.clients.editClientTitle, {
+                name: `${client.firstName} ${client.lastName}`,
+            }),
             href: ClientController.edit.url({ client: client.id }),
         },
     ];
 
     return (
         <AppFormLayout
-            title={`Edit ${client.firstName} ${client.lastName}`}
-            description="Update the client's identity, contact details, and address"
+            title={interpolate(t.clients.editClientTitle, {
+                name: `${client.firstName} ${client.lastName}`,
+            })}
+            description={t.clients.editClientDescription}
             breadcrumbs={breadcrumbs}
             backHref={show({ client: client.id }).url}
-            backLabel="Client"
+            backLabel={t.clients.clientBreadcrumb}
         >
             <Form
                 {...ClientController.update.form({ client: client.id })}
@@ -65,33 +72,37 @@ export default function Edit({ client }: { client: EditableClient }) {
                 {({ processing, errors }) => (
                     <>
                         <p className="font-mono text-xs text-muted-foreground">
-                            Client number:{' '}
+                            {t.clients.clientNumberLabel}{' '}
                             <span className="font-medium">
                                 {client.clientNumber}
                             </span>{' '}
-                            — assigned at creation and never renumbered.
+                            {t.clients.clientNumberNote}
                         </p>
 
                         <FormSection
-                            title="Identity"
-                            description="Who this client is"
+                            title={t.clients.identitySection}
+                            description={t.clients.identityDescription}
                         >
                             <div className="grid gap-2">
-                                <Label htmlFor="type">Type</Label>
+                                <Label htmlFor="type">{t.common.type}</Label>
                                 <Select
                                     name="type"
                                     defaultValue={client.type}
                                     onValueChange={setType}
                                 >
                                     <SelectTrigger id="type" className="w-full">
-                                        <SelectValue placeholder="Select a type" />
+                                        <SelectValue
+                                            placeholder={
+                                                t.clients.typePlaceholder
+                                            }
+                                        />
                                     </SelectTrigger>
                                     <SelectContent>
                                         <SelectItem value="individual">
-                                            Individual
+                                            {t.clients.typeIndividual}
                                         </SelectItem>
                                         <SelectItem value="company">
-                                            Company
+                                            {t.clients.typeCompany}
                                         </SelectItem>
                                     </SelectContent>
                                 </Select>
@@ -101,7 +112,7 @@ export default function Edit({ client }: { client: EditableClient }) {
                             {type === 'company' && (
                                 <div className="grid gap-2">
                                     <Label htmlFor="companyName">
-                                        Company name
+                                        {t.clients.fieldCompanyTypeName}
                                     </Label>
                                     <Input
                                         id="companyName"
@@ -110,7 +121,9 @@ export default function Edit({ client }: { client: EditableClient }) {
                                         defaultValue={
                                             client.companyName ?? undefined
                                         }
-                                        placeholder="Company name"
+                                        placeholder={
+                                            t.clients.fieldCompanyTypeName
+                                        }
                                     />
                                     <InputError message={errors.companyName} />
                                 </div>
@@ -118,13 +131,13 @@ export default function Edit({ client }: { client: EditableClient }) {
                         </FormSection>
 
                         <FormSection
-                            title="Contact"
-                            description="How to reach this client — at least one phone number is required"
+                            title={t.clients.contactSection}
+                            description={t.clients.contactDescription}
                         >
                             <div className="grid gap-6 sm:grid-cols-2">
                                 <div className="grid gap-2">
                                     <Label htmlFor="firstName">
-                                        First name
+                                        {t.clients.fieldFirstName}
                                     </Label>
                                     <Input
                                         id="firstName"
@@ -138,7 +151,9 @@ export default function Edit({ client }: { client: EditableClient }) {
                                 </div>
 
                                 <div className="grid gap-2">
-                                    <Label htmlFor="lastName">Last name</Label>
+                                    <Label htmlFor="lastName">
+                                        {t.clients.fieldLastName}
+                                    </Label>
                                     <Input
                                         id="lastName"
                                         type="text"
@@ -151,7 +166,9 @@ export default function Edit({ client }: { client: EditableClient }) {
                             </div>
 
                             <div className="grid gap-2">
-                                <Label htmlFor="email">Email address</Label>
+                                <Label htmlFor="email">
+                                    {t.clients.fieldEmail}
+                                </Label>
                                 <Input
                                     id="email"
                                     type="email"
@@ -165,7 +182,7 @@ export default function Edit({ client }: { client: EditableClient }) {
                             <div className="grid gap-6 sm:grid-cols-2">
                                 <div className="grid gap-2">
                                     <Label htmlFor="phoneDay">
-                                        Daytime phone
+                                        {t.clients.fieldPhoneDay}
                                     </Label>
                                     <Input
                                         id="phoneDay"
@@ -181,7 +198,7 @@ export default function Edit({ client }: { client: EditableClient }) {
 
                                 <div className="grid gap-2">
                                     <Label htmlFor="cellPhone">
-                                        Cell phone
+                                        {t.clients.fieldCellPhone}
                                     </Label>
                                     <Input
                                         id="cellPhone"
@@ -198,11 +215,13 @@ export default function Edit({ client }: { client: EditableClient }) {
                         </FormSection>
 
                         <FormSection
-                            title="Address"
-                            description="Where services are delivered"
+                            title={t.clients.addressSection}
+                            description={t.clients.addressDescription}
                         >
                             <div className="grid gap-2">
-                                <Label htmlFor="addressStreet">Street</Label>
+                                <Label htmlFor="addressStreet">
+                                    {t.clients.fieldStreet}
+                                </Label>
                                 <Input
                                     id="addressStreet"
                                     type="text"
@@ -215,7 +234,9 @@ export default function Edit({ client }: { client: EditableClient }) {
 
                             <div className="grid gap-6 sm:grid-cols-3">
                                 <div className="grid gap-2">
-                                    <Label htmlFor="addressCity">City</Label>
+                                    <Label htmlFor="addressCity">
+                                        {t.clients.fieldCity}
+                                    </Label>
                                     <Input
                                         id="addressCity"
                                         type="text"
@@ -228,7 +249,7 @@ export default function Edit({ client }: { client: EditableClient }) {
 
                                 <div className="grid gap-2">
                                     <Label htmlFor="addressPostalCode">
-                                        Postal code
+                                        {t.clients.fieldPostalCode}
                                     </Label>
                                     <Input
                                         id="addressPostalCode"
@@ -244,7 +265,7 @@ export default function Edit({ client }: { client: EditableClient }) {
 
                                 <div className="grid gap-2">
                                     <Label htmlFor="addressCountry">
-                                        Country
+                                        {t.clients.fieldCountry}
                                     </Label>
                                     <Input
                                         id="addressCountry"
@@ -261,16 +282,18 @@ export default function Edit({ client }: { client: EditableClient }) {
                         </FormSection>
 
                         <FormSection
-                            title="Notes"
-                            description="Internal remarks about this client (optional)"
+                            title={t.clients.notesSection}
+                            description={t.clients.notesDescription}
                         >
                             <div className="grid gap-2">
-                                <Label htmlFor="remark">Remark</Label>
+                                <Label htmlFor="remark">
+                                    {t.clients.fieldRemark}
+                                </Label>
                                 <Textarea
                                     id="remark"
                                     name="remark"
                                     defaultValue={client.remark ?? undefined}
-                                    placeholder="Access instructions, preferences, anything the crew should know…"
+                                    placeholder={t.clients.remarkPlaceholder}
                                 />
                                 <InputError message={errors.remark} />
                             </div>
@@ -281,7 +304,7 @@ export default function Edit({ client }: { client: EditableClient }) {
                                 href={show({ client: client.id }).url}
                             />
                             <SubmitButton processing={processing}>
-                                Save changes
+                                {t.clients.buttonSaveClient}
                             </SubmitButton>
                         </FormFooter>
                     </>
