@@ -32,7 +32,7 @@ Route::post('contact', [ContactInquiryController::class, 'store'])
     ->middleware('throttle:10,1')
     ->name('contact.store');
 
-Route::middleware(['auth', 'verified:login-challenge.show'])->group(function (): void {
+Route::middleware(['auth', 'verified:login-challenge.show', 'not-read-only'])->group(function (): void {
     Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     // Billing (admin-only subscription management)...

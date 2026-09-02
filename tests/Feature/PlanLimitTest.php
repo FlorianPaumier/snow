@@ -7,7 +7,9 @@ use App\Models\Organization;
 use App\Models\User;
 
 it('blocks creating a third user on the starter plan', function (): void {
-    $organization = Organization::factory()->withoutTrial()->create();
+    // Future trial keeps the org out of read-only enforcement so this test
+    // exercises the plan-limit wall in isolation...
+    $organization = Organization::factory()->create(['trial_ends_at' => now()->addDays(14)]);
     $admin = User::factory()->admin()->forOrganization($organization)->create();
     User::factory()->forOrganization($organization)->create();
 
@@ -45,7 +47,9 @@ it('allows creating users on the fleet plan without a limit', function (): void 
 });
 
 it('blocks creating clients beyond the starter plan limit', function (): void {
-    $organization = Organization::factory()->withoutTrial()->create();
+    // Future trial keeps the org out of read-only enforcement so this test
+    // exercises the plan-limit wall in isolation...
+    $organization = Organization::factory()->create(['trial_ends_at' => now()->addDays(14)]);
     $admin = User::factory()->admin()->forOrganization($organization)->create();
 
     // Use the model directly to fill the quota without hitting the limit

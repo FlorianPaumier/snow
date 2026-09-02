@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Exceptions\OrganizationReadOnly;
 use App\Exceptions\PlanLimitExceeded;
 use App\Http\Middleware\EnsureOrganizationNotReadOnly;
 use App\Http\Middleware\HandleAppearance;
@@ -41,6 +42,16 @@ return Application::configure(basePath: dirname(__DIR__))
         $exceptions->render(function (PlanLimitExceeded $exception, Request $request) {
             if ($request->header('X-Inertia')) {
                 return back()->withErrors(['planLimit' => $exception->getMessage()]);
+            }
+
+            return back()->with('status', $exception->getMessage());
+        });
+
+        // A read-only organization (expired trial, lapsed subscription) gets
+        // the same redirect-back-with-prompt treatment as plan limits...
+        $exceptions->render(function (OrganizationReadOnly $exception, Request $request) {
+            if ($request->header('X-Inertia')) {
+                return back()->withErrors(['readOnly' => $exception->getMessage()]);
             }
 
             return back()->with('status', $exception->getMessage());
