@@ -11,6 +11,7 @@ use App\Http\Controllers\LoginChallengeController;
 use App\Http\Controllers\MarkPaymentPaidController;
 use App\Http\Controllers\SessionController;
 use App\Http\Controllers\StripeWebhookController;
+use App\Http\Controllers\UnlockBillingAccessController;
 use App\Http\Controllers\UnmarkPaymentPaidController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\UserEmailResetNotificationController;
@@ -44,6 +45,9 @@ Route::middleware(['auth', 'verified:login-challenge.show', 'not-read-only'])->g
         Route::put('settings/billing', [BillingController::class, 'update'])
             ->middleware('throttle:6,1')
             ->name('billing.portal');
+        Route::post('settings/billing/unlock', UnlockBillingAccessController::class)
+            ->middleware('throttle:6,1')
+            ->name('billing.unlock');
     });
 
     // User Management (admin CRUD)...

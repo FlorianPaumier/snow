@@ -6,6 +6,7 @@ use App\Models\Client;
 use App\Models\Organization;
 use App\Models\User;
 use App\ValueObjects\Season;
+use Inertia\Support\SessionKey;
 use Stripe\Checkout\Session;
 use Stripe\Customer;
 use Stripe\Service\Checkout\SessionService;
@@ -105,6 +106,38 @@ it('allows billing checkout while read-only', function (): void {
 
 it('still blocks reads for guests before the middleware runs', function (): void {
     $this->get(route('dashboard'))->assertRedirect(route('login'));
+});
+
+it('grants the 24h unlock from the billing page', function (): void {
+    $response = $this->actingAs($this->admin)
+        ->fromRoute('billing.index')
+        ->post(route('billing.unlock'));
+
+    $response->assertRedirectToRoute('billing.index')
+        ->assertSessionHas(SessionKey::FLASH_DATA, [
+            'toast' => [
+                'type' => 'success',
+                'message' => __('statuses.unlock_granted'),
+            ],
+        ]);
+
+    expect($this->organization->fresh()->access_unlock_until?->toIso8601String())
+        ->toBe(now()->addHours(24)->toIso8601String());
+});
+
+it('refuses the unlock a second time', function (): void {
+    $this->organization->forceFill(['access_unlock_until' => now()->addHours(24)])->save();
+
+    $response = $this->actingAs($this->admin)
+        ->fromRoute('billing.index')
+        ->withHeaders(['X-Inertia' => 'true'])
+        ->post(route('billing.unlock'));
+
+    $response->assertRedirectToRoute('billing.index')
+        ->assertSessionHas('errors');
+
+    expect($this->organization->fresh()->access_unlock_until?->toIso8601String())
+        ->toBe(now()->addHours(24)->toIso8601String()); // unchanged...
 });
 
 /**
