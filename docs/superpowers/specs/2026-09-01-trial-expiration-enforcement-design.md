@@ -71,9 +71,9 @@ Renderer added alongside the existing one in `bootstrap/app.php` (currently `:33
 
 - Migration: nullable timestamp `access_unlock_until` on `organizations` (cast to `datetime` on the model).
 - Route: `POST settings/billing/unlock` → name `billing.unlock`, nested inside the existing billing route group (`can:manage-billing`, throttle `6,1`).
-- Controller: `BillingController@unlock` (or a small dedicated controller, following sibling conventions).
+- Controller: `BillingController@unlock` — `app/Http/Controllers/BillingController.php` already owns checkout/portal, so the unlock endpoint joins it rather than a new controller.
 - Action: `app/Actions/GrantAccessUnlock.php` — guards: org is read-only and `access_unlock_until` is null (re-check via `GetSubscriptionAccess`, not just the column); then sets `access_unlock_until = now()->addHours(24)` inside `DB::transaction()`, and flushes the org cache (`FlushOrganizationCache`, outside the transaction, same pattern as `CreateClient.php:57`).
-- Action guards violated → throw `OrganizationReadOnly` (already used it) or a 422-style validation error, whichever fits existing conventions at implementation time; eligibility is re-checked server-side so a double-submit simply fails harmlessly.
+- Guard violated → throw `OrganizationReadOnly` with a "already used" message; the shared renderer redirects back with the error. Eligibility is re-checked server-side, so a double-submit is safe.
 - One grant per org, lifetime, any cause (expired trial or failed payment). Non-admins never reach it (route gate); the UI hides the button for non-admins via `auth.can.manageBilling`.
 
 ## Banner + frontend
@@ -83,7 +83,7 @@ Renderer added alongside the existing one in `bootstrap/app.php` (currently `:33
 - Rendered only when `access.readOnly` is true: shadcn `Alert` (warning variant) — "Your trial has ended. Your data is read-only — upgrade to keep managing your organization." with:
   - primary button → `billing.index` (upgrade CTA), wired via Wayfinder route function;
   - secondary "Unlock 24 hours" button for admins while `unlockAvailable` — copy must make the one-time nature explicit.
-- If a subscription exists but is invalid (past-due/canceled), the banner copy switches to the payment-failed variant of the message (copy keyed off whether `trialEndsAt` is set/past vs. subscription presence — final copy at implementation).
+- If a subscription row exists but is invalid (past-due/canceled), the banner switches to a payment-issue variant. Variant rule: **any subscription row exists → payment-issue copy; no subscription row ever → trial-ended copy.** Both variants live in the lang dictionaries; exact wording at copy time, rule is fixed.
 - Form-level disabling of buttons/inputs is explicitly **out of scope**; server redirect + banner carry the UX. (Follow-up polish.)
 - EN/FR copy in `lang/en/statuses.php` + `lang/fr/statuses.php` alongside `plan_limit`, plus banner strings in the frontend lang dictionaries (`resources/js/lang/{en,fr}.ts`).
 
@@ -103,7 +103,7 @@ Renderer added alongside the existing one in `bootstrap/app.php` (currently `:33
 Conventions: factories + frozen time (`tests/Pest.php`), subscription fakes via direct row creation (`GetPlanLimitsTest` pattern: `subscriptions()->create([...])`, no Stripe API), Stripe doubles via `bindFakeStripeClient()` (`BillingControllerTest`), webhook posts raw JSON to `route('cashier.webhook')` (`CacheInvalidationTest`).
 
 - **Factory states** (`database/factories/OrganizationFactory.php`): add `expired()` (`trial_ends_at => now()->subDay()`) and `unlocked()` (`access_unlock_until` states per test need).
-- **Unit — `GetSubscriptionAccessTest`**: on-generic-trial → full access; expired trial, no sub → read-only; expired + consumed unlock (past & future `access_unlock_until`) → unlock not available again; valid sub (each of active / subscription-trial / grace period) → full access; past-due sub (Cashier defaults) → read-only; no trial column, no sub → read-only (trial-less org); TTL-capping: with trial ending in 5 min, cached entry TTL < 300s; unlock running with 10 min left → TTL ≤ 600s.
+- **Unit — `GetSubscriptionAccessTest`**: on-generic-trial → full access; expired trial, no sub → read-only; expired + consumed unlock (past & future `access_unlock_until`) → unlock not available again; valid sub (each of active / subscription-trial / grace period) → full access; past-due sub (Cashier defaults) → read-only; no trial column, no sub → read-only (trial-less org); TTL-capping: with trial ending in 5 min, cached entry TTL ≤ 300s; unlock running with 10 min left → TTL ≤ 600s; no upcoming transition → TTL = 900s ceiling.
 - **Feature — `ReadOnlyAccessTest`**: GET dashboard while read-only → 200; POST create client/user/contract while read-only → redirect back with `readOnly` error, no row created; billing checkout POST while read-only → allowed; unlock POST as admin while read-only → success, org can create again within frozen time +24h; unlock expiry (freeze past `access_unlock_until`) → read-only again; second unlock POST → rejected; unlock POST as non-admin → 403; profile/password POST → allowed while read-only.
 - **Middleware/caching feature**: webhook `customer.subscription.updated` (status past-due) rotates cache & next request read-only; retry-success event restores full access.
 - Run: `php artisan test --compact` with targeted filters; Pint on dirty files.
