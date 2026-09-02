@@ -24,7 +24,7 @@ final readonly class EnsureOrganizationNotReadOnly
     /**
      * @param  Closure(Request): (Response)  $next
      */
-    public function handle(Request $request, Closure $next)
+    public function handle(Request $request, Closure $next): Response
     {
         if (in_array($request->getMethod(), self::SAFE_VERBS, true)) {
             return $next($request);
