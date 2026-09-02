@@ -9,6 +9,8 @@ use Illuminate\Validation\ValidationException;
 
 final readonly class DeleteClient
 {
+    public function __construct(private FlushOrganizationCache $flushCache) {}
+
     public function handle(Client $client): void
     {
         throw_if(
@@ -18,6 +20,10 @@ final readonly class DeleteClient
             ]),
         );
 
+        $organizationId = $client->organization_id;
+
         $client->delete();
+
+        $this->flushCache->handle($organizationId);
     }
 }

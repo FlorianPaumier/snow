@@ -11,6 +11,7 @@ use App\Actions\GetSeasonSummary;
 use App\Actions\GetUnpaidInstallments;
 use App\Enums\PaymentSlot;
 use App\Models\Contract;
+use App\Support\TenantCache;
 use App\ValueObjects\Season;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
@@ -20,6 +21,8 @@ use Inertia\Response;
 
 final readonly class DashboardController
 {
+    public function __construct(private TenantCache $cache) {}
+
     public function index(
         Request $request,
         GetSeasonSummary $summary,
@@ -29,10 +32,15 @@ final readonly class DashboardController
         GetClientEvolution $clientEvolution,
     ): Response {
         /** @var Collection<int, string> $seasons */
-        $seasons = Contract::query()
-            ->distinct()
-            ->orderByDesc('season')
-            ->pluck('season');
+        $seasons = $this->cache->remember(
+            'seasons',
+            [],
+            fn (): Collection => Contract::query()
+                ->distinct()
+                ->orderByDesc('season')
+                ->pluck('season'),
+            TenantCache::TTL_SHORT,
+        );
 
         /** @var array{season?: string, slot?: string}  $validated */
         $validated = $request->validate([

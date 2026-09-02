@@ -9,12 +9,14 @@ use Illuminate\Validation\ValidationException;
 
 final readonly class UnmarkPaymentPaid
 {
+    public function __construct(private FlushOrganizationCache $flushCache) {}
+
     public function handle(Payment $payment): void
     {
         throw_unless(
             $payment->paid,
             ValidationException::withMessages([
-                'payment' => 'Ce versement n\'est pas marqué comme encaissé.',
+                'payment' => __('contracts.not_marked'),
             ]),
         );
 
@@ -23,5 +25,7 @@ final readonly class UnmarkPaymentPaid
             'method' => null,
             'paid_at' => null,
         ]);
+
+        $this->flushCache->handle($payment->organization_id);
     }
 }

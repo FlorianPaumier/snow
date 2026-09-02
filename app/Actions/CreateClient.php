@@ -17,6 +17,7 @@ final readonly class CreateClient
     public function __construct(
         private GenerateClientNumber $generateClientNumber,
         private GetPlanLimits $getPlanLimits,
+        private FlushOrganizationCache $flushCache,
     ) {}
 
     /**
@@ -24,7 +25,7 @@ final readonly class CreateClient
      */
     public function handle(array $attributes): Client
     {
-        return DB::transaction(function () use ($attributes): Client {
+        $client = DB::transaction(function () use ($attributes): Client {
             $type = $attributes['type'] instanceof ClientType
                 ? $attributes['type']
                 : ClientType::from($attributes['type']);
@@ -52,6 +53,10 @@ final readonly class CreateClient
                 'remark' => $attributes['remark'] ?? null,
             ]);
         });
+
+        $this->flushCache->handle($client->organization_id);
+
+        return $client;
     }
 
     /**
@@ -65,7 +70,7 @@ final readonly class CreateClient
         }
 
         /** @var Organization $organization */
-        $organization = Organization::withoutGlobalScopes()->findOrFail($organizationId);
+        $organization = Organization::query()->withoutGlobalScopes()->findOrFail($organizationId);
 
         $limits = $this->getPlanLimits->handle($organization);
 
@@ -73,13 +78,14 @@ final readonly class CreateClient
             return;
         }
 
-        $clientCount = Client::withoutGlobalScopes()
+        $clientCount = Client::query()->withoutGlobalScopes()
             ->where('organization_id', $organizationId)
             ->count();
 
         if ($clientCount >= $limits['maxClients']) {
+            /** @var array{plan: string, maxClients: int} $limits */
             throw new PlanLimitExceeded(
-                sprintf('Your %s plan allows %d clients. Upgrade to add more.', $limits['plan'], $limits['maxClients']),
+                __('statuses.plan_limit', ['plan' => $limits['plan'], 'count' => $limits['maxClients'], 'resource' => __('statuses.resource_clients')]),
             );
         }
     }

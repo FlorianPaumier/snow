@@ -28,7 +28,7 @@ final readonly class UserProfileController
 
         Inertia::flash('toast', [
             'type' => 'success',
-            'message' => __('Profile updated.'),
+            'message' => __('statuses.profile_updated'),
         ]);
 
         return to_route('user-profile.edit');

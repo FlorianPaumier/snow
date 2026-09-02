@@ -55,7 +55,7 @@ final readonly class UserPasswordController
 
         Inertia::flash('toast', [
             'type' => 'success',
-            'message' => __('Password updated.'),
+            'message' => __('statuses.password_updated'),
         ]);
 
         return back();

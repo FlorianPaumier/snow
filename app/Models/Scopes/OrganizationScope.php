@@ -19,11 +19,13 @@ use Illuminate\Support\Facades\Auth;
  * console commands, queue jobs) are not scoped: authentication middleware
  * already keeps guests away from tenant data, and pre-auth flows must be
  * able to look users up globally.
+ *
+ * @implements Scope<Model>
  */
 final class OrganizationScope implements Scope
 {
     /**
-     * @param  Builder<Model>  $builder
+     * @param  Builder<covariant Model>  $builder
      */
     public function apply(Builder $builder, Model $model): void
     {

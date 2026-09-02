@@ -14,6 +14,6 @@ final readonly class UnmarkPaymentPaidController
     {
         $action->handle($payment);
 
-        return to_route('contracts.show', ['contract' => $payment->contract_id])->with('status', 'Encaissement annulé.');
+        return to_route('contracts.show', ['contract' => $payment->contract_id])->with('status', __('statuses.payment_unmarked'));
     }
 }

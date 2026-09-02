@@ -23,18 +23,15 @@ final readonly class UserController
         return Inertia::render('user/create');
     }
 
-    /**
-     * @param  array{name: string, userName: string, email: string}  $attributes
-     */
     public function store(CreateUserRequest $request, CreateOrganization $createOrganization, CreateUserLoginChallengeCode $challengeCode): RedirectResponse
     {
-        /** @var array<string, mixed>  $validated */
+        /** @var array{organization: string, name: string, email: string} $validated */
         $validated = $request->safe()->except('password');
 
         $organization = $createOrganization->handle([
-            'name' => (string) $validated['organization'],
-            'userName' => (string) $validated['name'],
-            'email' => (string) $validated['email'],
+            'name' => $validated['organization'],
+            'userName' => $validated['name'],
+            'email' => $validated['email'],
         ], $request->string('password')->value());
 
         // The owner is attached to the organization by the action, avoiding

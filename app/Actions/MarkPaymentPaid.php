@@ -11,12 +11,14 @@ use Illuminate\Validation\ValidationException;
 
 final readonly class MarkPaymentPaid
 {
+    public function __construct(private FlushOrganizationCache $flushCache) {}
+
     public function handle(Payment $payment, PaymentMethod $method): void
     {
         throw_if(
             $payment->paid,
             ValidationException::withMessages([
-                'payment' => 'Ce versement est déjà marqué comme encaissé.',
+                'payment' => __('contracts.already_marked'),
             ]),
         );
 
@@ -26,5 +28,7 @@ final readonly class MarkPaymentPaid
             // The date of the action...
             'paid_at' => Date::now(),
         ]);
+
+        $this->flushCache->handle($payment->organization_id);
     }
 }

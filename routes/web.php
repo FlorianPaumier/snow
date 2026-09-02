@@ -10,6 +10,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\LoginChallengeController;
 use App\Http\Controllers\MarkPaymentPaidController;
 use App\Http\Controllers\SessionController;
+use App\Http\Controllers\StripeWebhookController;
 use App\Http\Controllers\UnmarkPaymentPaidController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\UserEmailResetNotificationController;
@@ -20,7 +21,6 @@ use App\Http\Controllers\UserPasswordController;
 use App\Http\Controllers\UserProfileController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
-use Laravel\Cashier\Http\Controllers\WebhookController as CashierWebhookController;
 
 // Marketing (public)...
 Route::get('/', fn () => Inertia::render('marketing/home'))->name('home');
@@ -117,6 +117,9 @@ Route::middleware('auth')->group(function (): void {
 
     // Appearance...
     Route::get('settings/appearance', fn () => Inertia::render('appearance/update'))->name('appearance.edit');
+
+    // Language...
+    Route::get('settings/language', fn () => Inertia::render('locale/update'))->name('locale.edit');
 });
 
 Route::middleware('guest')->group(function (): void {
@@ -173,5 +176,5 @@ Route::middleware('auth')->group(function (): void {
 });
 
 // Stripe Webhook (signed by STRIPE_WEBHOOK_SECRET; must bypass CSRF)...
-Route::post('stripe/webhook', [CashierWebhookController::class, '__invoke'])
+Route::post('stripe/webhook', [StripeWebhookController::class, '__invoke'])
     ->name('cashier.webhook');

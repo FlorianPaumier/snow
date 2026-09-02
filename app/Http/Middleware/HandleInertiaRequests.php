@@ -34,20 +34,30 @@ final class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
+        $user = $request->user();
+
+        $organization = null;
+
+        if ($user?->organization_id !== null) {
+            $organization = [
+                'id' => $user->organization_id,
+                'name' => $user->organization->name,
+            ];
+        }
+
         return [
             ...parent::share($request),
             'name' => config('app.name'),
+            'locale' => app()->getLocale(),
             'auth' => [
-                'user' => $request->user(),
-                'organization' => $request->user()?->organization_id !== null
-                    ? ['id' => $request->user()->organization_id, 'name' => $request->user()->organization->name]
-                    : null,
-                'subscription' => $this->getSubscriptionSummary->handle($request->user()?->organization),
+                'user' => $user,
+                'organization' => $organization,
+                'subscription' => $this->getSubscriptionSummary->handle($user?->organization),
                 'can' => [
-                    'manageUsers' => $request->user()?->can('manage-users') ?? false,
-                    'manageClients' => $request->user()?->can('manage-clients') ?? false,
-                    'manageContracts' => $request->user()?->can('manage-contracts') ?? false,
-                    'manageBilling' => $request->user()?->can('manage-billing') ?? false,
+                    'manageUsers' => $user?->can('manage-users') ?? false,
+                    'manageClients' => $user?->can('manage-clients') ?? false,
+                    'manageContracts' => $user?->can('manage-contracts') ?? false,
+                    'manageBilling' => $user?->can('manage-billing') ?? false,
                 ],
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',

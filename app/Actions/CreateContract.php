@@ -13,12 +13,14 @@ use Illuminate\Support\Facades\DB;
 
 final readonly class CreateContract
 {
+    public function __construct(private FlushOrganizationCache $flushCache) {}
+
     /**
      * @param  array{client: Client, season: string, services: list<array{label: string, amount: int}>, payments: array<string, int>}  $attributes
      */
     public function handle(array $attributes): Contract
     {
-        return DB::transaction(function () use ($attributes): Contract {
+        $contract = DB::transaction(function () use ($attributes): Contract {
             // The caller resolves the client (scoped in HTTP contexts) so
             // the contract inherits its organization...
             $client = $attributes['client'];
@@ -34,6 +36,10 @@ final readonly class CreateContract
 
             return $contract;
         });
+
+        $this->flushCache->handle($contract->organization_id);
+
+        return $contract;
     }
 
     /**

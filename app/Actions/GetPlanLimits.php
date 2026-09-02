@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Actions;
 
 use App\Models\Organization;
+use App\Support\TenantCache;
+use Laravel\Cashier\Subscription;
 
 /**
  * Resolves the plan limits that apply to an organization: the subscribed
@@ -14,15 +16,34 @@ use App\Models\Organization;
  */
 final readonly class GetPlanLimits
 {
+    public function __construct(private TenantCache $cache) {}
+
     /**
      * @return array{plan: string, maxUsers: int|null, maxClients: int|null}
      */
     public function handle(Organization $organization): array
     {
-        $subscription = $organization->subscription();
+        /** @var array{plan: string, maxUsers: int|null, maxClients: int|null} */
+        return $this->cache->remember(
+            'plan-limits',
+            [],
+            fn (): array => $this->compute($organization),
+            TenantCache::TTL_LONG,
+        );
+    }
 
-        $plan = $subscription !== null
-            ? $subscription->name
+    /**
+     * @return array{plan: string, maxUsers: int|null, maxClients: int|null}
+     */
+    private function compute(Organization $organization): array
+    {
+        // The checkout creates the subscription with the plan key as its
+        // type, so any single active subscription is the plan...
+        $subscription = $organization->subscriptions->first();
+
+        // Cashier keeps the plan key in the subscription's type column...
+        $plan = $subscription instanceof Subscription
+            ? $subscription->type
             : 'starter';
 
         /** @var array{limits: array{maxUsers: int|null, maxClients: int|null}} $config */

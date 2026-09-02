@@ -16,6 +16,6 @@ final readonly class MarkPaymentPaidController
     {
         $action->handle($payment, PaymentMethod::from($request->string('method')->value()));
 
-        return to_route('contracts.show', ['contract' => $payment->contract_id])->with('status', 'Versement encaissé.');
+        return to_route('contracts.show', ['contract' => $payment->contract_id])->with('status', __('statuses.payment_marked'));
     }
 }

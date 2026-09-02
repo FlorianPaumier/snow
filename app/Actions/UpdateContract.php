@@ -11,6 +11,8 @@ use Illuminate\Support\Facades\DB;
 
 final readonly class UpdateContract
 {
+    public function __construct(private FlushOrganizationCache $flushCache) {}
+
     /**
      * Syncs the contract's services (kept rows updated, removed rows deleted,
      * new rows created; positions re-derived from the submitted order) and
@@ -41,6 +43,8 @@ final readonly class UpdateContract
                     ->update(['amount' => $attributes['payments'][$slot->value] ?? 0]);
             }
         });
+
+        $this->flushCache->handle($contract->organization_id);
     }
 
     /**

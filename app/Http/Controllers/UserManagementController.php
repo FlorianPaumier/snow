@@ -75,7 +75,7 @@ final readonly class UserManagementController
             $request->string('password')->value(),
         );
 
-        return to_route('users.index')->with('status', 'User created.');
+        return to_route('users.index')->with('status', __('statuses.user_created'));
     }
 
     public function edit(User $user): Response
@@ -101,14 +101,14 @@ final readonly class UserManagementController
 
         $action->handle($user, $attributes);
 
-        return to_route('users.index')->with('status', 'User updated.');
+        return to_route('users.index')->with('status', __('statuses.user_updated'));
     }
 
     public function destroy(User $user, DeleteUser $action): RedirectResponse
     {
         $action->handle($user);
 
-        return to_route('users.index')->with('status', 'User deleted.');
+        return to_route('users.index')->with('status', __('statuses.user_deleted'));
     }
 
     /**

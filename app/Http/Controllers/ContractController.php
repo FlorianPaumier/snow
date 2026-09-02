@@ -16,6 +16,7 @@ use App\Models\Client;
 use App\Models\Contract;
 use App\Models\ContractService;
 use App\Models\Payment;
+use App\Support\TenantCache;
 use App\ValueObjects\Season;
 use Illuminate\Contracts\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
@@ -28,15 +29,14 @@ use Inertia\Response;
 
 final readonly class ContractController
 {
+    public function __construct(private TenantCache $cache) {}
+
     public function index(Request $request): Response
     {
-        /** @var Collection<int, string>  $availableSeasons */
-        $availableSeasons = Contract::query()
-            ->distinct()
-            ->orderByDesc('season')
-            ->pluck('season');
+        /** @var Collection<int, string> $availableSeasons */
+        $availableSeasons = $this->seasons();
 
-        /** @var array{season?: string, client?: string, search?: string, sort?: string, direction?: string}  $validated */
+        /** @var array{season?: string, client?: string, search?: string, sort?: string, direction?: string} $validated */
         $validated = $request->validate([
             'season' => ['nullable', 'string', Rule::in($availableSeasons->all())],
             'client' => ['nullable', 'uuid'],
@@ -51,38 +51,27 @@ final readonly class ContractController
         $sort = in_array($validated['sort'] ?? null, $this->sortableColumns(), true) ? $validated['sort'] : 'created_at';
         $direction = ($validated['direction'] ?? null) === 'asc' ? 'asc' : 'desc';
 
-        /** @var LengthAwarePaginator<int, Contract>  $contracts */
-        $contracts = Contract::query()
-            ->with('client')
-            ->withSum('services', 'amount')
-            ->withSum(['payments as paid_sum' => fn (Builder $query): Builder => $query->where('paid', true)], 'amount')
-            ->when($season !== null, fn (Builder $query): Builder => $query->where('season', $season))
-            ->when($clientId !== null, fn (Builder $query): Builder => $query->where('client_id', $clientId))
-            ->when($search !== null, fn (Builder $query): Builder => $query->where(
-                fn (Builder $query): Builder => $query->whereHas('client', fn (Builder $clientQuery): Builder => $clientQuery
-                    ->where('firstName', 'like', sprintf('%%%s%%', $search))
-                    ->orWhere('lastName', 'like', sprintf('%%%s%%', $search))
-                    ->orWhere('companyName', 'like', sprintf('%%%s%%', $search))
-                    ->orWhere('clientNumber', 'like', sprintf('%%%s%%', $search)))
-            ))
-            ->orderBy($sort, $direction)
-            ->paginate(perPage: 15)
-            ->withQueryString();
+        $page = max(1, (int) $request->query('page', '1'));
+        $perPage = 15;
+
+        /** @var array{rows: list<array<string, mixed>>, total: int} $payload */
+        $payload = $this->cache->remember(
+            'contracts-index',
+            [(string) $season, (string) $clientId, (string) $search, $sort, $direction, (string) $page],
+            fn (): array => $this->indexPage($season, $clientId, $search, $sort, $direction, $page, $perPage),
+            TenantCache::TTL_SHORT,
+        );
+
+        $contracts = new LengthAwarePaginator(
+            $payload['rows'],
+            $payload['total'],
+            $perPage,
+            $page,
+        );
+        $contracts->withQueryString();
 
         return Inertia::render('contract/index', [
-            'contracts' => $contracts->through(fn (Contract $contract): array => [
-                'id' => $contract->id,
-                'season' => $contract->season,
-                'client' => [
-                    'id' => $contract->client->id,
-                    'clientNumber' => $contract->client->clientNumber,
-                    'displayName' => $this->displayName($contract->client),
-                ],
-                'total' => (int) $contract->services_sum_amount,
-                'collected' => (int) $contract->paid_sum,
-                'outstanding' => (int) $contract->services_sum_amount - (int) $contract->paid_sum,
-                'created_at' => $contract->created_at->toDateString(),
-            ]),
+            'contracts' => $contracts,
             'filters' => [
                 'season' => $season ?? '',
                 'client' => $clientId ?? '',
@@ -112,9 +101,14 @@ final readonly class ContractController
         // created for the current organization's clients...
         $client = Client::query()->findOrFail($attributes['clientId']);
 
-        $contract = $action->handle([...$attributes, 'client' => $client]);
+        $contract = $action->handle([
+            'client' => $client,
+            'season' => $attributes['season'],
+            'services' => $attributes['services'],
+            'payments' => $attributes['payments'],
+        ]);
 
-        return to_route('contracts.show', ['contract' => $contract->id])->with('status', 'Contrat créé.');
+        return to_route('contracts.show', ['contract' => $contract->id])->with('status', __('statuses.contract_created'));
     }
 
     public function show(Contract $contract): Response
@@ -197,14 +191,60 @@ final readonly class ContractController
 
         $action->handle($contract, $attributes);
 
-        return to_route('contracts.show', ['contract' => $contract->id])->with('status', 'Contrat mis à jour.');
+        return to_route('contracts.show', ['contract' => $contract->id])->with('status', __('statuses.contract_updated'));
     }
 
     public function destroy(Contract $contract, DeleteContract $action): RedirectResponse
     {
         $action->handle($contract);
 
-        return to_route('contracts.index')->with('status', 'Contrat supprimé.');
+        return to_route('contracts.index')->with('status', __('statuses.contract_deleted'));
+    }
+
+    /**
+     * Query one page of contracts and flatten it to a cacheable payload.
+     *
+     * @param  'asc'|'desc'  $direction
+     * @return array{rows: list<array{id: string, season: string, client: array{id: string, clientNumber: string, displayName: string}, total: int, collected: int, outstanding: int, created_at: string}>, total: int}
+     */
+    private function indexPage(?string $season, ?string $clientId, ?string $search, string $sort, string $direction, int $page, int $perPage): array
+    {
+        /** @var LengthAwarePaginator<int, Contract> $contracts */
+        $contracts = Contract::query()
+            ->with('client')
+            ->withSum('services', 'amount')
+            ->withSum(['payments as paid_sum' => fn (Builder $query): Builder => $query->where('paid', true)], 'amount')
+            ->when($season !== null, fn (Builder $query): Builder => $query->where('season', $season))
+            ->when($clientId !== null, fn (Builder $query): Builder => $query->where('client_id', $clientId))
+            ->when($search !== null, fn (Builder $query): Builder => $query->where(
+                fn (Builder $query): Builder => $query->whereHas('client', fn (Builder $clientQuery): Builder => $clientQuery
+                    ->where('firstName', 'like', sprintf('%%%s%%', $search))
+                    ->orWhere('lastName', 'like', sprintf('%%%s%%', $search))
+                    ->orWhere('companyName', 'like', sprintf('%%%s%%', $search))
+                    ->orWhere('clientNumber', 'like', sprintf('%%%s%%', $search)))
+            ))
+            ->orderBy($sort, $direction)
+            ->paginate(perPage: $perPage, page: $page);
+
+        /** @var list<array{id: string, season: string, client: array{id: string, clientNumber: string, displayName: string}, total: int, collected: int, outstanding: int, created_at: string}> $rows */
+        $rows = $contracts->map(fn (Contract $contract): array => [
+            'id' => $contract->id,
+            'season' => $contract->season,
+            'client' => [
+                'id' => $contract->client->id,
+                'clientNumber' => $contract->client->clientNumber,
+                'displayName' => $this->displayName($contract->client),
+            ],
+            'total' => (int) $contract->services_sum_amount,
+            'collected' => (int) $contract->paid_sum,
+            'outstanding' => (int) $contract->services_sum_amount - (int) $contract->paid_sum,
+            'created_at' => $contract->created_at->toDateString(),
+        ])->all();
+
+        return [
+            'rows' => $rows,
+            'total' => $contracts->total(),
+        ];
     }
 
     /**
@@ -230,24 +270,52 @@ final readonly class ContractController
      */
     private function clientOptions(): array
     {
-        /** @var Collection<int, Client>  $clients */
-        $clients = Client::query()
-            ->orderBy('lastName')
-            ->orderBy('firstName')
-            ->get();
+        /** @var list<array{id: string, clientNumber: string, displayName: string}> */
+        return $this->cache->remember(
+            'client-options',
+            [],
+            function (): array {
+                /** @var Collection<int, Client> $clients */
+                $clients = Client::query()
+                    ->orderBy('lastName')
+                    ->orderBy('firstName')
+                    ->get();
 
-        /** @var list<array{id: string, clientNumber: string, displayName: string}>  $options */
-        $options = [];
+                /** @var list<array{id: string, clientNumber: string, displayName: string}> $options */
+                $options = [];
 
-        foreach ($clients as $client) {
-            $options[] = [
-                'id' => $client->id,
-                'clientNumber' => $client->clientNumber,
-                'displayName' => $this->displayName($client),
-            ];
-        }
+                foreach ($clients as $client) {
+                    $options[] = [
+                        'id' => $client->id,
+                        'clientNumber' => $client->clientNumber,
+                        'displayName' => $this->displayName($client),
+                    ];
+                }
 
-        return $options;
+                return $options;
+            },
+            TenantCache::TTL_SHORT,
+        );
+    }
+
+    /**
+     * Seasons that have contracts, newest first — shared by the index
+     * filter list and the dashboard's season picker.
+     *
+     * @return Collection<int, string>
+     */
+    private function seasons(): Collection
+    {
+        /** @var Collection<int, string> */
+        return $this->cache->remember(
+            'seasons',
+            [],
+            fn (): Collection => Contract::query()
+                ->distinct()
+                ->orderByDesc('season')
+                ->pluck('season'),
+            TenantCache::TTL_SHORT,
+        );
     }
 
     /**

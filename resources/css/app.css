@@ -257,6 +257,22 @@
     html {
         scroll-behavior: smooth;
     }
+
+    /* Respect users who prefer reduced motion: disable the decorative
+       loops (drift/shimmer/pulse) and the smooth scrolling override.
+       Component-level `motion-reduce:` variants handle case-by-case
+       needs; this is the safety net for everything else. */
+    @media (prefers-reduced-motion: reduce) {
+        html {
+            scroll-behavior: auto;
+        }
+
+        .animate-drift,
+        .animate-shimmer,
+        .animate-pulse-soft {
+            animation: none;
+        }
+    }
 }
 
 @layer utilities {
@@ -287,4 +303,12 @@
         );
         background-size: 24px 24px;
     }
+}
+
+/* Sonner toast descriptions: sonner ships a hardcoded light-gray for
+   [data-description] that fails WCAG AA on the popover background, and
+   its value races the theme variables under heavy load. Pin it to the
+   theme's popover foreground so both themes stay accessible. */
+[data-sonner-toast] [data-description] {
+    color: var(--popover-foreground);
 }

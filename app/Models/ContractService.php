@@ -6,6 +6,7 @@ namespace App\Models;
 
 use App\Models\Concerns\BelongsToOrganization;
 use Database\Factories\ContractServiceFactory;
+use Illuminate\Database\Eloquent\Attributes\WithoutTimestamps;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -20,14 +21,13 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property-read string $contract_id
  * @property-read Contract $contract
  */
+#[WithoutTimestamps]
 final class ContractService extends Model
 {
     use BelongsToOrganization;
 
     /** @use HasFactory<ContractServiceFactory> */
     use HasFactory;
-
-    public $timestamps = false;
 
     /**
      * @return BelongsTo<Organization, $this>

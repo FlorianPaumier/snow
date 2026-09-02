@@ -6,6 +6,7 @@ namespace App\Actions;
 
 use App\Enums\ClientType;
 use App\Models\Client;
+use Illuminate\Support\Collection;
 
 final readonly class GenerateClientNumber
 {
@@ -16,20 +17,29 @@ final readonly class GenerateClientNumber
      * reused after a client is deleted, and it is scoped per organization so
      * two companies never share numbering. Must run inside a transaction that
      * locks the clients table; the unique index is the final backstop.
+     *
+     * The max is computed in PHP rather than via max() so the row lock can
+     * coexist with the aggregation — PostgreSQL rejects FOR UPDATE on
+     * aggregate queries.
      */
     public function handle(ClientType $type, ?string $organizationId = null): string
     {
         $prefix = sprintf('%s-', $type->value);
 
-        $query = Client::withoutGlobalScopes()
+        $query = Client::query()->withoutGlobalScopes()
             ->where('clientNumber', 'like', sprintf('%s%%', $prefix));
 
         if ($organizationId !== null) {
             $query->where('organization_id', $organizationId);
         }
 
-        /** @var string|null $highest */
-        $highest = $query->lockForUpdate()->max('clientNumber');
+        /** @var Collection<int, Client> $clients */
+        $clients = $query->lockForUpdate()->get(['clientNumber']);
+
+        $highest = $clients
+            ->map(fn (Client $client): string => (string) $client->clientNumber)
+            ->sortByDesc(fn (string $clientNumber): string => $clientNumber)
+            ->first();
 
         $sequence = 1;
 

@@ -12,6 +12,7 @@ use App\Http\Requests\CreateClientRequest;
 use App\Http\Requests\UpdateClientRequest;
 use App\Models\Client;
 use App\Models\Contract;
+use App\Support\TenantCache;
 use Illuminate\Contracts\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\RedirectResponse;
@@ -24,6 +25,8 @@ use Inertia\Response;
 
 final readonly class ClientController
 {
+    public function __construct(private TenantCache $cache) {}
+
     public function index(Request $request): Response
     {
         /** @var array{search?: string, sort?: string, direction?: string}  $validated */
@@ -37,31 +40,29 @@ final readonly class ClientController
         $sort = in_array($validated['sort'] ?? null, $this->sortableColumns(), true) ? $validated['sort'] : 'created_at';
         $direction = ($validated['direction'] ?? null) === 'asc' ? 'asc' : 'desc';
 
-        /** @var LengthAwarePaginator<int, Client>  $clients */
-        $clients = Client::query()
-            ->when($search !== null, fn (Builder $query): Builder => $query->where(
-                fn (Builder $query): Builder => $query
-                    ->where('clientNumber', 'like', sprintf('%%%s%%', $search))
-                    ->orWhere('firstName', 'like', sprintf('%%%s%%', $search))
-                    ->orWhere('lastName', 'like', sprintf('%%%s%%', $search))
-                    ->orWhere('companyName', 'like', sprintf('%%%s%%', $search))
-                    ->orWhere('email', 'like', sprintf('%%%s%%', $search))
-            ))
-            ->orderBy($sort, $direction)
-            ->paginate(perPage: 15)
-            ->withQueryString();
+        $page = max(1, (int) $request->query('page', '1'));
+        $perPage = 15;
+
+        // The whole result page — rows and pagination meta — is cached per
+        // filter combination; mutations flush the organization's cache.
+        /** @var array{rows: list<array<string, mixed>>, total: int} $payload */
+        $payload = $this->cache->remember(
+            'clients-index',
+            [(string) $search, (string) $sort, $direction, (string) $page],
+            fn (): array => $this->indexPage($search, $sort, $direction, $page, $perPage),
+            TenantCache::TTL_SHORT,
+        );
+
+        $clients = new LengthAwarePaginator(
+            $payload['rows'],
+            $payload['total'],
+            $perPage,
+            $page,
+        );
+        $clients->withQueryString();
 
         return Inertia::render('clients/index', [
-            'clients' => $clients->through(fn (Client $client): array => [
-                'id' => $client->id,
-                'clientNumber' => $client->clientNumber,
-                'type' => $client->type,
-                'companyName' => $client->companyName,
-                'firstName' => $client->firstName,
-                'lastName' => $client->lastName,
-                'email' => $client->email,
-                'created_at' => $client->created_at->toDateString(),
-            ]),
+            'clients' => $clients,
             'filters' => [
                 'search' => $search ?? '',
                 'sort' => $sort,
@@ -82,7 +83,7 @@ final readonly class ClientController
 
         $action->handle($attributes);
 
-        return to_route('clients.index')->with('status', 'Client created.');
+        return to_route('clients.index')->with('status', __('statuses.client_created'));
     }
 
     public function show(Client $client): Response
@@ -148,14 +149,53 @@ final readonly class ClientController
 
         $action->handle($client, $attributes);
 
-        return to_route('clients.show', ['client' => $client->id])->with('status', 'Client updated.');
+        return to_route('clients.show', ['client' => $client->id])->with('status', __('statuses.client_updated'));
     }
 
     public function destroy(Client $client, DeleteClient $action): RedirectResponse
     {
         $action->handle($client);
 
-        return to_route('clients.index')->with('status', 'Client deleted.');
+        return to_route('clients.index')->with('status', __('statuses.client_deleted'));
+    }
+
+    /**
+     * Query one page of clients and flatten it to a cacheable payload.
+     *
+     * @param  'asc'|'desc'  $direction
+     * @return array{rows: list<array{id: string, clientNumber: string, type: ClientType, companyName: string|null, firstName: string, lastName: string, email: string|null, created_at: string}>, total: int}
+     */
+    private function indexPage(?string $search, string $sort, string $direction, int $page, int $perPage): array
+    {
+        /** @var LengthAwarePaginator<int, Client> $clients */
+        $clients = Client::query()
+            ->when($search !== null, fn (Builder $query): Builder => $query->where(
+                fn (Builder $query): Builder => $query
+                    ->where('clientNumber', 'like', sprintf('%%%s%%', $search))
+                    ->orWhere('firstName', 'like', sprintf('%%%s%%', $search))
+                    ->orWhere('lastName', 'like', sprintf('%%%s%%', $search))
+                    ->orWhere('companyName', 'like', sprintf('%%%s%%', $search))
+                    ->orWhere('email', 'like', sprintf('%%%s%%', $search))
+            ))
+            ->orderBy($sort, $direction)
+            ->paginate(perPage: $perPage, page: $page);
+
+        /** @var list<array{id: string, clientNumber: string, type: ClientType, companyName: string|null, firstName: string, lastName: string, email: string|null, created_at: string}> $rows */
+        $rows = $clients->map(fn (Client $client): array => [
+            'id' => $client->id,
+            'clientNumber' => $client->clientNumber,
+            'type' => $client->type,
+            'companyName' => $client->companyName,
+            'firstName' => $client->firstName,
+            'lastName' => $client->lastName,
+            'email' => $client->email,
+            'created_at' => $client->created_at->toDateString(),
+        ])->all();
+
+        return [
+            'rows' => $rows,
+            'total' => $clients->total(),
+        ];
     }
 
     /**

@@ -19,7 +19,7 @@ final readonly class LoginChallengeController
     {
         $user = $this->challengedUser($request);
 
-        if ($user === null) {
+        if (! $user instanceof User) {
             return to_route('login');
         }
 
@@ -33,7 +33,7 @@ final readonly class LoginChallengeController
     {
         $user = $this->challengedUser($request);
 
-        if ($user === null) {
+        if (! $user instanceof User) {
             return to_route('login');
         }
 
@@ -48,7 +48,7 @@ final readonly class LoginChallengeController
             && Hash::check($validated['code'], $user->login_challenge_code);
 
         if (! $isValid) {
-            return back()->withErrors(['code' => 'The provided code is invalid or has expired.']);
+            return back()->withErrors(['code' => __('contracts.invalid_code')]);
         }
 
         $user->forceFill([
@@ -72,7 +72,7 @@ final readonly class LoginChallengeController
     {
         $user = $this->challengedUser($request);
 
-        if ($user === null) {
+        if (! $user instanceof User) {
             return to_route('login');
         }
 
@@ -91,10 +91,12 @@ final readonly class LoginChallengeController
     {
         $loginId = $request->session()->get('login.id');
 
-        if ($loginId === null) {
+        // The session value is a scalar uuid; the is_string check also
+        // narrows find()'s array-id overload away for the type checker.
+        if (is_string($loginId) === false || $loginId === '') {
             return null;
         }
 
-        return User::withoutGlobalScopes()->find($loginId);
+        return User::query()->withoutGlobalScopes()->find($loginId);
     }
 }

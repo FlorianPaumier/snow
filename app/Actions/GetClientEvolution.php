@@ -5,10 +5,13 @@ declare(strict_types=1);
 namespace App\Actions;
 
 use App\Models\Contract;
+use App\Support\TenantCache;
 use Illuminate\Support\Collection;
 
 final readonly class GetClientEvolution
 {
+    public function __construct(private TenantCache $cache) {}
+
     /**
      * Clients per season, based on the season of their first contract (when
      * they started doing business with the company): new clients per season
@@ -17,6 +20,20 @@ final readonly class GetClientEvolution
      * @return Collection<int, array{season: string, new_clients: int, total_clients: int}>
      */
     public function handle(): Collection
+    {
+        /** @var Collection<int, array{season: string, new_clients: int, total_clients: int}> */
+        return $this->cache->remember(
+            'client-evolution',
+            [],
+            fn (): Collection => $this->compute(),
+            TenantCache::TTL_LONG,
+        );
+    }
+
+    /**
+     * @return Collection<int, array{season: string, new_clients: int, total_clients: int}>
+     */
+    private function compute(): Collection
     {
         /** @var Collection<string, int> $firstSeasons */
         $firstSeasons = Contract::query()

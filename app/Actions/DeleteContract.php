@@ -9,15 +9,21 @@ use Illuminate\Validation\ValidationException;
 
 final readonly class DeleteContract
 {
+    public function __construct(private FlushOrganizationCache $flushCache) {}
+
     public function handle(Contract $contract): void
     {
         throw_if(
             $contract->payments()->where('paid', true)->exists(),
             ValidationException::withMessages([
-                'contract' => 'Ce contrat a des versements encaissés et ne peut pas être supprimé.',
+                'contract' => __('contracts.delete_with_paid'),
             ]),
         );
 
+        $organizationId = $contract->organization_id;
+
         $contract->delete();
+
+        $this->flushCache->handle($organizationId);
     }
 }

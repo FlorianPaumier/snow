@@ -11,6 +11,7 @@ use App\ValueObjects\Season;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Validator;
 
 final class CreateContractRequest extends FormRequest
 {
@@ -36,7 +37,11 @@ final class CreateContractRequest extends FormRequest
                 'required',
                 'string',
                 Rule::in($seasons),
-                new UniqueContractSeason($this->string('clientId')->value()),
+                // Malformed shapes (arrays) fall back to a missing client id,
+                // which the clientId rules reject as a 422 instead of a 500...
+                new UniqueContractSeason(
+                    is_string($this->input('clientId')) ? $this->input('clientId') : null,
+                ),
             ],
 
             'services' => ['required', 'array', 'min:1'],
@@ -51,12 +56,10 @@ final class CreateContractRequest extends FormRequest
     /**
      * The installments must cover exactly the total of the services...
      */
-    public function withValidator(\Illuminate\Validation\Validator $validator): void
+    public function withValidator(Validator $validator): void
     {
-        $validator->after(function (\Illuminate\Validation\Validator $validator): void {
-            /** @var mixed $services */
+        $validator->after(function (Validator $validator): void {
             $services = $this->input('services', []);
-            /** @var mixed $payments */
             $payments = $this->input('payments', []);
 
             // Malformed shapes already fail the declared array rules; skip
@@ -66,11 +69,16 @@ final class CreateContractRequest extends FormRequest
                 return;
             }
 
-            $servicesTotal = array_sum(array_map((fn (array $service): int => (int) $service['amount']), $services));
-            $paymentsTotal = array_sum(array_map((fn (mixed $amount): int => (int) $amount), $payments));
+            /** @var list<array{amount: int|string}> $serviceRows */
+            $serviceRows = array_values($services);
+            /** @var list<int|string> $paymentRows */
+            $paymentRows = array_values($payments);
+
+            $servicesTotal = array_sum(array_map(fn (array $service): int => (int) $service['amount'], $serviceRows));
+            $paymentsTotal = array_sum(array_map(fn (int|string $amount): int => (int) $amount, $paymentRows));
 
             if ($servicesTotal !== $paymentsTotal) {
-                $validator->errors()->add('payments', 'Le total des versements doit correspondre au total des services.');
+                $validator->errors()->add('payments', __('contracts.totals_mismatch'));
             }
         });
     }
@@ -83,7 +91,7 @@ final class CreateContractRequest extends FormRequest
         $rules = [];
 
         foreach (PaymentSlot::cases() as $slot) {
-            $rules["payments.{$slot->value}"] = ['present', 'integer', 'min:0', 'max:10000000'];
+            $rules['payments.'.$slot->value] = ['present', 'integer', 'min:0', 'max:10000000'];
         }
 
         return $rules;

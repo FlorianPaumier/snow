@@ -6,6 +6,7 @@ namespace App\Rules;
 
 use App\Models\Contract;
 use Closure;
+use Illuminate\Contracts\Database\Eloquent\Builder;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Translation\PotentiallyTranslatedString;
 
@@ -37,11 +38,14 @@ final readonly class UniqueContractSeason implements ValidationRule
         $exists = Contract::query()
             ->where('client_id', $this->clientId)
             ->where('season', $value)
-            ->when($this->ignoreContractId !== null, fn ($query) => $query->whereKeyNot($this->ignoreContractId))
+            ->when(
+                $this->ignoreContractId !== null,
+                fn (Builder $query): Builder => $query->whereKeyNot($this->ignoreContractId),
+            )
             ->exists();
 
         if ($exists) {
-            $fail('Ce client a déjà un contrat pour cette saison.');
+            $fail(__('contracts.duplicate_season'));
         }
     }
 }

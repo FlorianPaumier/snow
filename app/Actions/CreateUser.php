@@ -58,13 +58,14 @@ final readonly class CreateUser
             return;
         }
 
-        $userCount = User::withoutGlobalScopes()
+        $userCount = User::query()->withoutGlobalScopes()
             ->where('organization_id', $organizationId)
             ->count();
 
         if ($userCount >= $limits['maxUsers']) {
+            /** @var array{plan: string, maxUsers: int} $limits */
             throw new PlanLimitExceeded(
-                sprintf('Your %s plan allows %d users. Upgrade to add more.', $limits['plan'], $limits['maxUsers']),
+                __('statuses.plan_limit', ['plan' => $limits['plan'], 'count' => $limits['maxUsers'], 'resource' => __('statuses.resource_users')]),
             );
         }
     }

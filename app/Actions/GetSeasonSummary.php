@@ -5,11 +5,14 @@ declare(strict_types=1);
 namespace App\Actions;
 
 use App\Models\Contract;
+use App\Support\TenantCache;
 use App\ValueObjects\Season;
 use Illuminate\Contracts\Database\Eloquent\Builder;
 
 final readonly class GetSeasonSummary
 {
+    public function __construct(private TenantCache $cache) {}
+
     /**
      * Summary of a season's contracts: total revenue, collected and
      * outstanding amounts, and the number of contracts.
@@ -17,6 +20,20 @@ final readonly class GetSeasonSummary
      * @return array{revenue: int, collected: int, outstanding: int, contracts_count: int}
      */
     public function handle(Season $season): array
+    {
+        /** @var array{revenue: int, collected: int, outstanding: int, contracts_count: int} */
+        return $this->cache->remember(
+            'season-summary',
+            [$season->label],
+            fn (): array => $this->compute($season),
+            TenantCache::TTL_LONG,
+        );
+    }
+
+    /**
+     * @return array{revenue: int, collected: int, outstanding: int, contracts_count: int}
+     */
+    private function compute(Season $season): array
     {
         $seasonContracts = fn (): Builder => Contract::query()->where('season', $season->label);
 
@@ -30,7 +47,6 @@ final readonly class GetSeasonSummary
             ->where('payments.paid', true)
             ->toBase()
             ->sum('payments.amount');
-
         $contractsCount = (int) $seasonContracts()->toBase()->count();
 
         return [

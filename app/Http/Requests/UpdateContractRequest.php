@@ -7,11 +7,13 @@ namespace App\Http\Requests;
 use App\Enums\PaymentSlot;
 use App\Models\Client;
 use App\Models\Contract;
+use App\Models\Payment;
 use App\Rules\UniqueContractSeason;
 use App\ValueObjects\Season;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Validator;
 
 final class UpdateContractRequest extends FormRequest
 {
@@ -41,7 +43,9 @@ final class UpdateContractRequest extends FormRequest
                 'string',
                 Rule::in($seasons),
                 new UniqueContractSeason(
-                    $this->string('clientId')->value(),
+                    // Malformed shapes (arrays) fall back to a missing client
+                    // id, rejected as a 422 by the clientId rules...
+                    is_string($this->input('clientId')) ? $this->input('clientId') : null,
                     $contract->id,
                 ),
             ],
@@ -61,15 +65,13 @@ final class UpdateContractRequest extends FormRequest
      * slot already marked paid is locked — its amount cannot change until
      * the payment is unmarked...
      */
-    public function withValidator(\Illuminate\Validation\Validator $validator): void
+    public function withValidator(Validator $validator): void
     {
         $contract = $this->route('contract');
         assert($contract instanceof Contract);
 
-        $validator->after(function (\Illuminate\Validation\Validator $validator) use ($contract): void {
-            /** @var mixed $services */
+        $validator->after(function (Validator $validator) use ($contract): void {
             $services = $this->input('services', []);
-            /** @var mixed $payments */
             $payments = $this->input('payments', []);
 
             // Malformed shapes already fail the declared array rules; skip
@@ -79,14 +81,19 @@ final class UpdateContractRequest extends FormRequest
                 return;
             }
 
-            $servicesTotal = array_sum(array_map((fn (array $service): int => (int) $service['amount']), $services));
-            $paymentsTotal = array_sum(array_map((fn (mixed $amount): int => (int) $amount), $payments));
+            /** @var list<array{amount: int|string}> $serviceRows */
+            $serviceRows = array_values($services);
+            /** @var list<int|string> $paymentRows */
+            $paymentRows = array_values($payments);
+
+            $servicesTotal = array_sum(array_map(fn (array $service): int => (int) $service['amount'], $serviceRows));
+            $paymentsTotal = array_sum(array_map(fn (int|string $amount): int => (int) $amount, $paymentRows));
 
             if ($servicesTotal !== $paymentsTotal) {
-                $validator->errors()->add('payments', 'Le total des versements doit correspondre au total des services.');
+                $validator->errors()->add('payments', __('contracts.totals_mismatch'));
             }
 
-            /** @var array<int, \App\Models\Payment>  $paidPayments */
+            /** @var array<int, Payment> $paidPayments */
             $paidPayments = $contract->payments()
                 ->where('paid', true)
                 ->get();
@@ -94,11 +101,11 @@ final class UpdateContractRequest extends FormRequest
             foreach ($paidPayments as $paidPayment) {
                 $slot = $paidPayment->slot->value;
                 $storedAmount = $paidPayment->amount;
-                $submitted = $this->input("payments.{$slot}", $storedAmount);
+                $submitted = $this->input('payments.'.$slot, $storedAmount);
                 $submittedAmount = is_numeric($submitted) ? (int) $submitted : $storedAmount;
 
                 if ($submittedAmount !== $storedAmount) {
-                    $validator->errors()->add("payments.{$slot}", 'Ce versement est encaissé et son montant ne peut plus être modifié.');
+                    $validator->errors()->add('payments.'.$slot, __('contracts.slot_amount_locked'));
                 }
             }
         });
@@ -112,7 +119,7 @@ final class UpdateContractRequest extends FormRequest
         $rules = [];
 
         foreach (PaymentSlot::cases() as $slot) {
-            $rules["payments.{$slot->value}"] = ['present', 'integer', 'min:0', 'max:10000000'];
+            $rules['payments.'.$slot->value] = ['present', 'integer', 'min:0', 'max:10000000'];
         }
 
         return $rules;

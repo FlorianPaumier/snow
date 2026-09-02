@@ -8,7 +8,6 @@ use App\Models\Contract;
 use App\Models\Organization;
 use App\Models\Scopes\OrganizationScope;
 use Illuminate\Database\Eloquent\Attributes\ScopedBy;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Facades\Auth;
@@ -33,24 +32,14 @@ trait BelongsToOrganization
     public static function bootBelongsToOrganization(): void
     {
         static::creating(function (Model $model): void {
-            if ($model->organization_id === null) {
+            if ($model->getAttribute('organization_id') === null) {
                 $organizationId = self::resolveOrganizationId($model);
 
                 if (is_string($organizationId)) {
-                    $model->organization_id = $organizationId;
+                    $model->setAttribute('organization_id', $organizationId);
                 }
             }
         });
-    }
-
-    /**
-     * @param  Builder<static>  $query
-     * @return Builder<static>&static
-     */
-    public static function query(): Builder
-    {
-        /** @var Builder<static>&static $query */
-        return parent::query();
     }
 
     /**
@@ -78,10 +67,13 @@ trait BelongsToOrganization
         $contractId = $model->getAttribute('contract_id');
 
         if (is_string($contractId)) {
-            $contract = Contract::withoutGlobalScopes()->find($contractId);
+            $contract = Contract::query()->withoutGlobalScopes()->find($contractId);
 
-            if ($contract !== null && is_string($contract->organization_id)) {
-                return $contract->organization_id;
+            /** @var string|null $contractOrganizationId */
+            $contractOrganizationId = $contract?->getAttribute('organization_id');
+
+            if (is_string($contractOrganizationId)) {
+                return $contractOrganizationId;
             }
         }
 

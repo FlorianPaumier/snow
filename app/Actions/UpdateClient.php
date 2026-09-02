@@ -10,6 +10,8 @@ use App\ValueObjects\Address;
 
 final readonly class UpdateClient
 {
+    public function __construct(private FlushOrganizationCache $flushCache) {}
+
     /**
      * @param  array{type: ClientType|string, companyName?: string|null, firstName: string, lastName: string, email: string, phoneDay?: string|null, cellPhone?: string|null, addressStreet: string, addressCity: string, addressPostalCode: string, addressCountry: string, remark?: string|null}  $attributes
      */
@@ -19,13 +21,17 @@ final readonly class UpdateClient
             ? $attributes['type']
             : ClientType::from($attributes['type']);
 
+        // The client number is assigned at creation and never renumbered,
+        // even when the type changes...
+        $companyName = null;
+
+        if ($type === ClientType::CLIENT_COMPANY) {
+            $companyName = $attributes['companyName'] ?? $client->companyName;
+        }
+
         $client->update([
             'type' => $type,
-            // The client number is assigned at creation and never renumbered,
-            // even when the type changes...
-            'companyName' => $type === ClientType::CLIENT_COMPANY
-                ? ($attributes['companyName'] ?? $client->companyName)
-                : null,
+            'companyName' => $companyName,
             'lastName' => $attributes['lastName'],
             'firstName' => $attributes['firstName'],
             'address' => new Address(
@@ -39,5 +45,7 @@ final readonly class UpdateClient
             'email' => $attributes['email'],
             'remark' => $attributes['remark'] ?? null,
         ]);
+
+        $this->flushCache->handle($client->organization_id);
     }
 }
