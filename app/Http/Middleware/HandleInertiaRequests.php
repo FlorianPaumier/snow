@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Middleware;
 
+use App\Actions\GetSubscriptionAccess;
 use App\Actions\GetSubscriptionSummary;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
@@ -17,7 +18,10 @@ final class HandleInertiaRequests extends Middleware
      */
     protected $rootView = 'app';
 
-    public function __construct(private readonly GetSubscriptionSummary $getSubscriptionSummary) {}
+    public function __construct(
+        private readonly GetSubscriptionSummary $getSubscriptionSummary,
+        private readonly GetSubscriptionAccess $getSubscriptionAccess,
+    ) {}
 
     /**
      * @see https://inertiajs.com/asset-versioning
@@ -53,6 +57,7 @@ final class HandleInertiaRequests extends Middleware
                 'user' => $user,
                 'organization' => $organization,
                 'subscription' => $this->getSubscriptionSummary->handle($user?->organization),
+                'access' => $this->getSubscriptionAccess->handle($user?->organization),
                 'can' => [
                     'manageUsers' => $user?->can('manage-users') ?? false,
                     'manageClients' => $user?->can('manage-clients') ?? false,

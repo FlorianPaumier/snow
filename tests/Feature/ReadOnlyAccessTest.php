@@ -21,7 +21,10 @@ beforeEach(function (): void {
 it('allows read-only organizations to view pages', function (): void {
     $this->actingAs($this->admin)
         ->get(route('dashboard'))
-        ->assertOk();
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->where('auth.access.readOnly', true)
+            ->where('auth.access.unlockAvailable', true));
 });
 
 it('blocks creating clients while read-only', function (): void {
@@ -211,6 +214,19 @@ it('re-locks the organization once the unlock expires', function (): void {
     expect(Client::query()->withoutGlobalScopes()
         ->where('organization_id', $this->organization->id)
         ->count())->toBe(0);
+
+    // The re-locked verdict is shared back to the page so the banner and
+    // the unlock button reappear. The POST above set X-Inertia in the
+    // client's default headers; without a matching X-Inertia-Version the
+    // GET would hit Inertia's version-change branch and 409, so flush...
+    $this->flushHeaders();
+
+    $this->actingAs($this->admin)
+        ->get(route('dashboard'))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->where('auth.access.readOnly', true)
+            ->where('auth.access.unlockAvailable', false));
 });
 
 it('forbids non-admins from unlocking', function (): void {

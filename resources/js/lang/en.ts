@@ -309,6 +309,14 @@ const en: Translations = {
         clientCount: ':count clients',
         subscribeMonthly: 'Subscribe monthly',
         subscribeAnnually: 'Subscribe annually',
+        readOnlyTitle: 'Your trial has ended',
+        readOnlyBody:
+            'Your data is read-only — upgrade to keep managing your organization.',
+        readOnlyUpgrade: 'Upgrade now',
+        readOnlyUnlock: 'Unlock 24 hours (one-time)',
+        readOnlyPaymentTitle: 'Payment issue',
+        readOnlyPaymentBody:
+            'Your subscription is not currently active. Your data is read-only until payment is restored.',
         pricesNote: 'Prices are managed in Stripe. Need a custom arrangement?',
         contactUs: 'Contact us',
     },

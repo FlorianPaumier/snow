@@ -2,13 +2,18 @@
 
 declare(strict_types=1);
 
+use App\Actions\GetSubscriptionAccess;
 use App\Actions\GetSubscriptionSummary;
 use App\Http\Middleware\HandleInertiaRequests;
+use App\Models\Organization;
 use App\Models\User;
 use Illuminate\Http\Request;
 
 it('shares app name from config', function (): void {
-    $middleware = new HandleInertiaRequests(resolve(GetSubscriptionSummary::class));
+    $middleware = new HandleInertiaRequests(
+        resolve(GetSubscriptionSummary::class),
+        resolve(GetSubscriptionAccess::class),
+    );
 
     $request = Request::create('/', 'GET');
 
@@ -19,7 +24,10 @@ it('shares app name from config', function (): void {
 });
 
 it('shares null user when guest', function (): void {
-    $middleware = new HandleInertiaRequests(resolve(GetSubscriptionSummary::class));
+    $middleware = new HandleInertiaRequests(
+        resolve(GetSubscriptionSummary::class),
+        resolve(GetSubscriptionAccess::class),
+    );
 
     $request = Request::create('/', 'GET');
 
@@ -36,7 +44,10 @@ it('shares authenticated user data', function (): void {
         'email' => 'test@example.com',
     ]);
 
-    $middleware = new HandleInertiaRequests(resolve(GetSubscriptionSummary::class));
+    $middleware = new HandleInertiaRequests(
+        resolve(GetSubscriptionSummary::class),
+        resolve(GetSubscriptionAccess::class),
+    );
 
     $request = Request::create('/', 'GET');
     $request->setUserResolver(fn () => $user);
@@ -50,7 +61,10 @@ it('shares authenticated user data', function (): void {
 });
 
 it('defaults sidebarOpen to true when no cookie', function (): void {
-    $middleware = new HandleInertiaRequests(resolve(GetSubscriptionSummary::class));
+    $middleware = new HandleInertiaRequests(
+        resolve(GetSubscriptionSummary::class),
+        resolve(GetSubscriptionAccess::class),
+    );
 
     $request = Request::create('/', 'GET');
 
@@ -61,7 +75,10 @@ it('defaults sidebarOpen to true when no cookie', function (): void {
 });
 
 it('sets sidebarOpen to true when cookie is true', function (): void {
-    $middleware = new HandleInertiaRequests(resolve(GetSubscriptionSummary::class));
+    $middleware = new HandleInertiaRequests(
+        resolve(GetSubscriptionSummary::class),
+        resolve(GetSubscriptionAccess::class),
+    );
 
     $request = Request::create('/', 'GET');
     $request->cookies->set('sidebar_state', 'true');
@@ -72,7 +89,10 @@ it('sets sidebarOpen to true when cookie is true', function (): void {
 });
 
 it('sets sidebarOpen to false when cookie is false', function (): void {
-    $middleware = new HandleInertiaRequests(resolve(GetSubscriptionSummary::class));
+    $middleware = new HandleInertiaRequests(
+        resolve(GetSubscriptionSummary::class),
+        resolve(GetSubscriptionAccess::class),
+    );
 
     $request = Request::create('/', 'GET');
     $request->cookies->set('sidebar_state', 'false');
@@ -83,7 +103,10 @@ it('sets sidebarOpen to false when cookie is false', function (): void {
 });
 
 it('includes parent shared data', function (): void {
-    $middleware = new HandleInertiaRequests(resolve(GetSubscriptionSummary::class));
+    $middleware = new HandleInertiaRequests(
+        resolve(GetSubscriptionSummary::class),
+        resolve(GetSubscriptionAccess::class),
+    );
 
     $request = Request::create('/', 'GET');
 
@@ -99,7 +122,10 @@ it('shares the organization name and subscription for an organization member', f
         'email' => 'member@example.com',
     ]);
 
-    $middleware = new HandleInertiaRequests(resolve(GetSubscriptionSummary::class));
+    $middleware = new HandleInertiaRequests(
+        resolve(GetSubscriptionSummary::class),
+        resolve(GetSubscriptionAccess::class),
+    );
 
     $request = Request::create('/', 'GET');
     $request->setUserResolver(fn () => $user);
@@ -110,4 +136,26 @@ it('shares the organization name and subscription for an organization member', f
         'id' => $user->organization_id,
         'name' => $user->organization->name,
     ])->and($shared['auth']['subscription'])->toBeArray();
+});
+
+it('shares the access verdict for an organization member', function (): void {
+    $organization = Organization::factory()->expired()->create();
+    $user = User::factory()->forOrganization($organization)->create();
+
+    $middleware = new HandleInertiaRequests(
+        resolve(GetSubscriptionSummary::class),
+        resolve(GetSubscriptionAccess::class),
+    );
+
+    $request = Request::create('/', 'GET');
+    $request->setUserResolver(fn () => $user);
+
+    $shared = $middleware->share($request);
+
+    expect($shared['auth']['access'])->toBe([
+        'readOnly' => true,
+        'unlockAvailable' => true,
+        'unlockedUntil' => null,
+        'trialEndsAt' => $organization->trial_ends_at->toIso8601String(),
+    ]);
 });
