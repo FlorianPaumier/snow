@@ -18,9 +18,6 @@ final readonly class GetSubscriptionAccess
 {
     private const int TTL_CEILING = 900;
 
-    /**
-     * @param  array{readOnly: bool, unlockAvailable: bool, unlockedUntil: string|null, trialEndsAt: string|null}
-     */
     public function __construct(private TenantCache $cache) {}
 
     /**
@@ -59,7 +56,10 @@ final readonly class GetSubscriptionAccess
         // The checkout creates the subscription with the plan key as its
         // type, so the first row is the plan (the same convention as
         // GetSubscriptionSummary / GetPlanLimits)...
-        $validSubscription = $organization->subscriptions
+        /** @var \Illuminate\Database\Eloquent\Collection<int, Subscription> $subscriptions */
+        $subscriptions = $organization->subscriptions;
+
+        $validSubscription = $subscriptions
             ->first(fn (Subscription $subscription): bool => $subscription->valid());
 
         $unlockedUntil = $organization->access_unlock_until;
