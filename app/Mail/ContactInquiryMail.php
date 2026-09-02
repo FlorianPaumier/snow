@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Mail;
 
+use App\Models\ContactInquiry;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
@@ -16,20 +17,15 @@ final class ContactInquiryMail extends Mailable implements ShouldQueue
     use Queueable;
     use SerializesModels;
 
-    /**
-     * @param  array<string, ?string>  $inquiry
-     */
     public function __construct(
-        public readonly array $inquiry,
+        public readonly ContactInquiry $inquiry,
     ) {}
 
     public function envelope(): Envelope
     {
-        $replyTo = $this->inquiry['email'];
-
         return new Envelope(
-            replyTo: is_string($replyTo) ? [$replyTo] : [],
-            subject: 'Contact inquiry from '.$this->inquiry['name'],
+            replyTo: [$this->inquiry->email],
+            subject: 'Contact inquiry from '.$this->inquiry->name,
         );
     }
 

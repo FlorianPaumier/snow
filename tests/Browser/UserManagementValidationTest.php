@@ -2,27 +2,31 @@
 
 declare(strict_types=1);
 
+use App\Models\Organization;
 use App\Models\User;
+use Illuminate\Support\Facades\Password;
 
 /**
  * Browser coverage for the admin user management pages: server validation
  * errors must render on the create/edit forms and the pages stay accessible.
+ * Staff onboarding no longer collects a password in the admin form — the
+ * member sets it when accepting their invitation — so password validation
+ * is covered on the invitation page.
  */
-it('shows an error when the password confirmation does not match', function (): void {
-    $admin = User::factory()->admin()->create();
-    $page = loginViaUi($admin);
+it('shows an error when the invitation password confirmation does not match', function (): void {
+    $organization = Organization::factory()->create();
+    $member = User::factory()->pendingInvitation()->forOrganization($organization)->create();
+    $token = (string) Password::broker('invitations')->createToken($member);
 
-    $page->navigate('/users/create');
+    $page = visit('/accept-invitation/'.$token.'?email='.$member->email);
     $page->wait(2);
 
-    $page->fill('#name', 'Jean Tremblay')
-        ->fill('#email', 'jean@example.com')
-        ->fill('#password', 'super-secret-password')
+    $page->fill('#password', 'super-secret-password')
         ->fill('#password_confirmation', 'different-password')
-        ->press("Créer l'utilisateur");
+        ->press('Définir le mot de passe');
 
     $page->assertSee('La confirmation du champ mot de passe ne correspond pas.')
-        ->assertPathIs('/users/create');
+        ->assertPathIs('/accept-invitation/'.$token);
 });
 
 it('shows an error for a duplicate email', function (): void {
@@ -35,8 +39,6 @@ it('shows an error for a duplicate email', function (): void {
 
     $page->fill('#name', 'Jean Tremblay')
         ->fill('#email', 'taken@example.com')
-        ->fill('#password', 'super-secret-password')
-        ->fill('#password_confirmation', 'super-secret-password')
         ->press("Créer l'utilisateur");
 
     $page->assertSee('La valeur du champ adresse courriel est déjà utilisée.')

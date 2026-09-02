@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Enums\ContactInquiryStatus;
+use Carbon\CarbonInterface;
 use Database\Factories\ContactInquiryFactory;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -20,8 +22,11 @@ use Illuminate\Database\Eloquent\Model;
  * @property-read string|null $company
  * @property-read string|null $fleetSize
  * @property-read string $message
- * @property-read \Carbon\CarbonInterface $created_at
- * @property-read \Carbon\CarbonInterface $updated_at
+ * @property-read ContactInquiryStatus $status
+ * @property-read CarbonInterface|null $sent_at
+ * @property-read CarbonInterface|null $failed_at
+ * @property-read CarbonInterface $created_at
+ * @property-read CarbonInterface $updated_at
  */
 final class ContactInquiry extends Model
 {
@@ -29,6 +34,16 @@ final class ContactInquiry extends Model
     use HasFactory;
 
     use HasUuids;
+
+    /**
+     * Mirrors the migration default so a freshly built (unsaved) model
+     * reports the same delivery state as one loaded from the database.
+     *
+     * @var array<string, mixed>
+     */
+    protected $attributes = [
+        'status' => ContactInquiryStatus::STATUS_PENDING,
+    ];
 
     /**
      * @return array<string, string>
@@ -42,6 +57,9 @@ final class ContactInquiry extends Model
             'company' => 'string',
             'fleetSize' => 'string',
             'message' => 'string',
+            'status' => ContactInquiryStatus::class,
+            'sent_at' => 'datetime',
+            'failed_at' => 'datetime',
             'created_at' => 'datetime',
             'updated_at' => 'datetime',
         ];

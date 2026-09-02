@@ -3,11 +3,15 @@
 declare(strict_types=1);
 
 use App\Actions\SubmitContactInquiry;
-use App\Mail\ContactInquiryMail;
+use App\Enums\ContactInquiryStatus;
+use App\Jobs\SendContactInquiry;
 use App\Models\ContactInquiry;
+use Illuminate\Contracts\Bus\Dispatcher;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Queue;
 
-it('persists a contact inquiry and still emails it', function (): void {
+it('persists a contact inquiry and queues its delivery', function (): void {
+    Queue::fake();
     Mail::fake();
 
     $response = $this->postJson('/contact', [
@@ -26,19 +30,20 @@ it('persists a contact inquiry and still emails it', function (): void {
         ->and($inquiry->email)->toBe('dana@example.com')
         ->and($inquiry->company)->toBe('Twin Cities Snow Co.')
         ->and($inquiry->fleetSize)->toBe('4-10')
-        ->and($inquiry->message)->toBe('We run six trucks across the metro and need dispatch.');
+        ->and($inquiry->message)->toBe('We run six trucks across the metro and need dispatch.')
+        ->and($inquiry->status)->toBe(ContactInquiryStatus::STATUS_PENDING);
 
-    Mail::assertQueued(ContactInquiryMail::class, 1);
-    Mail::assertQueued(ContactInquiryMail::class, function (ContactInquiryMail $mail): bool {
-        if ($mail->envelope()->replyTo[0]->address !== 'dana@example.com') {
-            return false;
-        }
+    Queue::assertPushed(
+        SendContactInquiry::class,
+        fn (SendContactInquiry $job): bool => $job->inquiryId === $inquiry->id,
+    );
 
-        return str_contains($mail->render(), 'We run six trucks across the metro');
-    });
+    Mail::assertNothingQueued();
+    Mail::assertNothingSent();
 });
 
 it('persists nothing when the contact inquiry payload is invalid', function (): void {
+    Queue::fake();
     Mail::fake();
 
     $response = $this->postJson('/contact', [
@@ -51,24 +56,26 @@ it('persists nothing when the contact inquiry payload is invalid', function (): 
 
     $this->assertDatabaseCount(ContactInquiry::class, 0);
 
+    Queue::assertNothingPushed();
     Mail::assertNothingSent();
 });
 
-it('keeps the inquiry row even when the mail send fails', function (): void {
-    // Simulate a dead SMTP connection: the mailer throws after the action
-    // has persisted the lead, and the row must survive.
-    Mail::swap(Mockery::mock(\Illuminate\Mail\Mailer::class)->makePartial());
-    Mail::shouldReceive('send')->once()->andThrow(new RuntimeException('SMTP connection failed'));
+it('keeps the inquiry row even when the queue dispatch fails', function (): void {
+    // Simulate a dead queue connection: the bus dispatch throws after the
+    // action has persisted the lead, and the row must survive.
+    $bus = Mockery::mock(Dispatcher::class);
+    $bus->shouldReceive('dispatch')->once()->andThrow(new RuntimeException('Queue connection failed'));
+    app()->instance(Dispatcher::class, $bus);
 
     $action = resolve(SubmitContactInquiry::class);
 
-    expect(fn (): \App\Models\ContactInquiry => $action->handle([
+    expect(fn (): ContactInquiry => $action->handle([
         'name' => 'Dana Kowalski',
         'email' => 'dana@example.com',
         'company' => null,
         'fleetSize' => null,
         'message' => 'We run six trucks across the metro and need dispatch.',
-    ]))->toThrow(RuntimeException::class, 'SMTP connection failed');
+    ]))->toThrow(RuntimeException::class, 'Queue connection failed');
 
     $this->assertDatabaseCount(ContactInquiry::class, 1);
 });
