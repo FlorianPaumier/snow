@@ -90,6 +90,94 @@ it('redirects to the Stripe checkout when the plan price is configured', functio
         ->assertRedirect('https://checkout.stripe.com/test');
 });
 
+it('starts the checkout subscription at the end of the remaining signup trial', function (): void {
+    config()->set('plans.starter.prices.monthly', 'price_test_monthly');
+
+    $this->organization->forceFill([
+        'stripe_id' => 'cus_test_123',
+        'trial_ends_at' => now()->addDays(10),
+    ])->save();
+
+    $checkoutPayload = [];
+
+    bindFakeStripeClient(checkoutUrl: 'https://checkout.stripe.com/test', checkoutPayload: $checkoutPayload);
+
+    $this->actingAs($this->admin)
+        ->fromRoute('billing.index')
+        ->post(route('billing.checkout'), ['plan' => 'starter', 'interval' => 'monthly'])
+        ->assertRedirect('https://checkout.stripe.com/test');
+
+    expect($checkoutPayload['subscription_data']['trial_end'])
+        ->toEqual($this->organization->refresh()->trial_ends_at->getTimestamp());
+});
+
+it('bills immediately when the signup trial has expired', function (): void {
+    config()->set('plans.starter.prices.monthly', 'price_test_monthly');
+
+    $this->organization->forceFill([
+        'stripe_id' => 'cus_test_123',
+        'trial_ends_at' => now()->subDay(),
+    ])->save();
+
+    $checkoutPayload = [];
+
+    bindFakeStripeClient(checkoutUrl: 'https://checkout.stripe.com/test', checkoutPayload: $checkoutPayload);
+
+    $this->actingAs($this->admin)
+        ->fromRoute('billing.index')
+        ->post(route('billing.checkout'), ['plan' => 'starter', 'interval' => 'monthly'])
+        ->assertRedirect('https://checkout.stripe.com/test');
+
+    expect($checkoutPayload['subscription_data'])->not->toHaveKey('trial_end');
+});
+
+it('bills immediately when the organization has no signup trial', function (): void {
+    config()->set('plans.starter.prices.monthly', 'price_test_monthly');
+
+    $this->organization->forceFill([
+        'stripe_id' => 'cus_test_123',
+        'trial_ends_at' => null,
+    ])->save();
+
+    $checkoutPayload = [];
+
+    bindFakeStripeClient(checkoutUrl: 'https://checkout.stripe.com/test', checkoutPayload: $checkoutPayload);
+
+    $this->actingAs($this->admin)
+        ->fromRoute('billing.index')
+        ->post(route('billing.checkout'), ['plan' => 'starter', 'interval' => 'monthly'])
+        ->assertRedirect('https://checkout.stripe.com/test');
+
+    expect($checkoutPayload['subscription_data'])->not->toHaveKey('trial_end');
+});
+
+it('bills immediately when the organization already has a subscription', function (): void {
+    config()->set('plans.starter.prices.monthly', 'price_test_monthly');
+
+    $this->organization->forceFill(['stripe_id' => 'cus_test_123'])->save();
+
+    $this->organization->subscriptions()->create([
+        'type' => 'starter',
+        'stripe_id' => 'sub_test_123',
+        'stripe_status' => 'active',
+        'stripe_price' => 'price_test_monthly',
+        'quantity' => 1,
+        'trial_ends_at' => null,
+        'ends_at' => null,
+    ]);
+
+    $checkoutPayload = [];
+
+    bindFakeStripeClient(checkoutUrl: 'https://checkout.stripe.com/test', checkoutPayload: $checkoutPayload);
+
+    $this->actingAs($this->admin)
+        ->fromRoute('billing.index')
+        ->post(route('billing.checkout'), ['plan' => 'starter', 'interval' => 'monthly'])
+        ->assertRedirect('https://checkout.stripe.com/test');
+
+    expect($checkoutPayload['subscription_data'])->not->toHaveKey('trial_end');
+});
+
 it('redirects to the billing portal for admins', function (): void {
     $this->admin->organization->forceFill(['stripe_id' => 'cus_test_123'])->save();
 
@@ -105,9 +193,10 @@ it('redirects to the billing portal for admins', function (): void {
  * the client through the container, so the double replaces every SDK call.
  * Only the services the covered flows touch are faked; the Checkout and
  * BillingPortal services wrap their session services because Cashier
- * reaches them through two magic-property hops.
+ * reaches them through two magic-property hops. When $checkoutPayload is
+ * given, it receives the params sent to the checkout session create call.
  */
-function bindFakeStripeClient(string $checkoutUrl = 'https://checkout.stripe.com/unused', string $portalUrl = 'https://billing.stripe.com/unused'): void
+function bindFakeStripeClient(string $checkoutUrl = 'https://checkout.stripe.com/unused', string $portalUrl = 'https://billing.stripe.com/unused', ?array &$checkoutPayload = null): void
 {
     $stripeCustomer = Customer::constructFrom(['id' => 'cus_test_123'], []);
 
@@ -117,7 +206,11 @@ function bindFakeStripeClient(string $checkoutUrl = 'https://checkout.stripe.com
     $checkoutSession = Session::constructFrom(['url' => $checkoutUrl], []);
 
     $checkoutSessionService = Mockery::mock(SessionService::class);
-    $checkoutSessionService->shouldReceive('create')->andReturn($checkoutSession);
+    $checkoutSessionService->shouldReceive('create')->andReturnUsing(function (array $payload) use (&$checkoutPayload, $checkoutSession): Session {
+        $checkoutPayload = $payload;
+
+        return $checkoutSession;
+    });
 
     $portalSessionService = Mockery::mock(Stripe\Service\BillingPortal\SessionService::class);
     $portalSessionService->shouldReceive('create')->andReturn(['url' => $portalUrl]);

@@ -99,3 +99,15 @@ You should see 100% test coverage and all quality checks passing.
 ## License
 
 **Laravel Starter Kit Inertia React** was created by **[Nuno Maduro](https://x.com/enunomaduro)** under the **[MIT license](https://opensource.org/licenses/MIT)**.
+
+## Operations
+
+### Local development
+
+`composer dev` starts the app server, queue worker, scheduler (`php artisan schedule:work`), Pail log tailing, and the Vite dev server concurrently.
+
+### Production checklist
+
+- [ ] **Queue worker** — run `php artisan queue:work` under a process supervisor (e.g. Supervisor). Queued mail includes login codes, invitations, payment reminders, and weekly digests.
+- [ ] **Gotenberg** — a reachable Gotenberg service configured via `GOTENBERG_URL`, used to render contract PDFs and payment receipts.
+- [ ] **Stripe webhook** — an endpoint pointing to `POST /stripe/webhook`, signed with `STRIPE_WEBHOOK_SECRET`.

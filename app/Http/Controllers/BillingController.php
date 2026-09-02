@@ -39,12 +39,21 @@ final readonly class BillingController
 
         $organization = $user->organization;
 
-        $checkout = $organization
-            ->newSubscription($validated['plan'], $priceId)
-            ->checkout([
-                'success_url' => route('billing.index', absolute: false),
-                'cancel_url' => route('billing.index', absolute: false),
-            ]);
+        $subscription = $organization->newSubscription($validated['plan'], $priceId);
+
+        // While the organization is still on its signup trial and has no
+        // subscription yet, the checkout-created subscription picks up the
+        // remaining trial instead of billing immediately...
+        $trialEndsAt = $organization->trial_ends_at;
+
+        if ($trialEndsAt !== null && $trialEndsAt->isFuture() && $organization->subscriptions()->doesntExist()) {
+            $subscription->trialUntil($trialEndsAt);
+        }
+
+        $checkout = $subscription->checkout([
+            'success_url' => route('billing.index', absolute: false),
+            'cancel_url' => route('billing.index', absolute: false),
+        ]);
 
         return $checkout->redirect();
     }

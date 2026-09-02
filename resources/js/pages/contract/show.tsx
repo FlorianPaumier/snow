@@ -5,6 +5,7 @@ import {
     FileText,
     Pencil,
     Printer,
+    ReceiptText,
     Trash2,
     User,
     Undo2,
@@ -14,6 +15,7 @@ import ContractController from '@/actions/App/Http/Controllers/ContractControlle
 import GenerateContractPdfController from '@/actions/App/Http/Controllers/GenerateContractPdfController';
 import MarkPaymentPaidController from '@/actions/App/Http/Controllers/MarkPaymentPaidController';
 import PrintContractDocumentController from '@/actions/App/Http/Controllers/PrintContractDocumentController';
+import PrintPaymentReceiptController from '@/actions/App/Http/Controllers/PrintPaymentReceiptController';
 import UnmarkPaymentPaidController from '@/actions/App/Http/Controllers/UnmarkPaymentPaidController';
 import Heading from '@/components/heading';
 import { Badge } from '@/components/ui/badge';
@@ -335,33 +337,73 @@ export default function Show({
                                                 {canManageContracts && (
                                                     <div className="flex items-center justify-end gap-1">
                                                         {payment.paid ? (
-                                                            <Button
-                                                                type="button"
-                                                                variant="ghost"
-                                                                size="sm"
-                                                                className="text-muted-foreground hover:text-foreground"
-                                                                onClick={() =>
-                                                                    unmarkPaid(
-                                                                        payment,
-                                                                    )
-                                                                }
-                                                                aria-label={interpolate(
-                                                                    t.contracts
-                                                                        .unmarkPaidAria,
+                                                            <>
+                                                                <Button
+                                                                    asChild
+                                                                    variant="ghost"
+                                                                    size="sm"
+                                                                    className="text-muted-foreground hover:text-foreground"
+                                                                >
+                                                                    <a
+                                                                        href={PrintPaymentReceiptController.url(
+                                                                            {
+                                                                                payment:
+                                                                                    payment.id,
+                                                                            },
+                                                                        )}
+                                                                        target="_blank"
+                                                                        rel="noopener"
+                                                                        aria-label={interpolate(
+                                                                            t
+                                                                                .contracts
+                                                                                .receiptAria,
+                                                                            {
+                                                                                slot: payment.slotLabel,
+                                                                            },
+                                                                        )}
+                                                                        data-test={`receipt-${payment.slot}`}
+                                                                    >
+                                                                        <ReceiptText
+                                                                            aria-hidden="true"
+                                                                            className="size-4"
+                                                                        />{' '}
+                                                                        {
+                                                                            t
+                                                                                .contracts
+                                                                                .receipt
+                                                                        }
+                                                                    </a>
+                                                                </Button>
+                                                                <Button
+                                                                    type="button"
+                                                                    variant="ghost"
+                                                                    size="sm"
+                                                                    className="text-muted-foreground hover:text-foreground"
+                                                                    onClick={() =>
+                                                                        unmarkPaid(
+                                                                            payment,
+                                                                        )
+                                                                    }
+                                                                    aria-label={interpolate(
+                                                                        t
+                                                                            .contracts
+                                                                            .unmarkPaidAria,
+                                                                        {
+                                                                            slot: payment.slotLabel,
+                                                                        },
+                                                                    )}
+                                                                >
+                                                                    <Undo2
+                                                                        aria-hidden="true"
+                                                                        className="size-4"
+                                                                    />
                                                                     {
-                                                                        slot: payment.slotLabel,
-                                                                    },
-                                                                )}
-                                                            >
-                                                                <Undo2
-                                                                    aria-hidden="true"
-                                                                    className="size-4"
-                                                                />
-                                                                {
-                                                                    t.contracts
-                                                                        .confirmUnmark
-                                                                }
-                                                            </Button>
+                                                                        t
+                                                                            .contracts
+                                                                            .confirmUnmark
+                                                                    }
+                                                                </Button>
+                                                            </>
                                                         ) : (
                                                             <Button
                                                                 type="button"

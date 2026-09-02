@@ -42,6 +42,15 @@ return [
 
     'generated_on' => 'Document généré le :date par :organization',
 
+    // Reçu de paiement...
+    'receipt_page_title' => 'Reçu de paiement — :client :season',
+    'receipt_title' => 'Reçu de paiement',
+    'receipt_payment' => 'Détails du paiement',
+    'receipt_contract' => 'Contrat',
+    'receipt_method' => 'Mode de paiement',
+    'receipt_paid_on' => 'Payé le',
+    'amount_paid' => 'Montant payé',
+
     'slot_deposit' => 'Dépôt',
     'slot_first' => '1er versement',
     'slot_second' => '2e versement',

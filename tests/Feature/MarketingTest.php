@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Mail\ContactInquiryMail;
+use App\Models\ContactInquiry;
 use Illuminate\Support\Facades\Mail;
 
 it('renders all public marketing pages', function (string $path, string $component): void {
@@ -46,6 +47,15 @@ it('sends a contact inquiry email', function (): void {
     ]);
 
     $response->assertOk()->assertJson(['ok' => true]);
+
+    $this->assertDatabaseCount(ContactInquiry::class, 1);
+    $this->assertDatabaseHas(ContactInquiry::class, [
+        'name' => 'Dana Kowalski',
+        'email' => 'dana@example.com',
+        'company' => 'Twin Cities Snow Co.',
+        'fleetSize' => '4-10',
+        'message' => 'We run six trucks across the metro and need dispatch.',
+    ]);
 
     Mail::assertQueued(ContactInquiryMail::class, 1);
     Mail::assertQueued(ContactInquiryMail::class, function (ContactInquiryMail $mail): bool {
@@ -103,6 +113,8 @@ it('accepts every documented fleet size option', function (string $fleetSize): v
     ]);
 
     $response->assertOk()->assertJson(['ok' => true]);
+
+    $this->assertDatabaseHas(ContactInquiry::class, ['fleetSize' => $fleetSize]);
 
     Mail::assertQueued(ContactInquiryMail::class, 1);
 })->with([

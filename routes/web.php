@@ -9,12 +9,15 @@ use App\Http\Controllers\ContactInquiryController;
 use App\Http\Controllers\ContractController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DownloadContractPdfController;
+use App\Http\Controllers\DownloadPaymentReceiptController;
 use App\Http\Controllers\ExportSeasonPaymentsController;
 use App\Http\Controllers\GenerateContractPdfController;
+use App\Http\Controllers\GeneratePaymentReceiptController;
 use App\Http\Controllers\LoginChallengeController;
 use App\Http\Controllers\MarkPaymentPaidController;
 use App\Http\Controllers\OrganizationController;
 use App\Http\Controllers\PrintContractDocumentController;
+use App\Http\Controllers\PrintPaymentReceiptController;
 use App\Http\Controllers\SendPaymentReminderController;
 use App\Http\Controllers\SendUserPasswordResetController;
 use App\Http\Controllers\SessionController;
@@ -126,6 +129,17 @@ Route::middleware(['auth', 'verified:login-challenge.show', 'not-read-only'])->g
     Route::post('payments/{payment}/unmark', UnmarkPaymentPaidController::class)
         ->middleware('can:manage-contracts')
         ->name('payments.unmark');
+
+    // Payment receipts (admin: proof of a collected installment)...
+    Route::get('payments/{payment}/receipt/print', PrintPaymentReceiptController::class)
+        ->middleware('can:manage-contracts')
+        ->name('payments.receipt.print');
+    Route::post('payments/{payment}/receipt', GeneratePaymentReceiptController::class)
+        ->middleware('can:manage-contracts')
+        ->name('payments.receipt.generate');
+    Route::get('payments/{payment}/receipt', DownloadPaymentReceiptController::class)
+        ->middleware('can:manage-contracts')
+        ->name('payments.receipt.download');
 
     // Contract documents (staff can print; PDFs are generated on the queue)...
     Route::get('contracts/{contract}/print', PrintContractDocumentController::class)->name('contracts.print');

@@ -242,6 +242,8 @@ const en: Translations = {
         viewClientRecord: 'View the client record',
         printDocument: 'Print document',
         downloadPdf: 'Download PDF',
+        receipt: 'Receipt',
+        receiptAria: 'Open the receipt for the :slot',
         totalServices: 'Total of services',
         installments: 'Installments',
         installmentColumn: 'Installment',

@@ -248,6 +248,8 @@ const fr = {
         viewClientRecord: 'Voir la fiche du client',
         printDocument: 'Imprimer le document',
         downloadPdf: 'Télécharger le PDF',
+        receipt: 'Reçu',
+        receiptAria: 'Ouvrir le reçu du :slot',
         totalServices: 'Total des services',
         installments: 'Versements',
         installmentColumn: 'Versement',
