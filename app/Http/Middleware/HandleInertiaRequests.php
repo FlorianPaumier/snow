@@ -42,6 +42,7 @@ final class HandleInertiaRequests extends Middleware
             $organization = [
                 'id' => $user->organization_id,
                 'name' => $user->organization->name,
+                'ownerId' => $user->organization->owner_id,
             ];
         }
 
@@ -58,6 +59,7 @@ final class HandleInertiaRequests extends Middleware
                     'manageClients' => $user?->can('manage-clients') ?? false,
                     'manageContracts' => $user?->can('manage-contracts') ?? false,
                     'manageBilling' => $user?->can('manage-billing') ?? false,
+                    'manageOrganization' => $user?->can('manage-organization') ?? false,
                 ],
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',

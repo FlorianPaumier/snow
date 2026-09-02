@@ -3,11 +3,11 @@
 declare(strict_types=1);
 
 use App\Actions\CreateUser;
+use App\Mail\UserInvitationMail;
 use App\Models\Organization;
 use App\Models\User;
-use Illuminate\Auth\Events\Registered;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Mail;
 
 // Creating a user stamps the acting admin's organization; the action
 // requires an authenticated context...
@@ -17,28 +17,35 @@ beforeEach(function (): void {
     Auth::login($this->user);
 });
 
-it('may create a user', function (): void {
-    Event::fake([Registered::class]);
+it('may create a user and send their invitation', function (): void {
+    Mail::fake();
 
     $action = resolve(CreateUser::class);
 
     $user = $action->handle([
         'name' => 'Test User',
         'email' => 'example@email.com',
-    ], 'password');
+    ]);
 
     expect($user)->toBeInstanceOf(User::class)
         ->and($user->name)->toBe('Test User')
         ->and($user->email)->toBe('example@email.com')
-        ->and($user->password)->not->toBe('password');
+        // The throwaway password is never the admin's choice...
+        ->and($user->password)->not->toBe('password')
+        ->and($user->hasPendingInvitation())->toBeTrue()
+        ->and($user->email_verified_at)->toBeNull();
 
-    Event::assertDispatched(Registered::class);
+    Mail::assertQueued(
+        UserInvitationMail::class,
+        fn (UserInvitationMail $mail): bool => $mail->email === 'example@email.com'
+            && $mail->inviterName === $this->user->name,
+    );
 });
 
 it('creates a user without plan enforcement when unauthenticated', function (): void {
     Auth::logout();
 
-    Event::fake([Registered::class]);
+    Mail::fake();
 
     $organization = Organization::factory()->create();
 
@@ -48,13 +55,13 @@ it('creates a user without plan enforcement when unauthenticated', function (): 
         'name' => 'Console User',
         'email' => 'console@email.com',
         'organization_id' => $organization->id,
-    ], 'password');
+    ]);
 
     expect($user->organization_id)->toBe($organization->id);
 });
 
 it('skips the limit check on an unlimited plan', function (): void {
-    Event::fake([Registered::class]);
+    Mail::fake();
 
     // Any subscribed plan with unlimited users lifts the ceiling...
     $this->user->organization->subscriptions()->create([
@@ -76,7 +83,7 @@ it('skips the limit check on an unlimited plan', function (): void {
     $fourth = resolve(CreateUser::class)->handle([
         'name' => 'Fourth User',
         'email' => 'fourth@email.com',
-    ], 'password');
+    ]);
 
     expect($fourth->organization_id)->toBe($this->user->organization_id);
 });

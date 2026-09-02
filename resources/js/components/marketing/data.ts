@@ -1,10 +1,9 @@
 import {
-    Camera,
-    CloudSnow,
-    Receipt,
-    Route,
-    Truck,
-    Zap,
+    Building2,
+    CreditCard,
+    FileSpreadsheet,
+    LineChart,
+    Mail,
     type LucideIcon,
 } from 'lucide-react';
 import { ROUTES } from '@/components/marketing/routes';
@@ -17,11 +16,12 @@ export const marketingNav: { to: string; label: string }[] = [
     { to: ROUTES.contact, label: 'Contact' },
 ];
 
-/* ── Hero stats ─────────────────────────────────────────────────── */
-export const heroStats = [
-    { value: '1,200+', label: 'crews dispatched' },
-    { value: '4.2M', label: 'properties cleared' },
-    { value: '11 min', label: 'median dispatch time' },
+/* ── Hero facts ──────────────────────────────────────────────────── */
+/* Factual, checkable product facts — no invented traction numbers. */
+export const heroFacts = [
+    { value: '14-day', label: 'free trial, no card' },
+    { value: 'EN/FR', label: 'bilingual interface' },
+    { value: '2 themes', label: 'light & dark' },
 ] as const;
 
 /* ── Client categories (industries served) ──────────────────────── */
@@ -43,38 +43,41 @@ export interface MarketingFeature {
 
 export const homeFeatures: MarketingFeature[] = [
     {
-        icon: Zap,
-        title: 'Trigger-based auto-dispatch',
-        copy: 'Stop running the 3 a.m. phone tree. Set a trigger depth per property and crews are dispatched, routed, and rolling the moment snow crosses the line.',
+        icon: Building2,
+        title: 'Client directory',
+        copy: 'Every property in one searchable place — commercial or residential, with billing and postal addresses, phone numbers, email, and notes. Stop keeping your client book in one dispatcher\u2019s memory.',
     },
     {
-        icon: Route,
-        title: 'Smart route optimization',
-        copy: 'Routes shouldn\u2019t live in one dispatcher\u2019s head. Multi-stop sequencing respects priority, fuel, and shift hours — and re-routes in seconds when a truck goes down mid-storm.',
+        icon: FileSpreadsheet,
+        title: 'Seasonal contracts',
+        copy: 'One contract per client per season, with itemized service lines — driveways, walkways, salting, whatever you sell. The price of each service is written down, not remembered.',
     },
     {
-        icon: CloudSnow,
-        title: 'Storm mode',
-        copy: 'The night every route changes at once needs one switch, not a whiteboard. Priority sorting, escalation alerts, and a dashboard built for 3 a.m. decisions.',
+        icon: CreditCard,
+        title: 'Payment tracking',
+        copy: 'Deposit, installments, balance — each contract\u2019s payment schedule tracked slot by slot, with the method and date recorded when you mark it paid. At a glance: who paid, who hasn\u2019t.',
     },
     {
-        icon: Truck,
-        title: 'Driver-first mobile app',
-        copy: 'Gloves, glare, and dead zones shouldn\u2019t stop work. Offline-first with giant touch targets — stops, photos, and ETAs in three taps or fewer.',
+        icon: Mail,
+        title: 'Invoices & receipts',
+        copy: 'Print or email an invoice or payment receipt straight from the contract. No word-processor templates, no retyping amounts — the numbers are already in the system.',
     },
     {
-        icon: Camera,
-        title: 'Proof of service',
-        copy: 'When a property manager asks whether lot B was cleared, the answer should be a photo — not a phone call. Geo-stamped, timestamped proof on every pass.',
+        icon: FileSpreadsheet,
+        title: 'Season CSV export',
+        copy: 'Hand your accountant the season in one click: every installment with its client, contract, amount, method and payment date, as a CSV that opens in any spreadsheet or bookkeeping tool. Your records stay yours — no lock-in.',
     },
     {
-        icon: Receipt,
-        title: 'Billing that keeps up',
-        copy: 'Storms end at dawn; invoices shouldn\u2019t take a week. Per-storm, seasonal, or per-push billing compiled within 24 hours of the final pass. NET-14 as standard.',
+        icon: LineChart,
+        title: 'Season dashboard',
+        copy: 'Revenue and client growth, charted as the season unfolds. See where the money actually is before the season-end scramble, not after.',
     },
 ];
 
 /* ── Pricing ────────────────────────────────────────────────────── */
+/* Limits mirror config/plans.php exactly: Starter 2 users/25 clients,
+   Pro 15/150, Fleet unlimited. Features must match what ships — verify
+   every item against the app before this site goes live. */
 export interface PricingTier {
     name: string;
     tagline: string;
@@ -93,32 +96,30 @@ export const pricingTiers: PricingTier[] = [
         tagline: 'For solo operators proving the model',
         monthly: 99,
         annual: 990,
-        limits: 'Up to 25 properties · 3 crews · 2 users',
+        limits: 'Up to 25 clients · 2 users',
         cta: 'Start free trial',
         ctaTo: ROUTES.contact,
         features: [
-            'Auto-dispatch at trigger depth',
-            'Driver app for iOS & Android',
-            'Live storm dashboard',
-            'Photo proof capture',
+            'Client directory & contracts',
+            'Payment tracking with mark-paid',
+            'Printable invoices & receipts',
+            'Season CSV export',
             'Email support',
         ],
     },
     {
         name: 'Pro',
-        tagline: 'For growing companies running multiple crews',
+        tagline: 'For growing companies with a real client book',
         monthly: 249,
         annual: 2490,
         featured: true,
-        limits: 'Up to 150 properties · 10 crews · 15 users',
+        limits: 'Up to 150 clients · 15 users',
         cta: 'Start free trial',
         ctaTo: ROUTES.contact,
         features: [
             'Everything in Starter',
-            'Route optimization',
-            'Seasonal & per-storm billing',
-            'Client portal & notifications',
-            'Weather intelligence feeds',
+            'Revenue & client-growth dashboard',
+            'Payment notifications',
             'Priority support',
         ],
     },
@@ -127,16 +128,13 @@ export const pricingTiers: PricingTier[] = [
         tagline: 'For municipalities and multi-region operators',
         monthly: 599,
         annual: 5990,
-        limits: 'Unlimited properties · unlimited crews · unlimited users',
+        limits: 'Unlimited clients · unlimited users',
         cta: 'Talk to sales',
         ctaTo: ROUTES.contact,
         features: [
             'Everything in Pro',
-            'Multi-region operations',
-            'API access & webhooks',
-            'SSO & audit logs',
+            'Multi-region client books',
             'Dedicated success manager',
-            '99.9% uptime SLA',
         ],
     },
 ];
@@ -144,55 +142,56 @@ export const pricingTiers: PricingTier[] = [
 /* ── Home FAQ ───────────────────────────────────────────────────── */
 export const homeFaqs = [
     {
-        q: 'How does auto-dispatch decide when to send crews?',
-        a: 'Every property carries a trigger depth — 2.5 cm for priority-1 sites, 5 cm for standard contracts. Weather feeds and pavement sensors watch each site; the moment accumulation crosses the line, the closest crew is dispatched with an optimized route. You keep full override control from the dashboard.',
+        q: 'What exactly does Frostline OPS do?',
+        a: 'It is the back office for a snow-removal business: your client directory, seasonal contracts with itemized services, and payment tracking — deposit, installments, balance — with dashboards, invoices, and receipts on top. It deliberately does not try to run your trucks or your crews.',
     },
     {
-        q: 'Does the driver app work without cell coverage?',
-        a: 'Yes. The app is offline-first: routes, stop details, and photo capture all work in dead zones. Everything syncs the moment signal returns, with timestamps preserved from the field — never from the upload.',
+        q: 'Can I get my data out for my accountant?',
+        a: 'Yes — one click exports a season as CSV: every installment with its client, contract, amount, payment method and paid date. It opens in any spreadsheet or bookkeeping tool, and your records are never locked in.',
     },
     {
-        q: 'Can I import my existing property list?',
-        a: 'Bring a CSV from any system — spreadsheets, property management software, or lists you already keep. The importer maps addresses, surface types, and trigger depths in one pass, and guided setup walks you through it.',
+        q: 'How do contracts and payments work?',
+        a: 'Each client gets one contract per season, made of itemized service lines. Payments are tracked slot by slot — deposit, first and second installments, balance — and marked paid with the method and date as they come in.',
     },
     {
-        q: 'How does billing handle seasonal contracts versus per-storm?',
-        a: 'Both, simultaneously. Seasonal contracts bill on their schedule; per-storm and per-push properties compile automatically from completed jobs — photos, timestamps, and salt usage included. Invoices go out within 24 hours of the final pass.',
+        q: 'Can I send invoices and receipts?',
+        a: 'Yes. Invoices and payment receipts can be printed or emailed directly from the contract — the amounts come straight from the services and payments already recorded, so there is nothing to retype.',
     },
     {
-        q: 'What hardware do crews need?',
-        a: 'Any modern smartphone — nothing else. The app is built for gloves, glare, and cold mornings. If you run mounted tablets, the driver app scales up to those too.',
+        q: 'What languages does the app support?',
+        a: 'English and French, switchable per user. The interface, validation messages, and emails are all bilingual — built for how snow contracts are actually sold in snow country.',
     },
     {
         q: 'Is there a contract, or can I cancel anytime?',
-        a: 'Monthly plans cancel anytime. Annual plans save you two months, and every plan includes a seasonal pause that keeps your data warm over the summer for a nominal fee.',
+        a: 'Monthly plans cancel anytime. Annual plans save you two months. Every plan starts with a 14-day free trial — no card required.',
     },
 ];
 
 /* ── Pricing FAQ ────────────────────────────────────────────────── */
 export const pricingFaqs = [
     {
-        q: 'What happens if I exceed my property limit mid-season?',
+        q: 'What happens if I exceed my client limit mid-season?',
         a: 'Nothing breaks. You can exceed the limit for the rest of the billing cycle, and we\u2019ll invite you to the right tier when it renews — prorated, never back-charged.',
     },
     {
-        q: 'Do you offer off-season pricing?',
-        a: 'Yes — the seasonal pause is $19/month from May through September. Your properties, routes, and history stay intact so October setup takes minutes.',
+        q: 'What counts as a user?',
+        a: 'Anyone on your team who signs in — office staff, owners, dispatchers. Client records don\u2019t count, and your clients never need an account: Frostline OPS is for your side of the desk.',
     },
     {
         q: 'Is onboarding included?',
-        a: 'On every plan. Pro and Fleet get guided onboarding: we help you import your properties, configure triggers, and run your first routed event. Starter includes self-serve setup with full documentation.',
+        a: 'On every plan. We help you get your client list into the app, set up your first season\u2019s contracts, and get your payment schedules in place. Starter includes self-serve setup with full documentation; Pro and Fleet get guided onboarding.',
     },
     {
         q: 'Can I pay annually?',
-        a: 'Annual billing takes two months off the price — that\u2019s the toggle at the top of the plans. Municipal customers can request net-30 invoicing and a signed SLA.',
+        a: 'Annual billing takes two months off the price — that\u2019s the toggle at the top of the plans.',
     },
 ];
 
-/* ── Company stats (about + home band) ──────────────────────────── */
-export const companyStats = [
-    { value: '2021', label: 'founded' },
-    { value: '1,200+', label: 'crews dispatched' },
-    { value: '11 min', label: 'median dispatch time' },
-    { value: '4.2M', label: 'properties cleared' },
+/* ── Company facts (about + home band) ──────────────────────────── */
+/* Facts about the product, not invented traction stats. */
+export const companyFacts = [
+    { value: '14-day', label: 'free trial, no card' },
+    { value: 'EN/FR', label: 'bilingual interface' },
+    { value: 'CSV', label: 'season export' },
+    { value: 'AA', label: 'accessibility standard' },
 ] as const;

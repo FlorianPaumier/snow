@@ -101,6 +101,15 @@ return [
             'expire' => 60,
             'throttle' => 60,
         ],
+
+        // Staff onboarding: invitation links must survive a busy week,
+        // while password resets stay short-lived...
+        'invitations' => [
+            'provider' => 'users',
+            'table' => 'password_reset_tokens',
+            'expire' => 60 * 24 * 3,
+            'throttle' => 60,
+        ],
     ],
 
     /*

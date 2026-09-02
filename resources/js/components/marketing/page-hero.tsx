@@ -149,7 +149,7 @@ export function MarketingSection({
 /* ── CTABand: reusable closing call-to-action ───────────────────── */
 export function CTABand({
     title = 'Ready for the next storm?',
-    description = 'Set up your properties, triggers, and crews before the first flake — so the next storm night runs itself. Guided onboarding gets your first routed event live fast.',
+    description = 'Set up your clients, contracts, and payment schedules before the first flake — so when the snow flies, the paperwork is already done. Guided onboarding imports your client list and gets your first season live fast.',
     primaryLabel = 'Start free trial',
     primaryTo = ROUTES.contact,
     secondaryLabel = 'See pricing',

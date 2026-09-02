@@ -1,6 +1,7 @@
 import { Form, Head, Link, router, usePage } from '@inertiajs/react';
 import {
     CalendarRange,
+    Download,
     Eye,
     FileText,
     Pencil,
@@ -34,6 +35,7 @@ import { useLocale } from '@/hooks/use-locale';
 import AppLayout from '@/layouts/app-layout';
 import { interpolate, useCurrencyFormatter } from '@/lib/utils';
 import { create, index } from '@/routes/contracts';
+import { exportMethod } from '@/routes/payments';
 import type { BreadcrumbItem } from '@/types';
 
 type ContractRow = {
@@ -91,6 +93,11 @@ export default function Index({
     const { status, errors, auth } = usePage().props;
     const canManageContracts = auth.can?.manageContracts ?? false;
     const [search, setSearch] = useState(filters.search);
+
+    // Server-side CSV download; follows the season filter when one is set.
+    const exportHref = exportMethod.url(
+        filters.season ? { query: { season: filters.season } } : undefined,
+    );
 
     const breadcrumbs: BreadcrumbItem[] = [
         {
@@ -190,6 +197,22 @@ export default function Index({
                                 ))}
                             </SelectContent>
                         </Select>
+
+                        {canManageContracts && (
+                            <Button
+                                asChild
+                                variant="outline"
+                                data-test="export-payments"
+                            >
+                                <a href={exportHref} download>
+                                    <Download
+                                        aria-hidden="true"
+                                        className="size-4"
+                                    />
+                                    {t.contracts.exportPayments}
+                                </a>
+                            </Button>
+                        )}
 
                         {canManageContracts && (
                             <Button asChild data-test="new-contract">

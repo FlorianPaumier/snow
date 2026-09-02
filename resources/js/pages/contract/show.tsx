@@ -1,15 +1,19 @@
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import {
     CalendarRange,
+    Download,
     FileText,
     Pencil,
+    Printer,
     Trash2,
     User,
     Undo2,
 } from 'lucide-react';
 import { useState } from 'react';
 import ContractController from '@/actions/App/Http/Controllers/ContractController';
+import GenerateContractPdfController from '@/actions/App/Http/Controllers/GenerateContractPdfController';
 import MarkPaymentPaidController from '@/actions/App/Http/Controllers/MarkPaymentPaidController';
+import PrintContractDocumentController from '@/actions/App/Http/Controllers/PrintContractDocumentController';
 import UnmarkPaymentPaidController from '@/actions/App/Http/Controllers/UnmarkPaymentPaidController';
 import Heading from '@/components/heading';
 import { Badge } from '@/components/ui/badge';
@@ -153,39 +157,78 @@ export default function Show({
 
                 <div className="mx-auto flex w-full max-w-3xl flex-col gap-6">
                     {/* Record header */}
-                    <div className="flex items-start gap-4">
-                        <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-glacier-500/10 text-glacier-700 dark:text-glacier-400">
-                            <FileText aria-hidden="true" className="size-5" />
-                        </span>
-                        <div className="flex flex-col gap-1.5">
-                            <p className="font-mono text-xs tracking-[0.18em] text-muted-foreground uppercase">
-                                {contract.client.clientNumber}
-                            </p>
-                            <Heading
-                                title={interpolate(t.contracts.showTitle, {
-                                    season: contract.season,
-                                })}
-                                description={interpolate(
-                                    t.contracts.signedWith,
-                                    { client: contract.client.displayName },
-                                )}
-                            />
-                            <div className="flex flex-wrap items-center gap-2">
-                                <Link
-                                    href={ContractController.show.url({
+                    <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                        <div className="flex items-start gap-4">
+                            <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-glacier-500/10 text-glacier-700 dark:text-glacier-400">
+                                <FileText
+                                    aria-hidden="true"
+                                    className="size-5"
+                                />
+                            </span>
+                            <div className="flex flex-col gap-1.5">
+                                <p className="font-mono text-xs tracking-[0.18em] text-muted-foreground uppercase">
+                                    {contract.client.clientNumber}
+                                </p>
+                                <Heading
+                                    title={interpolate(t.contracts.showTitle, {
+                                        season: contract.season,
+                                    })}
+                                    description={interpolate(
+                                        t.contracts.signedWith,
+                                        { client: contract.client.displayName },
+                                    )}
+                                />
+                                <div className="flex flex-wrap items-center gap-2">
+                                    <Link
+                                        href={ContractController.show.url({
+                                            contract: contract.id,
+                                        })}
+                                        className="text-xs text-muted-foreground hover:text-foreground"
+                                    >
+                                        {t.contracts.viewClientRecord}
+                                    </Link>
+                                    <Badge
+                                        variant="outline"
+                                        className="border-glacier-500/20 bg-glacier-500/10 text-glacier-700 dark:text-glacier-400"
+                                    >
+                                        {contract.season}
+                                    </Badge>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Document actions */}
+                        <div className="flex shrink-0 items-center gap-2">
+                            <Button asChild variant="outline">
+                                <a
+                                    href={PrintContractDocumentController.url({
                                         contract: contract.id,
                                     })}
-                                    className="text-xs text-muted-foreground hover:text-foreground"
+                                    target="_blank"
+                                    rel="noopener"
+                                    data-test="print-document"
                                 >
-                                    {t.contracts.viewClientRecord}
-                                </Link>
-                                <Badge
-                                    variant="outline"
-                                    className="border-glacier-500/20 bg-glacier-500/10 text-glacier-700 dark:text-glacier-400"
-                                >
-                                    {contract.season}
-                                </Badge>
-                            </div>
+                                    <Printer aria-hidden="true" />{' '}
+                                    {t.contracts.printDocument}
+                                </a>
+                            </Button>
+                            <Button
+                                type="button"
+                                variant="outline"
+                                onClick={() =>
+                                    router.post(
+                                        GenerateContractPdfController.url({
+                                            contract: contract.id,
+                                        }),
+                                        {},
+                                        { preserveScroll: true },
+                                    )
+                                }
+                                data-test="download-pdf"
+                            >
+                                <Download aria-hidden="true" />{' '}
+                                {t.contracts.downloadPdf}
+                            </Button>
                         </div>
                     </div>
 

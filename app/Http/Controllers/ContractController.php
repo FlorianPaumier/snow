@@ -7,7 +7,6 @@ namespace App\Http\Controllers;
 use App\Actions\CreateContract;
 use App\Actions\DeleteContract;
 use App\Actions\UpdateContract;
-use App\Enums\ClientType;
 use App\Enums\PaymentMethod;
 use App\Enums\PaymentSlot;
 use App\Http\Requests\CreateContractRequest;
@@ -94,7 +93,7 @@ final readonly class ContractController
 
     public function store(CreateContractRequest $request, CreateContract $action): RedirectResponse
     {
-        /** @var array{clientId: string, season: string, services: list<array{label: string, amount: int}>, payments: array<string, int>}  $attributes */
+        /** @var array{clientId: string, season: string, services: list<array{label: string, amount: int}>, payments: array<string, array{amount: int, dueDate: string|null}>}  $attributes */
         $attributes = $request->safe()->all();
 
         // Resolve through the scoped query so contracts can only ever be
@@ -130,7 +129,7 @@ final readonly class ContractController
                 'client' => [
                     'id' => $contract->client->id,
                     'clientNumber' => $contract->client->clientNumber,
-                    'displayName' => $this->displayName($contract->client),
+                    'displayName' => $contract->client->displayName(),
                 ],
                 'services' => $contract->services->map(fn (ContractService $service): array => [
                     'id' => $service->id,
@@ -175,6 +174,7 @@ final readonly class ContractController
                     $payment->slot->value => [
                         'amount' => $payment->amount,
                         'paid' => $payment->paid,
+                        'dueDate' => $payment->due_date?->toDateString(),
                     ],
                 ])->all(),
             ],
@@ -186,7 +186,7 @@ final readonly class ContractController
 
     public function update(UpdateContractRequest $request, Contract $contract, UpdateContract $action): RedirectResponse
     {
-        /** @var array{clientId: string, season: string, services: list<array{id?: int, label: string, amount: int}>, payments: array<string, int>}  $attributes */
+        /** @var array{clientId: string, season: string, services: list<array{id?: int, label: string, amount: int}>, payments: array<string, array{amount: int, dueDate: string|null}>}  $attributes */
         $attributes = $request->safe()->all();
 
         $action->handle($contract, $attributes);
@@ -233,7 +233,7 @@ final readonly class ContractController
             'client' => [
                 'id' => $contract->client->id,
                 'clientNumber' => $contract->client->clientNumber,
-                'displayName' => $this->displayName($contract->client),
+                'displayName' => $contract->client->displayName(),
             ],
             'total' => (int) $contract->services_sum_amount,
             'collected' => (int) $contract->paid_sum,
@@ -288,7 +288,7 @@ final readonly class ContractController
                     $options[] = [
                         'id' => $client->id,
                         'clientNumber' => $client->clientNumber,
-                        'displayName' => $this->displayName($client),
+                        'displayName' => $client->displayName(),
                     ];
                 }
 
@@ -348,15 +348,6 @@ final readonly class ContractController
         }
 
         return $options;
-    }
-
-    private function displayName(Client $client): string
-    {
-        if ($client->type === ClientType::CLIENT_COMPANY && $client->companyName !== null) {
-            return $client->companyName;
-        }
-
-        return sprintf('%s %s', $client->firstName, $client->lastName);
     }
 
     /**

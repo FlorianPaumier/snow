@@ -37,4 +37,9 @@ return [
         ],
     ],
 
+    // HTML → PDF conversion service (docker compose service "gotenberg")...
+    'gotenberg' => [
+        'url' => env('GOTENBERG_URL', 'http://localhost:3000'),
+    ],
+
 ];

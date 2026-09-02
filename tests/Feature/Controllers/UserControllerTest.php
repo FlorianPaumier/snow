@@ -28,6 +28,7 @@ it('may register a new user', function (): void {
             'organization' => 'Test Company',
             'password' => 'password1234',
             'password_confirmation' => 'password1234',
+            'terms' => true,
         ]);
 
     $response->assertRedirectToRoute('login-challenge.show');
@@ -160,6 +161,58 @@ it('requires matching password confirmation', function (): void {
         ->assertSessionHasErrors('password');
 });
 
+it('requires accepting the terms to register', function (): void {
+    $response = $this->fromRoute('register')
+        ->post(route('register.store'), [
+            'name' => 'Test User',
+            'email' => 'test@example.com',
+            'organization' => 'Test Company',
+            'password' => 'password1234',
+            'password_confirmation' => 'password1234',
+        ]);
+
+    $response->assertRedirectToRoute('register')
+        ->assertSessionHasErrors('terms');
+
+    expect(User::query()->withoutGlobalScopes()->where('email', 'test@example.com')->exists())->toBeFalse();
+});
+
+it('rejects a terms value that is not accepted', function (): void {
+    $response = $this->fromRoute('register')
+        ->post(route('register.store'), [
+            'name' => 'Test User',
+            'email' => 'test@example.com',
+            'organization' => 'Test Company',
+            'password' => 'password1234',
+            'password_confirmation' => 'password1234',
+            'terms' => 'no',
+        ]);
+
+    $response->assertRedirectToRoute('register')
+        ->assertSessionHasErrors('terms');
+
+    expect(User::query()->withoutGlobalScopes()->where('email', 'test@example.com')->exists())->toBeFalse();
+});
+
+it('sets the registering user as the organization owner', function (): void {
+    Event::fake([Registered::class]);
+    Mail::fake();
+
+    $this->post(route('register.store'), [
+        'name' => 'Test User',
+        'email' => 'owner@example.com',
+        'organization' => 'Test Company',
+        'password' => 'password1234',
+        'password_confirmation' => 'password1234',
+        'terms' => true,
+    ]);
+
+    $user = User::query()->withoutGlobalScopes()->where('email', 'owner@example.com')->first();
+
+    expect($user->organization->owner_id)->toBe($user->id)
+        ->and($user->isOwner())->toBeTrue();
+});
+
 it('may delete user account', function (): void {
     $user = User::factory()->create([
         'password' => Hash::make('password'),
@@ -204,6 +257,24 @@ it('requires correct password to delete account', function (): void {
 
     $response->assertRedirectToRoute('user-profile.edit')
         ->assertSessionHasErrors('password');
+
+    expect($user->fresh())->not->toBeNull();
+});
+
+it('refuses to delete the account of the organization owner', function (): void {
+    $user = User::factory()->create([
+        'password' => Hash::make('password'),
+    ]);
+    $user->organization->update(['owner_id' => $user->id]);
+
+    $response = $this->actingAs($user)
+        ->fromRoute('user-profile.edit')
+        ->delete(route('user.destroy'), [
+            'password' => 'password',
+        ]);
+
+    $response->assertRedirect()
+        ->assertSessionHas('status', __('statuses.organization_owner_delete'));
 
     expect($user->fresh())->not->toBeNull();
 });

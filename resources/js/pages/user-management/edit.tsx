@@ -1,7 +1,9 @@
 import { Form } from '@inertiajs/react';
+import SendUserPasswordResetController from '@/actions/App/Http/Controllers/SendUserPasswordResetController';
 import UserManagementController from '@/actions/App/Http/Controllers/UserManagementController';
 import InputError from '@/components/input-error';
-import PasswordInput from '@/components/password-input';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -27,6 +29,8 @@ type EditableUser = {
     name: string;
     email: string;
     role: string;
+    status: string;
+    is_owner: boolean;
 };
 
 export default function Edit({ user }: { user: EditableUser }) {
@@ -94,60 +98,49 @@ export default function Edit({ user }: { user: EditableUser }) {
                                 <Label htmlFor="role">
                                     {t.users.roleField}
                                 </Label>
-                                <Select name="role" defaultValue={user.role}>
-                                    <SelectTrigger id="role" className="w-full">
-                                        <SelectValue
-                                            placeholder={
-                                                t.users.selectRolePlaceholder
-                                            }
+                                {user.is_owner ? (
+                                    <>
+                                        <Input
+                                            id="role"
+                                            type="text"
+                                            value={t.users.roleAdmin}
+                                            readOnly
+                                            disabled
                                         />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="admin">
-                                            {t.users.roleAdmin}
-                                        </SelectItem>
-                                        <SelectItem value="worker">
-                                            {t.users.roleWorker}
-                                        </SelectItem>
-                                        <SelectItem value="user">
-                                            {t.users.roleUser}
-                                        </SelectItem>
-                                    </SelectContent>
-                                </Select>
+                                        <p className="text-xs text-muted-foreground">
+                                            {t.users.ownerRoleLocked}
+                                        </p>
+                                    </>
+                                ) : (
+                                    <Select
+                                        name="role"
+                                        defaultValue={user.role}
+                                    >
+                                        <SelectTrigger
+                                            id="role"
+                                            className="w-full"
+                                        >
+                                            <SelectValue
+                                                placeholder={
+                                                    t.users
+                                                        .selectRolePlaceholder
+                                                }
+                                            />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="admin">
+                                                {t.users.roleAdmin}
+                                            </SelectItem>
+                                            <SelectItem value="worker">
+                                                {t.users.roleWorker}
+                                            </SelectItem>
+                                            <SelectItem value="user">
+                                                {t.users.roleUser}
+                                            </SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                )}
                                 <InputError message={errors.role} />
-                            </div>
-                        </FormSection>
-
-                        <FormSection
-                            title={t.users.passwordSection}
-                            description={t.users.passwordSectionDescription}
-                        >
-                            <div className="grid gap-2">
-                                <Label htmlFor="password">
-                                    {t.settings.passwordField}
-                                </Label>
-                                <PasswordInput
-                                    id="password"
-                                    name="password"
-                                    placeholder={t.settings.passwordField}
-                                />
-                                <InputError message={errors.password} />
-                            </div>
-
-                            <div className="grid gap-2">
-                                <Label htmlFor="password_confirmation">
-                                    {t.users.confirmNewPasswordField}
-                                </Label>
-                                <PasswordInput
-                                    id="password_confirmation"
-                                    name="password_confirmation"
-                                    placeholder={
-                                        t.users.confirmNewPasswordField
-                                    }
-                                />
-                                <InputError
-                                    message={errors.password_confirmation}
-                                />
                             </div>
                         </FormSection>
 
@@ -160,6 +153,48 @@ export default function Edit({ user }: { user: EditableUser }) {
                     </>
                 )}
             </Form>
+
+            <FormSection
+                title={t.users.accessSection}
+                description={t.users.accessSectionDescription}
+            >
+                {user.status === 'pending' && (
+                    <div>
+                        <Badge
+                            variant="outline"
+                            className="gap-1.5 border-amber-500/25 bg-amber-500/10 text-amber-700 dark:text-amber-400"
+                        >
+                            <span
+                                aria-hidden="true"
+                                className="size-1.5 shrink-0 rounded-full bg-current"
+                            />
+                            {t.users.pendingInvitation}
+                        </Badge>
+                    </div>
+                )}
+
+                <Form
+                    {...SendUserPasswordResetController.form({
+                        user: user.id,
+                    })}
+                    options={{
+                        preserveScroll: true,
+                    }}
+                    disableWhileProcessing
+                >
+                    {({ processing }) => (
+                        <Button
+                            type="submit"
+                            variant="outline"
+                            disabled={processing}
+                        >
+                            {user.status === 'pending'
+                                ? t.users.resendInvitation
+                                : t.users.sendPasswordResetEmail}
+                        </Button>
+                    )}
+                </Form>
+            </FormSection>
         </AppFormLayout>
     );
 }

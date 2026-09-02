@@ -5,4 +5,7 @@ export const ROUTES = {
     pricing: '/pricing',
     about: '/about',
     contact: '/contact',
+    terms: '/terms',
+    privacy: '/privacy',
+    status: '/status',
 } as const;

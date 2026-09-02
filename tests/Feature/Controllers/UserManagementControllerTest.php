@@ -3,8 +3,11 @@
 declare(strict_types=1);
 
 use App\Enums\UserRole;
+use App\Mail\UserInvitationMail;
+use App\Models\Organization;
 use App\Models\User;
-use Illuminate\Support\Facades\Event;
+use Illuminate\Auth\Notifications\ResetPassword;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Notification;
 
 it('renders the users index for admins', function (): void {
@@ -90,9 +93,8 @@ it('prevents non-admins from managing users', function (): void {
         ->assertForbidden();
 });
 
-it('creates a user', function (): void {
-    Notification::fake();
-    Event::fake();
+it('creates a user and emails their invitation', function (): void {
+    Mail::fake();
 
     $admin = User::factory()->admin()->create();
 
@@ -100,8 +102,6 @@ it('creates a user', function (): void {
         ->post(route('users.store'), [
             'name' => 'Jean Tremblay',
             'email' => 'jean@example.com',
-            'password' => 'super-secret-password',
-            'password_confirmation' => 'super-secret-password',
             'role' => UserRole::ROLE_WORKER->value,
         ])
         ->assertRedirect(route('users.index'));
@@ -109,7 +109,10 @@ it('creates a user', function (): void {
     $user = User::query()->where('email', 'jean@example.com')->first();
     expect($user)->not->toBeNull()
         ->and($user->name)->toBe('Jean Tremblay')
-        ->and($user->role)->toBe(UserRole::ROLE_WORKER);
+        ->and($user->role)->toBe(UserRole::ROLE_WORKER)
+        ->and($user->hasPendingInvitation())->toBeTrue();
+
+    Mail::assertQueued(UserInvitationMail::class);
 });
 
 it('validates the create user payload', function (array $payload): void {
@@ -119,10 +122,9 @@ it('validates the create user payload', function (array $payload): void {
         ->post(route('users.store'), $payload)
         ->assertSessionHasErrors();
 })->with([
-    'missing name' => [['name' => null, 'email' => 'a@example.com', 'password' => 'super-secret-password', 'password_confirmation' => 'super-secret-password', 'role' => 'user']],
-    'invalid email' => [['name' => 'Jean', 'email' => 'not-an-email', 'password' => 'super-secret-password', 'password_confirmation' => 'super-secret-password', 'role' => 'user']],
-    'unconfirmed password' => [['name' => 'Jean', 'email' => 'a@example.com', 'password' => 'super-secret-password', 'password_confirmation' => 'wrong', 'role' => 'user']],
-    'invalid role' => [['name' => 'Jean', 'email' => 'a@example.com', 'password' => 'super-secret-password', 'password_confirmation' => 'super-secret-password', 'role' => 'owner']],
+    'missing name' => [['name' => null, 'email' => 'a@example.com', 'role' => 'user']],
+    'invalid email' => [['name' => 'Jean', 'email' => 'not-an-email', 'role' => 'user']],
+    'invalid role' => [['name' => 'Jean', 'email' => 'a@example.com', 'role' => 'owner']],
 ]);
 
 it('rejects duplicate emails', function (): void {
@@ -132,8 +134,6 @@ it('rejects duplicate emails', function (): void {
         ->post(route('users.store'), [
             'name' => 'Copy',
             'email' => $admin->email,
-            'password' => 'super-secret-password',
-            'password_confirmation' => 'super-secret-password',
             'role' => UserRole::ROLE_USER->value,
         ])
         ->assertSessionHasErrors('email');
@@ -151,10 +151,7 @@ it('renders the edit page', function (): void {
             ->where('user.id', $user->id));
 });
 
-it('updates a user without changing their password', function (): void {
-    Notification::fake();
-    Event::fake();
-
+it('updates a user', function (): void {
     $admin = User::factory()->admin()->create();
     $user = User::factory()->forOrganization($admin->organization)->create();
     $originalHash = $user->password;
@@ -163,8 +160,6 @@ it('updates a user without changing their password', function (): void {
         ->put(route('users.update', $user), [
             'name' => 'Updated Name',
             'email' => $user->email,
-            'password' => '',
-            'password_confirmation' => '',
             'role' => UserRole::ROLE_ADMIN->value,
         ])
         ->assertRedirect(route('users.index'));
@@ -175,25 +170,49 @@ it('updates a user without changing their password', function (): void {
         ->and($user->password)->toBe($originalHash);
 });
 
-it('updates a user password when provided', function (): void {
+it('emails a password reset link to an active user', function (): void {
     Notification::fake();
-    Event::fake();
 
     $admin = User::factory()->admin()->create();
     $user = User::factory()->forOrganization($admin->organization)->create();
-    $originalHash = $user->password;
 
     $this->actingAs($admin)
-        ->put(route('users.update', $user), [
-            'name' => $user->name,
-            'email' => $user->email,
-            'password' => 'brand-new-password',
-            'password_confirmation' => 'brand-new-password',
-            'role' => $user->role->value,
-        ])
-        ->assertRedirect(route('users.index'));
+        ->post(route('users.send-password-reset', $user))
+        ->assertRedirect();
 
-    expect($user->refresh()->password)->not->toBe($originalHash);
+    Notification::assertSentTo($user, ResetPassword::class);
+});
+
+it('resends the invitation to a pending user', function (): void {
+    Mail::fake();
+
+    $admin = User::factory()->admin()->create();
+    $user = User::factory()->pendingInvitation()->forOrganization($admin->organization)->create();
+
+    $this->actingAs($admin)
+        ->post(route('users.send-password-reset', $user))
+        ->assertRedirect();
+
+    Mail::assertQueued(
+        UserInvitationMail::class,
+        fn (UserInvitationMail $mail): bool => $mail->email === $user->email,
+    );
+});
+
+it('refuses to demote the organization owner', function (): void {
+    $owner = User::factory()->admin()->create();
+    $owner->organization->update(['owner_id' => $owner->id]);
+
+    $this->actingAs($owner)
+        ->put(route('users.update', $owner), [
+            'name' => $owner->name,
+            'email' => $owner->email,
+            'role' => UserRole::ROLE_USER->value,
+        ])
+        ->assertRedirect()
+        ->assertSessionHas('status', __('statuses.organization_owner_role'));
+
+    expect($owner->fresh()->role)->toBe(UserRole::ROLE_ADMIN);
 });
 
 it('deletes a user', function (): void {
@@ -205,6 +224,33 @@ it('deletes a user', function (): void {
         ->assertRedirect(route('users.index'));
 
     expect($user->fresh())->toBeNull();
+});
+
+it('refuses to delete the organization owner', function (): void {
+    $organization = Organization::factory()->create();
+    $owner = User::factory()->admin()->forOrganization($organization)->create();
+    $organization->update(['owner_id' => $owner->id]);
+
+    $this->actingAs($owner)
+        ->delete(route('users.destroy', $owner))
+        ->assertRedirect()
+        ->assertSessionHas('status', __('statuses.organization_owner_delete'));
+
+    expect($owner->fresh())->not->toBeNull();
+});
+
+it('refuses to let another admin delete the organization owner', function (): void {
+    $organization = Organization::factory()->create();
+    $owner = User::factory()->admin()->forOrganization($organization)->create();
+    $organization->update(['owner_id' => $owner->id]);
+    $otherAdmin = User::factory()->admin()->forOrganization($organization)->create();
+
+    $this->actingAs($otherAdmin)
+        ->delete(route('users.destroy', $owner))
+        ->assertRedirect()
+        ->assertSessionHas('status', __('statuses.organization_owner_delete'));
+
+    expect($owner->fresh())->not->toBeNull();
 });
 
 it('renders the user creation page for admins', function (): void {

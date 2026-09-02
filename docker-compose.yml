@@ -1,8 +1,9 @@
 name: snow
 
-# Infrastructure-only compose: Postgres and Redis as services, the Laravel
-# app itself runs on the host (php artisan serve / composer run dev) and
-# connects over the published ports (127.0.0.1:5432 / 127.0.0.1:6379).
+# Infrastructure-only compose: Postgres, Redis and Gotenberg as services,
+# the Laravel app itself runs on the host (php artisan serve / composer run dev)
+# and connects over the published ports (127.0.0.1:5432 / 127.0.0.1:6379 /
+# 127.0.0.1:3000).
 #
 # Start:     docker compose up -d
 # Stop:      docker compose down (-v to also drop db/redis data)
@@ -33,6 +34,12 @@ services:
             interval: 5s
             timeout: 3s
             retries: 10
+
+    # HTML → PDF conversion for contract documents...
+    gotenberg:
+        image: gotenberg/gotenberg:8
+        ports:
+            - '3000:3000'
 
 volumes:
     db-data:

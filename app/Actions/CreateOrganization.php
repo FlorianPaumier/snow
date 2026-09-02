@@ -36,6 +36,10 @@ final readonly class CreateOrganization
                 'role' => UserRole::ROLE_ADMIN,
             ]);
 
+            // The sign-up user owns the organization; ownership only moves
+            // through an explicit transfer afterwards...
+            $organization->update(['owner_id' => $user->id]);
+
             event(new Registered($user));
 
             // Attach the freshly created owner so callers never have to

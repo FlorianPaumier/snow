@@ -16,8 +16,6 @@ it('blocks creating a third user on the starter plan', function (): void {
         ->post(route('users.store'), [
             'name' => 'Third User',
             'email' => 'third@example.com',
-            'password' => 'password1234',
-            'password_confirmation' => 'password1234',
             'role' => 'user',
         ]);
 
@@ -88,8 +86,6 @@ it('grants starter limits while on trial', function (): void {
         ->post(route('users.store'), [
             'name' => 'Second User',
             'email' => 'second@example.com',
-            'password' => 'password1234',
-            'password_confirmation' => 'password1234',
             'role' => 'user',
         ]);
 

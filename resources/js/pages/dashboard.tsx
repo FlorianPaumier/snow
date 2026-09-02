@@ -4,11 +4,14 @@ import {
     CalendarRange,
     Eye,
     FileText,
+    Mail,
+    MailCheck,
     TrendingUp,
     Users,
     Wallet,
 } from 'lucide-react';
 import ContractController from '@/actions/App/Http/Controllers/ContractController';
+import SendPaymentReminderController from '@/actions/App/Http/Controllers/SendPaymentReminderController';
 import Heading from '@/components/heading';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -66,7 +69,10 @@ type UnpaidInstallment = {
         address_street: string;
         address_city: string;
         phone: string | null;
+        email: string | null;
     };
+    dueDate: string | null;
+    lastReminderAt: string | null;
 };
 
 type SeasonRecapRow = {
@@ -419,6 +425,9 @@ export default function Dashboard({
                                     <TableHead className="text-right">
                                         {t.dashboard.tableAmountDue}
                                     </TableHead>
+                                    <TableHead>
+                                        {t.dashboard.tableDueDate}
+                                    </TableHead>
                                     <TableHead className="text-right">
                                         {t.common.actions}
                                     </TableHead>
@@ -480,8 +489,74 @@ export default function Dashboard({
                                                     installment.amount,
                                                 )}
                                             </TableCell>
+                                            <TableCell className="font-mono text-xs">
+                                                {installment.dueDate ?? '—'}
+                                            </TableCell>
                                             <TableCell>
                                                 <div className="flex items-center justify-end">
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        className="size-8 text-muted-foreground hover:text-foreground"
+                                                        disabled={
+                                                            !installment.client
+                                                                .email
+                                                        }
+                                                        title={
+                                                            installment.client
+                                                                .email
+                                                                ? installment.lastReminderAt
+                                                                    ? interpolate(
+                                                                          t
+                                                                              .dashboard
+                                                                              .reminderSentOn,
+                                                                          {
+                                                                              date: installment.lastReminderAt,
+                                                                          },
+                                                                      )
+                                                                    : t
+                                                                          .dashboard
+                                                                          .sendReminder
+                                                                : t.dashboard
+                                                                      .reminderNoEmail
+                                                        }
+                                                        aria-label={
+                                                            installment.lastReminderAt
+                                                                ? interpolate(
+                                                                      t
+                                                                          .dashboard
+                                                                          .reminderSentOn,
+                                                                      {
+                                                                          date: installment.lastReminderAt,
+                                                                      },
+                                                                  )
+                                                                : t.dashboard
+                                                                      .sendReminder
+                                                        }
+                                                        data-test="send-reminder"
+                                                        onClick={() =>
+                                                            router.post(
+                                                                SendPaymentReminderController.url(
+                                                                    {
+                                                                        payment:
+                                                                            installment.id,
+                                                                    },
+                                                                ),
+                                                            )
+                                                        }
+                                                    >
+                                                        {installment.lastReminderAt ? (
+                                                            <MailCheck
+                                                                aria-hidden="true"
+                                                                className="size-4"
+                                                            />
+                                                        ) : (
+                                                            <Mail
+                                                                aria-hidden="true"
+                                                                className="size-4"
+                                                            />
+                                                        )}
+                                                    </Button>
                                                     <Button
                                                         asChild
                                                         variant="ghost"
@@ -518,7 +593,7 @@ export default function Dashboard({
                                     ))
                                 ) : (
                                     <EmptyRow
-                                        colSpan={5}
+                                        colSpan={6}
                                         hint={interpolate(t.dashboard.allPaid, {
                                             slot: slotLabel(slot),
                                             season,

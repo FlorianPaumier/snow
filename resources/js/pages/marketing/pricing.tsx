@@ -183,42 +183,59 @@ interface ComparisonGroup {
     rows: ComparisonRow[];
 }
 
+/* Values must match what ships: dashboards land on Pro+, payment
+   notifications on Pro+ (launch commitment — verify before launch). */
 const comparisonGroups: ComparisonGroup[] = [
     {
-        group: 'Dispatch & routes',
+        group: 'Clients & contracts',
         rows: [
-            { feature: 'Auto-dispatch', values: [true, true, true] },
-            { feature: 'Trigger depth controls', values: [true, true, true] },
-            { feature: 'Route optimization', values: [false, true, true] },
-            { feature: 'Mid-storm re-routing', values: [false, true, true] },
+            { feature: 'Client directory', values: [true, true, true] },
+            {
+                feature: 'Seasonal contracts & services',
+                values: [true, true, true],
+            },
+            { feature: 'Max clients', values: ['25', '150', 'Unlimited'] },
+            { feature: 'Max users', values: ['2', '15', 'Unlimited'] },
         ],
     },
     {
-        group: 'Field operations',
+        group: 'Payments & receipts',
         rows: [
-            { feature: 'Driver app', values: [true, true, true] },
-            { feature: 'Offline mode', values: [true, true, true] },
-            { feature: 'Photo proof', values: [true, true, true] },
-            { feature: 'Client portal', values: [false, true, true] },
+            {
+                feature: 'Payment tracking & mark-paid',
+                values: [true, true, true],
+            },
+            {
+                feature: 'Printable invoices & receipts',
+                values: [true, true, true],
+            },
+            {
+                feature: 'Email invoices & receipts',
+                values: [true, true, true],
+            },
+            { feature: 'Payment notifications', values: [false, true, true] },
         ],
     },
     {
-        group: 'Billing & clients',
+        group: 'Data & dashboards',
         rows: [
-            { feature: 'Per-storm billing', values: [true, true, true] },
-            { feature: 'Seasonal contracts', values: [false, true, true] },
-            { feature: 'Accounting sync', values: [false, true, true] },
+            { feature: 'Season CSV export', values: [true, true, true] },
+            {
+                feature: 'Revenue & client dashboard',
+                values: [false, true, true],
+            },
+            {
+                feature: 'Bilingual EN/FR interface',
+                values: [true, true, true],
+            },
         ],
     },
     {
-        group: 'Platform & support',
+        group: 'Support',
         rows: [
-            { feature: 'API & webhooks', values: [false, false, true] },
-            { feature: 'SSO & audit logs', values: [false, false, true] },
-            { feature: '99.9% uptime SLA', values: [false, false, true] },
             {
                 feature: 'Support',
-                values: ['Email', 'Priority', 'Dedicated'],
+                values: ['Email', 'Priority', 'Dedicated manager'],
             },
         ],
     },
@@ -252,7 +269,7 @@ function ComparisonSection() {
             align="left"
             eyebrow="Compare"
             title="Every feature, side by side"
-            description="The same operational core on every plan — the differences come down to scale, control, and support."
+            description="The same back office on every plan — the differences come down to the size of your client book and the level of support."
         >
             <div className="overflow-hidden rounded-xl border border-border bg-card">
                 <div className="scrollbar-frost overflow-x-auto">
@@ -358,7 +375,7 @@ export default function Pricing() {
             <PageHero
                 eyebrow="Pricing"
                 title="Priced for the season"
-                description="Plans that scale with your route book, not your headcount. Every tier includes auto-dispatch, the driver app, and photo proof."
+                description="Plans that scale with your client book, not your headcount. Every tier includes the client directory, contracts, payment tracking, and invoices & receipts."
             />
 
             <section className="relative py-14 md:py-20">
@@ -376,7 +393,7 @@ export default function Pricing() {
                         ))}
                     </div>
                     <p className="mt-8 text-center font-mono text-xs text-muted-foreground">
-                        All plans: 14-day trial · seasonal pause $19/mo · cancel
+                        All plans: 14-day free trial · no card required · cancel
                         anytime
                     </p>
                 </div>
@@ -388,7 +405,7 @@ export default function Pricing() {
 
             <CTABand
                 title="Be ready before the first storm"
-                description="Set up your properties, triggers, and crews now — so the night the forecast turns, you're watching it happen instead of organizing it."
+                description="Import your clients and set up your season's contracts and payment schedules now — so when the snow flies, the paperwork is already done."
                 primaryLabel="Start free trial"
                 primaryTo={ROUTES.contact}
                 secondaryLabel="Talk to sales"

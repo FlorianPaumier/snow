@@ -25,5 +25,10 @@ final class AppServiceProvider extends ServiceProvider
         Gate::define('manage-clients', fn (User $user): bool => $user->role === UserRole::ROLE_ADMIN);
         Gate::define('manage-contracts', fn (User $user): bool => $user->role === UserRole::ROLE_ADMIN);
         Gate::define('manage-billing', fn (User $user): bool => $user->role === UserRole::ROLE_ADMIN);
+        Gate::define('manage-organization', fn (User $user): bool => $user->role === UserRole::ROLE_ADMIN);
+
+        // Renaming the organization is admin work; moving ownership is the
+        // owner's alone...
+        Gate::define('transfer-organization', fn (User $user, Organization $organization): bool => $organization->owner_id === $user->id);
     }
 }

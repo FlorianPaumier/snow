@@ -11,8 +11,8 @@ const footerGroups: {
         links: [
             { label: 'Features', to: ROUTES.features },
             { label: 'Pricing', to: ROUTES.pricing },
-            { label: 'Storm mode', to: ROUTES.features },
-            { label: 'Driver app', to: ROUTES.features },
+            { label: 'Clients & contracts', to: ROUTES.features },
+            { label: 'Payments', to: ROUTES.features },
         ],
     },
     {
@@ -56,10 +56,9 @@ export function MarketingFooter() {
                             </span>
                         </Link>
                         <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
-                            Snow removal operations software — dispatch,
-                            routing, proof, and billing for the crews who clear
-                            the way. Field-tested through the toughest storm
-                            nights.
+                            Snow removal back-office software — clients,
+                            contracts, payments, and receipts for the teams who
+                            run the season.
                         </p>
                         <p className="mt-4 inline-flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1 text-xs text-muted-foreground">
                             <span
@@ -104,9 +103,31 @@ export function MarketingFooter() {
                         © 2025 Frostline — built for the crews who clear the
                         way.
                     </p>
-                    <p className="font-mono text-[11px] text-muted-foreground">
-                        Privacy · Terms · Status
-                    </p>
+                    <nav
+                        aria-label="Legal"
+                        className="flex items-center gap-2 font-mono text-[11px] text-muted-foreground"
+                    >
+                        <Link
+                            href={ROUTES.privacy}
+                            className="rounded-sm transition-colors hover:text-foreground"
+                        >
+                            Privacy
+                        </Link>
+                        <span aria-hidden="true">·</span>
+                        <Link
+                            href={ROUTES.terms}
+                            className="rounded-sm transition-colors hover:text-foreground"
+                        >
+                            Terms
+                        </Link>
+                        <span aria-hidden="true">·</span>
+                        <Link
+                            href={ROUTES.status}
+                            className="rounded-sm transition-colors hover:text-foreground"
+                        >
+                            Status
+                        </Link>
+                    </nav>
                 </div>
             </div>
         </footer>

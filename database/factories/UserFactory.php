@@ -25,6 +25,7 @@ final class UserFactory extends Factory
             'name' => fake()->name(),
             'email' => fake()->unique()->safeEmail(),
             'email_verified_at' => now(),
+            'invitation_accepted_at' => now(),
             'password' => 'password',
             'role' => UserRole::ROLE_USER,
             'remember_token' => Str::random(10),
@@ -38,6 +39,14 @@ final class UserFactory extends Factory
     {
         return $this->state(fn (): array => [
             'organization_id' => $organization->id,
+        ]);
+    }
+
+    public function pendingInvitation(): self
+    {
+        return $this->state(fn (): array => [
+            'email_verified_at' => null,
+            'invitation_accepted_at' => null,
         ]);
     }
 

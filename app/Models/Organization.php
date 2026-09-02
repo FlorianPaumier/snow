@@ -9,12 +9,15 @@ use Database\Factories\OrganizationFactory;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Laravel\Cashier\Billable;
 
 /**
  * @property-read string $id
  * @property-read string $name
+ * @property-read string|null $owner_id
+ * @property-read User|null $owner
  * @property-read CarbonInterface|null $trial_ends_at
  * @property-read CarbonInterface $created_at
  * @property-read CarbonInterface $updated_at
@@ -36,10 +39,19 @@ final class Organization extends Model
         return [
             'id' => 'string',
             'name' => 'string',
+            'owner_id' => 'string',
             'trial_ends_at' => 'datetime',
             'created_at' => 'datetime',
             'updated_at' => 'datetime',
         ];
+    }
+
+    /**
+     * @return BelongsTo<User, $this>
+     */
+    public function owner(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'owner_id');
     }
 
     /**
@@ -64,5 +76,13 @@ final class Organization extends Model
     public function contracts(): HasMany
     {
         return $this->hasMany(Contract::class);
+    }
+
+    /**
+     * @return HasMany<Payment, $this>
+     */
+    public function payments(): HasMany
+    {
+        return $this->hasMany(Payment::class);
     }
 }

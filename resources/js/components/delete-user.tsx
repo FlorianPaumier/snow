@@ -1,4 +1,4 @@
-import { Form } from '@inertiajs/react';
+import { Form, usePage } from '@inertiajs/react';
 import { useRef } from 'react';
 import UserController from '@/actions/App/Http/Controllers/UserController';
 import Heading from '@/components/heading';
@@ -19,7 +19,27 @@ import { useLocale } from '@/hooks/use-locale';
 
 export default function DeleteUser() {
     const { t } = useLocale();
+    const { auth } = usePage().props;
     const passwordInput = useRef<HTMLInputElement>(null);
+
+    // The owner keeps the organization alive; ownership must be
+    // transferred before the account can go...
+    if (auth.organization?.ownerId === auth.user.id) {
+        return (
+            <div className="space-y-6">
+                <Heading
+                    variant="small"
+                    title={t.account.deleteAccountTitle}
+                    description={t.account.deleteAccountResources}
+                />
+                <div className="rounded-lg border border-border bg-muted/40 p-4">
+                    <p className="text-sm text-muted-foreground">
+                        {t.account.deleteOwnerNote}
+                    </p>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="space-y-6">

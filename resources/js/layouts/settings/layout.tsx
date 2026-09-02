@@ -9,6 +9,7 @@ import { cn, toUrl } from '@/lib/utils';
 import { edit as editAppearance } from '@/routes/appearance';
 import { index as billingIndex } from '@/routes/billing';
 import { edit as editLocale } from '@/routes/locale';
+import { edit as editOrganization } from '@/routes/organization';
 import { edit as editPassword } from '@/routes/password';
 import { edit } from '@/routes/user-profile';
 import type { NavItem } from '@/types';
@@ -41,16 +42,26 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
         },
     ];
 
-    const billingNavItem: NavItem = {
-        title: t.settings.billing,
-        href: billingIndex(),
-        icon: null,
-    };
+    // Organization and billing are only visible to organization admins...
+    const adminNavItems: NavItem[] = [];
 
-    // Billing is only visible to organization admins...
-    const items = auth.can?.manageBilling
-        ? [...sidebarNavItems, billingNavItem]
-        : sidebarNavItems;
+    if (auth.can?.manageOrganization) {
+        adminNavItems.push({
+            title: t.settings.organization,
+            href: editOrganization(),
+            icon: null,
+        });
+    }
+
+    if (auth.can?.manageBilling) {
+        adminNavItems.push({
+            title: t.settings.billing,
+            href: billingIndex(),
+            icon: null,
+        });
+    }
+
+    const items = [...sidebarNavItems, ...adminNavItems];
 
     // When server-side rendering, we only render the layout on the client...
     if (typeof window === 'undefined') {

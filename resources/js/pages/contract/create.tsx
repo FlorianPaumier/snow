@@ -48,7 +48,10 @@ export default function Create({
                 submitLabel={t.contracts.createContract}
                 initialSeason={seasons[1] ?? seasons[0] ?? ''}
                 initialPayments={Object.fromEntries(
-                    slots.map((slot) => [slot.value, { amount: '' }]),
+                    slots.map((slot) => [
+                        slot.value,
+                        { amount: '', dueDate: '' },
+                    ]),
                 )}
                 clients={clients}
                 seasons={seasons}

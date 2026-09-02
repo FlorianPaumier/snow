@@ -23,6 +23,7 @@ use Laravel\Fortify\TwoFactorAuthenticatable;
  * @property-read string $name
  * @property-read string $email
  * @property-read CarbonInterface|null $email_verified_at
+ * @property-read CarbonInterface|null $invitation_accepted_at
  * @property-read string $password
  * @property-read UserRole $role
  * @property-read string|null $remember_token
@@ -64,6 +65,7 @@ final class User extends Authenticatable implements MustVerifyEmail
             'name' => 'string',
             'email' => 'string',
             'email_verified_at' => 'datetime',
+            'invitation_accepted_at' => 'datetime',
             'role' => UserRole::class,
             'password' => 'hashed',
             'remember_token' => 'string',
@@ -75,5 +77,23 @@ final class User extends Authenticatable implements MustVerifyEmail
             'created_at' => 'datetime',
             'updated_at' => 'datetime',
         ];
+    }
+
+    /**
+     * A staff member still waiting to set their own password through the
+     * invitation email.
+     */
+    public function hasPendingInvitation(): bool
+    {
+        return $this->invitation_accepted_at === null;
+    }
+
+    /**
+     * Whether this user owns their organization: the owner can neither be
+     * deleted nor demoted, only transferred.
+     */
+    public function isOwner(): bool
+    {
+        return $this->organization?->owner_id === $this->id;
     }
 }

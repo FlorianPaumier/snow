@@ -25,10 +25,10 @@ function contractPayload(Client $client, ?string $season = null): array
             ['label' => 'Déglaçage', 'amount' => 10000],
         ],
         'payments' => [
-            'deposit' => 15000,
-            'first' => 10000,
-            'second' => 10000,
-            'balance' => 10000,
+            'deposit' => ['amount' => 15000, 'dueDate' => null],
+            'first' => ['amount' => 10000, 'dueDate' => null],
+            'second' => ['amount' => 10000, 'dueDate' => null],
+            'balance' => ['amount' => 10000, 'dueDate' => null],
         ],
     ];
 }
@@ -194,6 +194,50 @@ it('rejects a duplicate contract for the same client and season on create', func
         ->assertSessionHasErrors('season');
 });
 
+it('persists optional installment due dates on create and update', function (): void {
+    $admin = User::factory()->admin()->create();
+    $client = Client::factory()->forOrganization($admin->organization)->create();
+
+    $this->actingAs($admin)
+        ->post(route('contracts.store'), [
+            ...contractPayload($client),
+            'payments' => [
+                'deposit' => ['amount' => 15000, 'dueDate' => '2026-11-01'],
+                'first' => ['amount' => 10000, 'dueDate' => '2026-12-01'],
+                'second' => ['amount' => 10000, 'dueDate' => null],
+                'balance' => ['amount' => 10000, 'dueDate' => null],
+            ],
+        ])
+        ->assertRedirect();
+
+    $contract = Contract::query()->where('client_id', $client->id)->first();
+    $payments = $contract->payments->keyBy('slot.value');
+
+    expect($payments['deposit']->due_date->toDateString())->toBe('2026-11-01')
+        ->and($payments['first']->due_date->toDateString())->toBe('2026-12-01')
+        ->and($payments['second']->due_date)->toBeNull();
+
+    $this->actingAs($admin)
+        ->put(route('contracts.update', $contract), [
+            'clientId' => $client->id,
+            'season' => $contract->season,
+            'services' => [
+                ['label' => 'Déneigement entrée', 'amount' => 35000],
+                ['label' => 'Déglaçage', 'amount' => 10000],
+            ],
+            'payments' => [
+                'deposit' => ['amount' => 15000, 'dueDate' => null],
+                'first' => ['amount' => 10000, 'dueDate' => '2027-01-15'],
+                'second' => ['amount' => 10000, 'dueDate' => null],
+                'balance' => ['amount' => 10000, 'dueDate' => null],
+            ],
+        ])
+        ->assertRedirect();
+
+    expect($payments['deposit']->fresh()->due_date)->toBeNull()
+        ->and($payments['first']->fresh()->due_date->toDateString())->toBe('2027-01-15');
+});
+
 it('validates create payloads', function (array $payload): void {
     $admin = User::factory()->admin()->create();
     Client::factory()->forOrganization($admin->organization)->create();
@@ -202,13 +246,14 @@ it('validates create payloads', function (array $payload): void {
         ->post(route('contracts.store'), $payload)
         ->assertSessionHasErrors();
 })->with([
-    'missing client' => [['clientId' => null, 'season' => '2026-2027', 'services' => [['label' => 'Entrée', 'amount' => 100]], 'payments' => ['deposit' => 100, 'first' => 0, 'second' => 0, 'balance' => 0]]],
-    'client id as array' => [['clientId' => ['not-a-uuid'], 'season' => '2026-2027', 'services' => [['label' => 'Entrée', 'amount' => 100]], 'payments' => ['deposit' => 100, 'first' => 0, 'second' => 0, 'balance' => 0]]],
-    'invalid season format' => [['clientId' => '00000000-0000-0000-0000-000000000000', 'season' => 'ete-2026', 'services' => [['label' => 'Entrée', 'amount' => 100]], 'payments' => ['deposit' => 100, 'first' => 0, 'second' => 0, 'balance' => 0]]],
-    'empty services' => [['clientId' => '00000000-0000-0000-0000-000000000000', 'season' => '2026-2027', 'services' => [], 'payments' => ['deposit' => 0, 'first' => 0, 'second' => 0, 'balance' => 0]]],
-    'unbalanced payments' => [['clientId' => '00000000-0000-0000-0000-000000000000', 'season' => '2026-2027', 'services' => [['label' => 'Entrée', 'amount' => 400]], 'payments' => ['deposit' => 100, 'first' => 100, 'second' => 100, 'balance' => 50]]],
-    'negative amount' => [['clientId' => '00000000-0000-0000-0000-000000000000', 'season' => '2026-2027', 'services' => [['label' => 'Entrée', 'amount' => -1]], 'payments' => ['deposit' => 0, 'first' => 0, 'second' => 0, 'balance' => 0]]],
+    'missing client' => [['clientId' => null, 'season' => '2026-2027', 'services' => [['label' => 'Entrée', 'amount' => 100]], 'payments' => ['deposit' => ['amount' => 100, 'dueDate' => null], 'first' => ['amount' => 0, 'dueDate' => null], 'second' => ['amount' => 0, 'dueDate' => null], 'balance' => ['amount' => 0, 'dueDate' => null]]]],
+    'client id as array' => [['clientId' => ['not-a-uuid'], 'season' => '2026-2027', 'services' => [['label' => 'Entrée', 'amount' => 100]], 'payments' => ['deposit' => ['amount' => 100, 'dueDate' => null], 'first' => ['amount' => 0, 'dueDate' => null], 'second' => ['amount' => 0, 'dueDate' => null], 'balance' => ['amount' => 0, 'dueDate' => null]]]],
+    'invalid season format' => [['clientId' => '00000000-0000-0000-0000-000000000000', 'season' => 'ete-2026', 'services' => [['label' => 'Entrée', 'amount' => 100]], 'payments' => ['deposit' => ['amount' => 100, 'dueDate' => null], 'first' => ['amount' => 0, 'dueDate' => null], 'second' => ['amount' => 0, 'dueDate' => null], 'balance' => ['amount' => 0, 'dueDate' => null]]]],
+    'empty services' => [['clientId' => '00000000-0000-0000-0000-000000000000', 'season' => '2026-2027', 'services' => [], 'payments' => ['deposit' => ['amount' => 0, 'dueDate' => null], 'first' => ['amount' => 0, 'dueDate' => null], 'second' => ['amount' => 0, 'dueDate' => null], 'balance' => ['amount' => 0, 'dueDate' => null]]]],
+    'unbalanced payments' => [['clientId' => '00000000-0000-0000-0000-000000000000', 'season' => '2026-2027', 'services' => [['label' => 'Entrée', 'amount' => 400]], 'payments' => ['deposit' => ['amount' => 100, 'dueDate' => null], 'first' => ['amount' => 100, 'dueDate' => null], 'second' => ['amount' => 100, 'dueDate' => null], 'balance' => ['amount' => 50, 'dueDate' => null]]]],
+    'negative amount' => [['clientId' => '00000000-0000-0000-0000-000000000000', 'season' => '2026-2027', 'services' => [['label' => 'Entrée', 'amount' => -1]], 'payments' => ['deposit' => ['amount' => 0, 'dueDate' => null], 'first' => ['amount' => 0, 'dueDate' => null], 'second' => ['amount' => 0, 'dueDate' => null], 'balance' => ['amount' => 0, 'dueDate' => null]]]],
     'missing slot' => [['clientId' => '00000000-0000-0000-0000-000000000000', 'season' => '2026-2027', 'services' => [['label' => 'Entrée', 'amount' => 100]], 'payments' => ['deposit' => 100, 'first' => 0, 'second' => 0]]],
+    'invalid due date' => [['clientId' => '00000000-0000-0000-0000-000000000000', 'season' => '2026-2027', 'services' => [['label' => 'Entrée', 'amount' => 100]], 'payments' => ['deposit' => ['amount' => 100, 'dueDate' => null], 'first' => ['amount' => 0, 'dueDate' => 'not-a-date'], 'second' => ['amount' => 0, 'dueDate' => null], 'balance' => ['amount' => 0, 'dueDate' => null]]]],
 ]);
 
 it('renders the edit page with prefilled services and payments', function (): void {
@@ -255,10 +300,10 @@ it('updates a contract syncing services and unpaid amounts', function (): void {
                 ['label' => 'Stationnement', 'amount' => 5000],
             ],
             'payments' => [
-                'deposit' => 20000,
-                'first' => 20000,
-                'second' => 0,
-                'balance' => 0,
+                'deposit' => ['amount' => 20000, 'dueDate' => null],
+                'first' => ['amount' => 20000, 'dueDate' => null],
+                'second' => ['amount' => 0, 'dueDate' => null],
+                'balance' => ['amount' => 0, 'dueDate' => null],
             ],
         ])
         ->assertRedirect(route('contracts.show', $contract));
@@ -294,13 +339,13 @@ it('locks paid installment amounts on update', function (): void {
             'season' => $contract->season,
             'services' => [['label' => 'Entrée', 'amount' => 40000]],
             'payments' => [
-                'deposit' => 10000, // Different from the stored 15000...
-                'first' => 25000,
-                'second' => 0,
-                'balance' => 0,
+                'deposit' => ['amount' => 10000, 'dueDate' => null], // Different from the stored 15000...
+                'first' => ['amount' => 25000, 'dueDate' => null],
+                'second' => ['amount' => 0, 'dueDate' => null],
+                'balance' => ['amount' => 0, 'dueDate' => null],
             ],
         ])
-        ->assertSessionHasErrors('payments.deposit');
+        ->assertSessionHasErrors('payments.deposit.amount');
 });
 
 it('rejects a duplicate season on update', function (): void {
@@ -404,7 +449,7 @@ it('skips the totals cross-check when the update payload shapes are malformed', 
             'clientId' => $client->id,
             'season' => $contract->season,
             'services' => 'not-an-array',
-            'payments' => ['deposit' => 0, 'first' => 0, 'second' => 0, 'balance' => 0],
+            'payments' => ['deposit' => ['amount' => 0, 'dueDate' => null], 'first' => ['amount' => 0, 'dueDate' => null], 'second' => ['amount' => 0, 'dueDate' => null], 'balance' => ['amount' => 0, 'dueDate' => null]],
         ])->assertSessionHasErrors('services');
 });
 

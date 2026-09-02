@@ -1,23 +1,22 @@
 import { Link } from '@inertiajs/react';
 import {
     ArrowRight,
-    Bell,
+    BarChart3,
+    Building2,
     Check,
-    CloudSnow,
-    Eye,
+    CreditCard,
+    FileSpreadsheet,
     Lock,
-    MapPinned,
     Receipt,
-    Route,
+    ShieldCheck,
     Snowflake,
     Sparkles,
-    Zap,
     type LucideIcon,
 } from 'lucide-react';
 import {
     clientLogos,
-    companyStats,
-    heroStats,
+    companyFacts,
+    heroFacts,
     homeFaqs,
     homeFeatures,
     pricingTiers,
@@ -82,14 +81,14 @@ function HeroBackdrop() {
 function DashboardMock() {
     return (
         <div aria-hidden="true" className="relative hidden lg:block">
-            {/* Floating dispatch chip (straddles the frame's bottom-left corner) */}
+            {/* Floating payment chip (straddles the frame's bottom-left corner) */}
             <div
                 className="pointer-events-none absolute -bottom-5 -left-4 z-20 animate-drift"
                 style={{ animationDelay: '-4s' }}
             >
                 <span className="flex items-center gap-2 rounded-lg bg-ember px-3.5 py-2.5 text-sm font-medium text-ember-foreground shadow-glow-ember">
-                    <Zap className="size-4" />
-                    Crew dispatched · Truck 07
+                    <Receipt className="size-4" />
+                    Receipt emailed · $300
                 </span>
             </div>
 
@@ -104,111 +103,78 @@ function DashboardMock() {
                     <div className="flex flex-1 justify-center px-2">
                         <span className="flex items-center gap-1.5 rounded-md border border-border bg-background px-2.5 py-1 font-mono text-[10px] text-muted-foreground">
                             <Lock className="size-3" />
-                            app.frostline.ops/operations
+                            app.frostline.ops/dashboard
                         </span>
                     </div>
                     <span className="w-10 shrink-0" />
                 </div>
 
                 <div className="space-y-4 p-4 sm:p-5">
-                    {/* Storm banner */}
-                    <div className="flex items-center gap-3 rounded-lg border-l-4 border-ember-500 bg-ember-500/10 px-3 py-2.5">
-                        <CloudSnow className="size-4 shrink-0 text-ember-600 dark:text-ember-400" />
-                        <div className="min-w-0 flex-1">
-                            <p className="text-xs leading-tight font-semibold">
-                                Winter storm warning
-                            </p>
-                            <p className="mt-0.5 text-[11px] leading-tight text-muted-foreground">
-                                18–24 cm tonight · auto-dispatch armed
-                            </p>
-                        </div>
-                        <Badge className="border-ember-500/30 bg-ember-500/15 text-ember-700 dark:border-ember-400/30 dark:bg-ember-400/10 dark:text-ember-300">
-                            Active
-                        </Badge>
-                    </div>
-
                     {/* KPI row */}
                     <div className="grid grid-cols-3 gap-3">
                         <div className="rounded-lg border border-border bg-muted/40 p-3">
                             <p className="font-mono text-[10px] tracking-wider text-muted-foreground uppercase">
-                                Active storms
+                                Collected
                             </p>
-                            <p className="mt-1.5 flex items-center gap-1.5 text-lg font-semibold tabular-nums">
-                                2
-                                <span className="size-1.5 animate-pulse-soft rounded-full bg-info" />
+                            <p className="mt-1.5 text-lg font-semibold tabular-nums">
+                                $41.2k
                             </p>
                         </div>
                         <div className="rounded-lg border border-border bg-muted/40 p-3">
                             <p className="font-mono text-[10px] tracking-wider text-muted-foreground uppercase">
-                                Cleared
+                                Outstanding
                             </p>
                             <p className="mt-1.5 text-lg font-semibold tabular-nums">
-                                128/156
+                                $12.8k
                             </p>
-                            <Progress value={82} className="mt-2 h-1" />
                         </div>
                         <div className="rounded-lg border border-border bg-muted/40 p-3">
                             <p className="font-mono text-[10px] tracking-wider text-muted-foreground uppercase">
-                                Salt used
+                                Contracts
                             </p>
                             <p className="mt-1.5 text-lg font-semibold tabular-nums">
-                                3.4 t
+                                96
                             </p>
                         </div>
                     </div>
 
-                    {/* Route card */}
+                    {/* Revenue chart */}
                     <div className="overflow-hidden rounded-lg border border-border">
                         <div className="flex items-center justify-between gap-3 border-b border-border px-3 py-2">
                             <p className="text-xs font-semibold">
-                                Route 12 · Northside
+                                Revenue · season 2026–27
                             </p>
                             <p className="font-mono text-[10px] text-muted-foreground">
-                                TRUCK 07
+                                BY MONTH
                             </p>
                         </div>
-                        <ul className="divide-y divide-border">
-                            <li className="flex items-center justify-between gap-3 px-3 py-2">
-                                <span className="truncate font-mono text-xs">
-                                    128 Harbor View Ln
-                                </span>
-                                <span className="flex shrink-0 items-center gap-1.5">
-                                    <span className="size-1.5 rounded-full bg-info" />
-                                    <span className="text-[10px] font-medium text-info">
-                                        En route
-                                    </span>
-                                </span>
-                            </li>
-                            <li className="flex items-center justify-between gap-3 px-3 py-2">
-                                <span className="truncate font-mono text-xs">
-                                    82 Summit Ridge Rd
-                                </span>
-                                <span className="flex shrink-0 items-center gap-1.5">
-                                    <span className="size-1.5 rounded-full bg-glacier-500" />
-                                    <span className="text-[10px] font-medium text-glacier-600 dark:text-glacier-400">
-                                        In progress
-                                    </span>
-                                </span>
-                            </li>
-                            <li className="flex items-center justify-between gap-3 px-3 py-2">
-                                <span className="truncate font-mono text-xs">
-                                    9 Maplewood Ct
-                                </span>
-                                <span className="flex shrink-0 items-center gap-1.5">
-                                    <span className="size-1.5 rounded-full bg-success" />
-                                    <span className="text-[10px] font-medium text-success">
-                                        Completed
-                                    </span>
-                                </span>
-                            </li>
-                        </ul>
-                        <div className="flex items-center justify-between border-t border-border px-3 py-2">
-                            <p className="font-mono text-[10px] text-muted-foreground">
-                                ETA 12 MIN
+                        <div className="flex h-20 items-end gap-1.5 px-3 py-3">
+                            {[35, 55, 45, 70, 62, 82, 95].map(
+                                (height, index) => (
+                                    <div
+                                        key={index}
+                                        style={{ height: `${height}%` }}
+                                        className="flex-1 rounded-t-sm bg-linear-to-t from-glacier-500/70 to-glacier-400/80"
+                                    />
+                                ),
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Payments card */}
+                    <div className="overflow-hidden rounded-lg border border-border">
+                        <div className="flex items-center justify-between gap-3 border-b border-border px-3 py-2">
+                            <p className="text-xs font-semibold">
+                                Payments collected
                             </p>
-                            <p className="flex items-center gap-1.5 font-mono text-[10px] text-muted-foreground">
-                                <span className="size-1.5 animate-pulse-soft rounded-full bg-glacier-500" />
-                                LIVE
+                            <p className="font-mono text-[10px] text-muted-foreground">
+                                76%
+                            </p>
+                        </div>
+                        <div className="px-3 py-2.5">
+                            <Progress value={76} className="h-1" />
+                            <p className="mt-2 font-mono text-[10px] text-muted-foreground">
+                                Deposit · installments · balance
                             </p>
                         </div>
                     </div>
@@ -218,30 +184,30 @@ function DashboardMock() {
     );
 }
 
-/* ── Storm mode band bullets ─────────────────────────────────────── */
-const STORM_FEATURES: {
+/* ── Season workflow band bullets ────────────────────────────────── */
+const SEASON_FEATURES: {
     icon: LucideIcon;
     iconClass: string;
     title: string;
     copy: string;
 }[] = [
     {
-        icon: Route,
+        icon: Building2,
         iconClass: 'text-glacier-300',
-        title: 'Priority re-sorting',
-        copy: 'Hospitals, priority-1 lots, and escalations re-queue to the front the moment conditions change.',
+        title: 'Set up in the fall',
+        copy: 'Import your client list, write the season\u2019s contracts with itemized services, and set the payment schedule before the first snowfall.',
     },
     {
-        icon: Bell,
+        icon: CreditCard,
         iconClass: 'text-ember-300',
-        title: 'Escalation alerts',
-        copy: 'Stalled trucks and missed ETAs page the right supervisor automatically.',
+        title: 'Track through the winter',
+        copy: 'Mark payments paid with method and date as they come in — deposit, installments, balance — and email receipts without retyping a number.',
     },
     {
-        icon: Eye,
+        icon: BarChart3,
         iconClass: 'text-glacier-300',
-        title: 'Crew-wide visibility',
-        copy: 'Every plow, stop, and salt spread on one live map, from the cab to the dispatch desk.',
+        title: 'Close out in spring',
+        copy: 'The dashboard shows what was collected and what is outstanding all season, so the balance chase starts in March, not in May.',
     },
 ];
 
@@ -256,25 +222,25 @@ interface HowItWorksStep {
 
 const HOW_IT_WORKS: HowItWorksStep[] = [
     {
-        icon: MapPinned,
+        icon: FileSpreadsheet,
         tint: GLACIER_TINT,
-        title: 'Map your properties',
-        copy: 'Your sites shouldn\u2019t live in one dispatcher\u2019s memory. Import from any CSV, set a trigger depth per contract, and tag surfaces so the router knows a loading dock from a cul-de-sac.',
+        title: 'Import your clients',
+        copy: 'Bring a CSV from any system — spreadsheets, property-management software, or lists you already keep. Your clients become records with addresses, phones, email, and notes, not rows in someone\u2019s memory.',
         caption: 'Setup: one afternoon',
     },
     {
-        icon: CloudSnow,
+        icon: Receipt,
         tint: EMBER_TINT,
-        title: 'Let the storm work for you',
-        copy: 'Stop waking crews manually. Weather feeds watch each site — when snow crosses your trigger depth, drivers wake to routes already optimized on their phones.',
-        caption: 'Dispatch: 11 min median',
+        title: 'Write the season\u2019s contracts',
+        copy: 'One contract per client per season, with itemized service lines — driveway, walkway, salting. The total is the sum of its lines, and payment slots are set when you save it.',
+        caption: 'Contracts: itemized & totaled',
     },
     {
-        icon: Receipt,
+        icon: ShieldCheck,
         tint: GLACIER_TINT,
-        title: 'Clear, prove, and bill',
-        copy: 'Disputes shouldn\u2019t take phone calls, and invoicing shouldn\u2019t take days. Geo-stamped photos and timestamps compile into invoices — per storm, per push, or seasonal — within 24 hours of the final pass.',
-        caption: 'Billing: NET-14 standard',
+        title: 'Track payments to the balance',
+        copy: 'As money arrives, mark the slot paid — the method and date are recorded, receipts are a click away, and the dashboard keeps collected vs. outstanding in view until the final balance clears.',
+        caption: 'Payments: slot by slot',
     },
 ];
 
@@ -310,7 +276,7 @@ function StepCard({ step, index }: { step: HowItWorksStep; index: number }) {
 export default function Home() {
     return (
         <MarketingLayout
-            title="Frostline OPS — Snow Removal Operations Software"
+            title="Frostline OPS — Snow Removal Contract & Payment Software"
             route={ROUTES.home}
         >
             {/* 1 · Hero */}
@@ -327,24 +293,26 @@ export default function Home() {
                                 className="gap-1.5 rounded-full border-glacier-200 bg-glacier-50/70 px-3 py-1 text-xs font-medium text-glacier-800 dark:border-glacier-800/60 dark:bg-glacier-950/40 dark:text-glacier-300"
                             >
                                 <Sparkles aria-hidden="true" />
-                                Storm season is coming — get set up now
+                                Season 2026–27 is booking — set up now
                             </Badge>
                             <h1
                                 id="home-hero-heading"
                                 className="mt-6 text-4xl font-semibold tracking-tighter text-balance sm:text-5xl xl:text-6xl"
                             >
-                                Snow removal,{' '}
+                                Your season,{' '}
                                 <span className="bg-linear-to-r from-glacier-700 to-glacier-400 bg-clip-text text-transparent dark:from-glacier-300 dark:to-glacier-500">
-                                    run like clockwork
+                                    organized to the last balance
                                 </span>
                                 .
                             </h1>
                             <p className="mt-5 text-lg leading-relaxed text-muted-foreground">
-                                When the forecast turns at 2 a.m., your
-                                operation shouldn't run on a whiteboard and a
-                                group text. Trigger-based dispatch, smart
-                                routes, photo proof on every pass, and invoices
-                                that go out before the snow melts.
+                                Snow removal contracts are sold in the fall,
+                                serviced all winter, and paid in pieces.
+                                Frostline OPS is the back office that keeps up:
+                                a client directory, seasonal contracts with
+                                itemized services, payment tracking slot by
+                                slot, and receipts that go out before the snow
+                                melts.
                             </p>
                             <div className="mt-8 flex flex-wrap items-center justify-center gap-3 lg:justify-start">
                                 <Button asChild size="lg">
@@ -360,29 +328,29 @@ export default function Home() {
                                 </Button>
                             </div>
                             <p className="mt-6 font-mono text-[11px] tracking-[0.14em] text-muted-foreground uppercase">
-                                Trusted on 4.2M properties · NET-14 billing ·
-                                -30° tested
+                                14-day free trial · no card required · cancel
+                                anytime
                             </p>
                         </div>
                         <DashboardMock />
                     </div>
 
-                    {/* Proof: stats + trusted-by */}
+                    {/* Proof: facts + industries */}
                     <div className="mt-14 border-t border-border/60 pt-8 md:mt-16 lg:mt-20">
                         <dl className="grid max-w-2xl grid-cols-3 gap-4 sm:gap-6">
-                            {heroStats.map((stat) => (
-                                <div key={stat.label}>
+                            {heroFacts.map((fact) => (
+                                <div key={fact.label}>
                                     <dd className="text-2xl font-semibold tabular-nums md:text-3xl">
-                                        {stat.value}
+                                        {fact.value}
                                     </dd>
                                     <dt className="mt-1.5 font-mono text-[11px] tracking-[0.14em] text-muted-foreground uppercase">
-                                        {stat.label}
+                                        {fact.label}
                                     </dt>
                                 </div>
                             ))}
                         </dl>
                         <p className="mt-10 font-mono text-[11px] tracking-[0.18em] text-muted-foreground uppercase">
-                            Trusted across snow-country operations
+                            Built for snow-country contract businesses
                         </p>
                         <ul className="mt-4 flex flex-wrap items-center gap-x-8 gap-y-3">
                             {clientLogos.map((logo) => (
@@ -401,15 +369,15 @@ export default function Home() {
             {/* 2 · Features grid */}
             <MarketingSection
                 id="features"
-                eyebrow="The platform"
-                title="Everything the storm demands"
-                description="If your storm nights run on a whiteboard, a group text, and the spreadsheet your accountant fears — this replaces all three. Dispatch, routing, proof of service, and billing in one system."
+                eyebrow="The product"
+                title="Everything the season demands of the office"
+                description="If your season runs on a binder, a spreadsheet, and the receipts in a shoebox — this replaces all three. Clients, contracts, payments, invoices, and dashboards in one system."
             >
                 <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                     {homeFeatures.map((feature, index) => {
                         const Icon = feature.icon;
-                        // Storm mode + billing carry the ember tint
-                        const isEmber = index === 2 || index === 5;
+                        // Contracts + invoices carry the ember tint
+                        const isEmber = index === 1 || index === 3;
                         return (
                             <li
                                 key={feature.title}
@@ -446,9 +414,9 @@ export default function Home() {
                 </div>
             </MarketingSection>
 
-            {/* 3 · Storm mode band */}
+            {/* 3 · Season workflow band */}
             <section
-                aria-labelledby="storm-mode-heading"
+                aria-labelledby="season-workflow-heading"
                 className="relative overflow-hidden bg-cover bg-center py-20 md:py-28"
                 style={{ backgroundImage: 'url(/images/plow-night.jpg)' }}
             >
@@ -459,25 +427,25 @@ export default function Home() {
                 <div className="relative z-10 mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-8">
                     <div className="max-w-2xl">
                         <p className="font-mono text-xs font-medium tracking-[0.18em] text-ember-400 uppercase">
-                            Storm mode
+                            The season, end to end
                         </p>
                         <h2
-                            id="storm-mode-heading"
+                            id="season-workflow-heading"
                             className="mt-3 text-3xl font-semibold tracking-tight text-balance text-white md:text-4xl"
                         >
-                            The forecast turns. One toggle, and the night
-                            reorganizes itself.
+                            Fall to spring, one system for the whole season.
                         </h2>
                         <p className="mt-4 text-base leading-relaxed text-frost-200">
-                            When a storm escalates, every route needs to change
-                            at once — and a whiteboard can't keep up. Storm mode
-                            re-sorts every route by contract priority, escalates
-                            the alerts that matter, and lights the dashboard in
-                            ember for the decisions you make at 3 a.m.
+                            The money side of snow removal has its own rhythm:
+                            contracts signed before the first snowfall, payments
+                            collected through the winter, balances chased in
+                            spring. Frostline OPS follows that rhythm instead of
+                            fighting it — every client, contract, and payment in
+                            one place from setup to close-out.
                         </p>
                     </div>
                     <ul className="mt-10 grid gap-4 sm:grid-cols-3">
-                        {STORM_FEATURES.map((feature) => {
+                        {SEASON_FEATURES.map((feature) => {
                             const Icon = feature.icon;
                             return (
                                 <li
@@ -512,7 +480,7 @@ export default function Home() {
                             href={ROUTES.features}
                             className="inline-flex h-10 items-center justify-center gap-2 rounded-md border border-white/25 bg-white/10 px-6 text-sm font-medium text-white/90 backdrop-blur-sm transition-colors hover:bg-white/20 hover:text-white focus-visible:ring-[3px] focus-visible:ring-white/50 focus-visible:outline-none"
                         >
-                            See storm mode in action
+                            See the workflow in detail
                             <ArrowRight aria-hidden="true" className="size-4" />
                         </Link>
                     </div>
@@ -523,7 +491,7 @@ export default function Home() {
             <MarketingSection
                 id="how-it-works"
                 eyebrow="How it works"
-                title="From first flake to final invoice"
+                title="From first import to final balance"
             >
                 <div className="relative">
                     <div
@@ -542,20 +510,20 @@ export default function Home() {
                 </div>
             </MarketingSection>
 
-            {/* 5 · Stats band */}
+            {/* 5 · Facts band */}
             <section
                 aria-label="By the numbers"
                 className="border-y border-border bg-card/40"
             >
                 <div className="mx-auto w-full max-w-6xl px-4 py-10 sm:px-6 md:py-12 lg:px-8">
                     <dl className="grid grid-cols-2 gap-x-4 gap-y-8 md:grid-cols-4">
-                        {companyStats.map((stat) => (
-                            <div key={stat.label} className="text-center">
+                        {companyFacts.map((fact) => (
+                            <div key={fact.label} className="text-center">
                                 <dd className="text-2xl font-semibold tabular-nums md:text-3xl">
-                                    {stat.value}
+                                    {fact.value}
                                 </dd>
                                 <dt className="mt-1.5 font-mono text-[11px] tracking-[0.14em] text-muted-foreground uppercase">
-                                    {stat.label}
+                                    {fact.label}
                                 </dt>
                             </div>
                         ))}
@@ -568,7 +536,7 @@ export default function Home() {
                 id="pricing"
                 eyebrow="Pricing"
                 title="Priced for the season, not per seat-per-snowflake"
-                description="Simple plans that scale with your route book. Two months free on annual."
+                description="Simple plans that scale with your client book. Two months free on annual."
             >
                 <ul className="grid gap-4 md:grid-cols-3 lg:gap-6">
                     {pricingTiers.map((tier) => (
@@ -644,7 +612,7 @@ export default function Home() {
                 id="faq"
                 eyebrow="FAQ"
                 title="Before the first flake"
-                description="The questions owners and ops managers ask before their first dispatched storm."
+                description="The questions owners and office managers ask before their first organized season."
             >
                 <Accordion
                     type="single"

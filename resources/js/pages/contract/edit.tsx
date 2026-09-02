@@ -22,7 +22,10 @@ type EditableContract = {
     clientId: string;
     season: string;
     services: Array<{ id: number; label: string; amount: number }>;
-    payments: Record<string, { amount: number; paid: boolean }>;
+    payments: Record<
+        string,
+        { amount: number; paid: boolean; dueDate: string | null }
+    >;
 };
 
 export default function Edit({
@@ -64,6 +67,7 @@ export default function Edit({
                 {
                     amount: payment ? (payment.amount / 100).toFixed(2) : '',
                     paid: payment?.paid ?? false,
+                    dueDate: payment?.dueDate ?? '',
                 },
             ];
         }),

@@ -109,5 +109,6 @@ it('shares the organization name and subscription for an organization member', f
     expect($shared['auth']['organization'])->toBe([
         'id' => $user->organization_id,
         'name' => $user->organization->name,
+        'ownerId' => $user->organization->owner_id,
     ])->and($shared['auth']['subscription'])->toBeArray();
 });

@@ -34,6 +34,8 @@ type ManagedUser = {
     name: string;
     email: string;
     role: string;
+    status: string;
+    is_owner: boolean;
     created_at: string;
 };
 
@@ -269,14 +271,35 @@ export default function Index({
                                                 {user.email}
                                             </TableCell>
                                             <TableCell>
-                                                <StatusBadge
-                                                    label={user.role}
-                                                    className={
-                                                        ROLE_BADGES[
-                                                            user.role
-                                                        ] ?? ROLE_BADGES.user
-                                                    }
-                                                />
+                                                <div className="flex flex-wrap items-center gap-1.5">
+                                                    <StatusBadge
+                                                        label={user.role}
+                                                        className={
+                                                            ROLE_BADGES[
+                                                                user.role
+                                                            ] ??
+                                                            ROLE_BADGES.user
+                                                        }
+                                                    />
+                                                    {user.status ===
+                                                        'pending' && (
+                                                        <StatusBadge
+                                                            label={
+                                                                t.users
+                                                                    .pendingInvitation
+                                                            }
+                                                            className="border-amber-500/25 bg-amber-500/10 text-amber-700 dark:text-amber-400"
+                                                        />
+                                                    )}
+                                                    {user.is_owner && (
+                                                        <StatusBadge
+                                                            label={
+                                                                t.users.owner
+                                                            }
+                                                            className="border-primary/25 bg-primary/10 text-primary"
+                                                        />
+                                                    )}
+                                                </div>
                                             </TableCell>
                                             <TableCell className="text-right text-xs text-muted-foreground">
                                                 {user.created_at}
@@ -308,31 +331,35 @@ export default function Index({
                                                             />
                                                         </Link>
                                                     </Button>
-                                                    <Form
-                                                        {...UserManagementController.destroy.form(
-                                                            { user: user.id },
-                                                        )}
-                                                        className="contents"
-                                                    >
-                                                        <Button
-                                                            type="submit"
-                                                            variant="ghost"
-                                                            size="icon"
-                                                            className="size-8 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
-                                                            aria-label={interpolate(
-                                                                t.users
-                                                                    .deleteUserAria,
+                                                    {!user.is_owner && (
+                                                        <Form
+                                                            {...UserManagementController.destroy.form(
                                                                 {
-                                                                    name: user.name,
+                                                                    user: user.id,
                                                                 },
                                                             )}
+                                                            className="contents"
                                                         >
-                                                            <Trash2
-                                                                aria-hidden="true"
-                                                                className="size-4"
-                                                            />
-                                                        </Button>
-                                                    </Form>
+                                                            <Button
+                                                                type="submit"
+                                                                variant="ghost"
+                                                                size="icon"
+                                                                className="size-8 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                                                                aria-label={interpolate(
+                                                                    t.users
+                                                                        .deleteUserAria,
+                                                                    {
+                                                                        name: user.name,
+                                                                    },
+                                                                )}
+                                                            >
+                                                                <Trash2
+                                                                    aria-hidden="true"
+                                                                    className="size-4"
+                                                                />
+                                                            </Button>
+                                                        </Form>
+                                                    )}
                                                 </div>
                                             </TableCell>
                                         </TableRow>

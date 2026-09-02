@@ -15,7 +15,24 @@ it('renders all public marketing pages', function (string $path, string $compone
     'pricing' => ['/pricing', 'marketing/pricing'],
     'about' => ['/about', 'marketing/about'],
     'contact' => ['/contact', 'marketing/contact'],
+    'terms' => ['/terms', 'marketing/terms'],
+    'privacy' => ['/privacy', 'marketing/privacy'],
+    'status' => ['/status', 'marketing/status'],
 ]);
+
+it('reports live component health on the status page', function (): void {
+    $this->get('/status')->assertOk()->assertInertia(
+        fn ($page) => $page
+            ->component('marketing/status')
+            ->has('components', 3)
+            ->where('components.0.name', 'Database')
+            ->where('components.0.status', 'operational')
+            ->where('components.1.name', 'Cache store')
+            ->where('components.1.status', 'operational')
+            ->where('components.2.name', 'Job queue')
+            ->where('components.2.status', 'operational'),
+    );
+});
 
 it('sends a contact inquiry email', function (): void {
     Mail::fake();

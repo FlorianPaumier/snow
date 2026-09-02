@@ -73,7 +73,11 @@ const fr = {
         tableAddress: 'Adresse',
         tablePhone: 'Téléphone',
         tableAmountDue: 'Montant dû',
+        tableDueDate: 'Échéance',
         viewContract: 'Voir le contrat de :client',
+        sendReminder: 'Envoyer un rappel par courriel',
+        reminderSentOn: 'Rappel envoyé le :date',
+        reminderNoEmail: 'Aucun courriel enregistré pour ce client',
         recapTitle: 'Revenus par saison',
         recapDescription: 'Récapitulatif de toutes les saisons',
         recapSeason: 'Saison',
@@ -196,6 +200,7 @@ const fr = {
         contractCount: ':count contrat:plural',
         contractCountPlural: 's',
         allSeasons: 'Toutes les saisons',
+        exportPayments: 'Exporter en CSV',
         columnClient: 'Client',
         columnSeason: 'Saison',
         columnNumber: 'Nº contrat',
@@ -231,6 +236,7 @@ const fr = {
         totalsPayments: 'Versements',
         totalsMismatch: 'Les totaux ne correspondent pas',
         paymentAmountPlaceholder: '150.00',
+        paymentDueDate: 'Échéance (optionnelle)',
         createContract: 'Créer le contrat',
         saveContract: 'Enregistrer le contrat',
         saveChanges: 'Enregistrer les modifications',
@@ -240,6 +246,8 @@ const fr = {
         showTitle: 'Contrat :season',
         signedWith: 'Signé avec :client',
         viewClientRecord: 'Voir la fiche du client',
+        printDocument: 'Imprimer le document',
+        downloadPdf: 'Télécharger le PDF',
         totalServices: 'Total des services',
         installments: 'Versements',
         installmentColumn: 'Versement',
@@ -271,6 +279,22 @@ const fr = {
         appearance: 'Apparence',
         language: 'Langue',
         billing: 'Facturation',
+        organization: 'Organisation',
+        organizationTitle: 'Nom de l’organisation',
+        organizationDescription:
+            'Le nom affiché dans l’application et sur votre facture',
+        ownershipTitle: 'Propriété',
+        ownershipDescription: 'Qui possède cette organisation',
+        ownerLabel: 'Propriétaire actuel : :name',
+        transferSelect: 'Nouveau propriétaire',
+        transferSelectPlaceholder: 'Choisir un membre',
+        transferDescription:
+            'Le nouveau propriétaire devient administrateur et conserve un accès complet; vous restez administrateur',
+        transferWarning:
+            'Cela ne pourra être annulé que par un transfert ultérieur. Choisissez avec soin.',
+        transferButton: 'Transférer la propriété',
+        noOtherMembers:
+            'Vous êtes le seul membre de cette organisation. Invitez des membres de l’équipe avant de transférer la propriété.',
         profileTitle: 'Renseignements du profil',
         profileDescription: 'Mettez à jour votre nom et votre adresse courriel',
         nameField: 'Nom',
@@ -359,10 +383,20 @@ const fr = {
         organizationPlaceholder: 'Nom de votre compagnie',
         fullNamePlaceholder: 'Nom complet',
         createAccountButton: 'Créer le compte',
+        acceptTermsPrefix: "J'accepte les",
+        termsOfService: "conditions d'utilisation",
+        acceptTermsConnector: 'et la',
+        privacyPolicy: 'politique de confidentialité',
         resetTitle: 'Réinitialiser votre mot de passe',
         resetDescription:
             'Veuillez saisir votre nouveau mot de passe ci-dessous',
         resetButton: 'Réinitialiser le mot de passe',
+        invitationTitle: 'Définir votre mot de passe',
+        invitationDescription:
+            'Vous avez été invité à rejoindre :organisation. Choisissez un mot de passe pour activer votre compte.',
+        invitationGenericDescription:
+            'Vous avez été invité à rejoindre un espace de travail. Choisissez un mot de passe pour activer votre compte.',
+        invitationButton: 'Définir le mot de passe',
         forgotTitle: 'Mot de passe oublié',
         forgotDescription:
             'Entrez votre adresse courriel pour recevoir un lien de réinitialisation',
@@ -402,23 +436,27 @@ const fr = {
         nameField: 'Nom',
         emailField: 'Adresse courriel',
         roleField: 'Rôle',
-        passwordField: 'Mot de passe',
         userCount: ':count utilisateur(s)',
         newUserTitle: 'Nouvel utilisateur',
         newUserDescription:
-            'Ajoutez un nouvel utilisateur en fournissant son nom, son courriel et son rôle',
+            'Ajoutez un membre de l’équipe — il recevra un courriel d’invitation pour choisir son propre mot de passe',
         editUserTitle: 'Modifier :name',
         editUserDescription:
-            "Mettez à jour le nom, le courriel, le mot de passe et le rôle de l'utilisateur",
+            'Mettez à jour le nom, le courriel et le rôle de l’utilisateur',
         selectRolePlaceholder: 'Choisir un rôle',
         detailsSection: 'Renseignements',
         detailsSectionDescription:
             'Qui est cette personne et comment la joindre',
-        passwordSection: 'Mot de passe',
-        passwordSectionDescription:
-            'Laissez vide pour conserver le mot de passe actuel',
         confirmPasswordField: 'Confirmer le mot de passe',
-        confirmNewPasswordField: 'Confirmer le nouveau mot de passe',
+        accessSection: 'Accès',
+        accessSectionDescription:
+            'Les identifiants de connexion sont toujours choisis par la personne qui les utilise',
+        pendingInvitation: 'Invitation en attente',
+        resendInvitation: 'Renvoyer l’invitation',
+        sendPasswordResetEmail: 'Envoyer un courriel de réinitialisation',
+        ownerRoleLocked:
+            'Le propriétaire de l’organisation est toujours administrateur',
+        owner: 'Propriétaire',
         saveChangesButton: 'Enregistrer les modifications',
         editUserAria: 'Modifier :name',
         deleteUserAria: 'Supprimer :name',
@@ -443,6 +481,8 @@ const fr = {
             'Attention : cette action est définitive. Toutes vos données seront supprimées.',
         deleteWarningBody:
             'Veuillez faire attention, cette action ne peut pas être annulée.',
+        deleteOwnerNote:
+            'Vous êtes le propriétaire de cette organisation. Transférez la propriété à un autre membre avant de supprimer votre compte.',
         deleteConfirmTitle: 'Êtes-vous sûr de vouloir supprimer votre compte?',
         deleteConfirmDescription:
             'Une fois votre compte supprimé, toutes ses ressources et données seront également supprimées de façon permanente. Veuillez saisir votre mot de passe pour confirmer que vous souhaitez supprimer définitivement votre compte.',

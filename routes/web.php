@@ -2,20 +2,30 @@
 
 declare(strict_types=1);
 
+use App\Actions\GetSystemStatus;
 use App\Http\Controllers\BillingController;
 use App\Http\Controllers\ClientController;
 use App\Http\Controllers\ContactInquiryController;
 use App\Http\Controllers\ContractController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\DownloadContractPdfController;
+use App\Http\Controllers\ExportSeasonPaymentsController;
+use App\Http\Controllers\GenerateContractPdfController;
 use App\Http\Controllers\LoginChallengeController;
 use App\Http\Controllers\MarkPaymentPaidController;
+use App\Http\Controllers\OrganizationController;
+use App\Http\Controllers\PrintContractDocumentController;
+use App\Http\Controllers\SendPaymentReminderController;
+use App\Http\Controllers\SendUserPasswordResetController;
 use App\Http\Controllers\SessionController;
 use App\Http\Controllers\StripeWebhookController;
+use App\Http\Controllers\TransferOrganizationOwnershipController;
 use App\Http\Controllers\UnmarkPaymentPaidController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\UserEmailResetNotificationController;
 use App\Http\Controllers\UserEmailVerificationController;
 use App\Http\Controllers\UserEmailVerificationNotificationController;
+use App\Http\Controllers\UserInvitationController;
 use App\Http\Controllers\UserManagementController;
 use App\Http\Controllers\UserPasswordController;
 use App\Http\Controllers\UserProfileController;
@@ -31,6 +41,11 @@ Route::get('contact', fn () => Inertia::render('marketing/contact'))->name('cont
 Route::post('contact', [ContactInquiryController::class, 'store'])
     ->middleware('throttle:10,1')
     ->name('contact.store');
+Route::get('terms', fn () => Inertia::render('marketing/terms'))->name('terms');
+Route::get('privacy', fn () => Inertia::render('marketing/privacy'))->name('privacy');
+Route::get('status', fn (GetSystemStatus $systemStatus) => Inertia::render('marketing/status', [
+    'components' => $systemStatus->handle(),
+]))->name('status');
 
 Route::middleware(['auth', 'verified:login-challenge.show'])->group(function (): void {
     Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
@@ -51,6 +66,9 @@ Route::middleware(['auth', 'verified:login-challenge.show'])->group(function ():
         Route::resource('users', UserManagementController::class)
             ->only(['index', 'create', 'store', 'edit', 'update', 'destroy'])
             ->names('users');
+
+        Route::post('users/{user}/send-password-reset', SendUserPasswordResetController::class)
+            ->name('users.send-password-reset');
     });
 
     // Clients (staff can browse; admins manage)...
@@ -92,12 +110,23 @@ Route::middleware(['auth', 'verified:login-challenge.show'])->group(function ():
         ->name('contracts.destroy');
 
     // Payments (admin: mark installments paid / cancel collection)...
+    Route::get('payments/export', ExportSeasonPaymentsController::class)
+        ->middleware('can:manage-contracts')
+        ->name('payments.export');
     Route::post('payments/{payment}/mark-paid', MarkPaymentPaidController::class)
         ->middleware('can:manage-contracts')
         ->name('payments.mark-paid');
+    Route::post('payments/{payment}/send-reminder', SendPaymentReminderController::class)
+        ->middleware('can:manage-contracts')
+        ->name('payments.send-reminder');
     Route::post('payments/{payment}/unmark', UnmarkPaymentPaidController::class)
         ->middleware('can:manage-contracts')
         ->name('payments.unmark');
+
+    // Contract documents (staff can print; PDFs are generated on the queue)...
+    Route::get('contracts/{contract}/print', PrintContractDocumentController::class)->name('contracts.print');
+    Route::post('contracts/{contract}/pdf', GenerateContractPdfController::class)->name('contracts.pdf.generate');
+    Route::get('contracts/{contract}/pdf', DownloadContractPdfController::class)->name('contracts.pdf.download');
 });
 
 Route::middleware('auth')->group(function (): void {
@@ -120,6 +149,14 @@ Route::middleware('auth')->group(function (): void {
 
     // Language...
     Route::get('settings/language', fn () => Inertia::render('locale/update'))->name('locale.edit');
+
+    // Organization (admin settings)...
+    Route::middleware('can:manage-organization')->group(function (): void {
+        Route::get('settings/organization', [OrganizationController::class, 'edit'])->name('organization.edit');
+        Route::put('settings/organization', [OrganizationController::class, 'update'])->name('organization.update');
+        Route::put('settings/organization/owner', TransferOrganizationOwnershipController::class)
+            ->name('organization.transfer');
+    });
 });
 
 Route::middleware('guest')->group(function (): void {
@@ -128,6 +165,12 @@ Route::middleware('guest')->group(function (): void {
         ->name('register');
     Route::post('register', [UserController::class, 'store'])
         ->name('register.store');
+
+    // User Invitation (staff onboarding)...
+    Route::get('accept-invitation/{token}', [UserInvitationController::class, 'create'])
+        ->name('user-invitation.create');
+    Route::post('accept-invitation', [UserInvitationController::class, 'store'])
+        ->name('user-invitation.store');
 
     // User Password...
     Route::get('reset-password/{token}', [UserPasswordController::class, 'create'])

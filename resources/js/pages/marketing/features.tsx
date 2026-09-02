@@ -2,18 +2,14 @@ import { Link } from '@inertiajs/react';
 import {
     ArrowRight,
     BarChart3,
-    Building,
-    Camera,
+    Building2,
     Check,
-    Cloudy,
     CreditCard,
-    Download,
-    FileCheck,
-    MessageSquare,
-    Radar,
+    FileSpreadsheet,
+    FileText,
+    Mail,
     Receipt,
-    Route,
-    Smartphone,
+    ShieldCheck,
     type LucideIcon,
 } from 'lucide-react';
 import * as React from 'react';
@@ -37,164 +33,188 @@ const iconTints = {
 
 type IconTint = keyof typeof iconTints;
 
-/* ── Visual 1 · Trigger configuration ───────────────────────────── */
-const triggerProperties = [
+/* ── Visual 1 · Client directory ────────────────────────────────── */
+const directoryClients = [
     {
-        address: '418 Summit Ave',
-        depth: '2.5 cm',
+        number: 'CL-0001',
+        name: 'Gestion Summit Inc.',
+        type: 'Commercial',
         active: true,
-        note: 'Priority 1 · plaza',
     },
     {
-        address: '82 Industrial Pkwy',
-        depth: '5 cm',
+        number: 'CL-0002',
+        name: 'M. Tremblay',
+        type: 'Residential',
         active: true,
-        note: 'Priority 2 · warehouse',
     },
     {
-        address: '1201 Harbor Ave',
-        depth: '10 cm',
+        number: 'CL-0003',
+        name: 'Harborview Condos',
+        type: 'Commercial',
         active: false,
-        note: 'paused · resumes Dec 1',
     },
-];
+] as const;
 
-/* Static look-alike of the Switch — decorative state indicator only,
-   so the mock contains no focusable controls. */
-function SwitchMock({ on }: { on: boolean }) {
-    return (
-        <span
-            aria-hidden="true"
-            className={cn(
-                'inline-flex h-[1.15rem] w-8 shrink-0 items-center rounded-full border border-transparent shadow-xs',
-                on ? 'bg-primary' : 'bg-input',
-            )}
-        >
-            <span
-                className={cn(
-                    'pointer-events-none block size-4 rounded-full transition-transform',
-                    on
-                        ? 'translate-x-[calc(100%-2px)] bg-background dark:bg-primary-foreground'
-                        : 'translate-x-0 bg-background dark:bg-foreground',
-                )}
-            />
-        </span>
-    );
-}
-
-function TriggerVisual() {
+function DirectoryVisual() {
     return (
         <div className="rounded-2xl border border-border bg-card p-5 shadow-frost-md">
-            <p className="font-mono text-xs font-medium tracking-[0.16em] text-muted-foreground uppercase">
-                Trigger configuration
-            </p>
+            <div className="flex items-center justify-between gap-3">
+                <p className="font-mono text-xs font-medium tracking-[0.16em] text-muted-foreground uppercase">
+                    Clients
+                </p>
+                <Badge
+                    variant="outline"
+                    className="border-info/25 bg-info/10 text-info"
+                >
+                    1 season · 3 records
+                </Badge>
+            </div>
 
             <div className="mt-4 flex flex-col gap-2.5">
-                {triggerProperties.map((property) => (
+                {directoryClients.map((client) => (
                     <div
-                        key={property.address}
+                        key={client.number}
                         className="flex items-center justify-between gap-3 rounded-lg border border-border bg-muted/30 px-3.5 py-2.5"
                     >
                         <div className="min-w-0">
                             <p className="truncate font-mono text-xs font-medium">
-                                {property.address}
+                                {client.name}
                             </p>
                             <p className="mt-0.5 text-[11px] text-muted-foreground">
-                                {property.note}
+                                {client.number} · {client.type}
                             </p>
                         </div>
-                        <div className="flex shrink-0 items-center gap-3">
-                            <span className="rounded-full bg-glacier-500/10 px-2.5 py-1 font-mono text-xs text-glacier-700 dark:text-glacier-400">
-                                {property.depth}
-                            </span>
-                            <SwitchMock on={property.active} />
-                        </div>
+                        <Badge
+                            variant="outline"
+                            className={cn(
+                                'shrink-0',
+                                client.active
+                                    ? 'border-success/25 bg-success/10 text-success'
+                                    : 'border-border bg-muted text-muted-foreground',
+                            )}
+                        >
+                            {client.active ? 'Contracted' : 'No contract'}
+                        </Badge>
                     </div>
                 ))}
             </div>
 
             <div className="mt-4 flex items-center justify-between border-t border-border pt-3.5">
                 <div className="flex items-center gap-2">
-                    <Radar
+                    <Building2
                         aria-hidden="true"
                         className="size-4 text-glacier-600 dark:text-glacier-400"
                     />
                     <p className="font-mono text-xs text-muted-foreground">
-                        Snowfall 1.4 cm/hr · rising
+                        Address · phone · email · notes
                     </p>
                 </div>
-                <Badge
-                    variant="outline"
-                    className="border-info/25 bg-info/10 text-info"
-                >
-                    Armed
-                </Badge>
             </div>
         </div>
     );
 }
 
-/* ── Visual 2 · Route sheet ─────────────────────────────────────── */
-const stopStatuses = {
-    completed: {
-        label: 'Completed',
-        dot: 'bg-success',
-        text: 'text-success',
-    },
-    active: {
-        label: 'In progress',
-        dot: 'bg-glacier-500',
-        text: 'text-glacier-600 dark:text-glacier-400',
-    },
-    enroute: { label: 'En route', dot: 'bg-info', text: 'text-info' },
-    scheduled: {
-        label: 'Scheduled',
-        dot: 'bg-muted-foreground/40',
-        text: 'text-muted-foreground',
-    },
-} as const;
+/* ── Visual 2 · Contract with service lines ─────────────────────── */
+const contractServices = [
+    { label: 'Driveway — 2 parking spaces', amount: '$450' },
+    { label: 'Walkway — front entrance', amount: '$180' },
+    { label: 'Salting — on call', amount: '$220' },
+] as const;
 
-type StopStatus = keyof typeof stopStatuses;
-
-const routeStops: { address: string; status: StopStatus }[] = [
-    { address: '706 Birchwood Ln', status: 'completed' },
-    { address: '118 Maple Grove Dr', status: 'active' },
-    { address: '44 Frontage Rd', status: 'enroute' },
-    { address: '9 Old Mill Ct', status: 'scheduled' },
-];
-function RouteVisual() {
+function ContractVisual() {
     return (
         <div className="rounded-2xl border border-border bg-card p-5 shadow-frost-md">
             <div className="flex items-center justify-between gap-3">
                 <div>
                     <p className="text-sm font-semibold">
-                        Route 12 · Northside
+                        Seasonal contract · 2026–27
                     </p>
                     <p className="mt-0.5 font-mono text-[11px] text-muted-foreground">
-                        Crew 4 · truck 12
+                        Gestion Summit Inc.
                     </p>
                 </div>
                 <Badge
                     variant="outline"
                     className="border-ember-500/30 bg-ember-500/10 text-ember-700 dark:text-ember-400"
                 >
-                    Priority re-sort
+                    3 services
+                </Badge>
+            </div>
+
+            <div className="mt-4 flex flex-col gap-2.5 rounded-lg border border-border bg-muted/30 p-3.5">
+                {contractServices.map((service) => (
+                    <div
+                        key={service.label}
+                        className="flex items-baseline justify-between gap-4"
+                    >
+                        <p className="font-mono text-xs text-muted-foreground">
+                            {service.label}
+                        </p>
+                        <p className="font-mono text-xs font-medium">
+                            {service.amount}
+                        </p>
+                    </div>
+                ))}
+            </div>
+
+            <div className="mt-4 flex items-center justify-between border-t border-border pt-4">
+                <p className="font-mono text-[11px] text-muted-foreground">
+                    Contract total
+                </p>
+                <p className="text-lg font-semibold tabular-nums">$850</p>
+            </div>
+        </div>
+    );
+}
+
+/* ── Visual 3 · Payment slots ───────────────────────────────────── */
+const paymentSlots = [
+    { slot: 'Deposit', amount: '$200', status: 'paid' },
+    { slot: '1st installment', amount: '$300', status: 'paid' },
+    { slot: '2nd installment', amount: '$250', status: 'due' },
+    { slot: 'Balance', amount: '$100', status: 'due' },
+] as const;
+
+const slotStatusStyles = {
+    paid: {
+        label: 'Paid · cheque',
+        dot: 'bg-success',
+        text: 'text-success',
+    },
+    due: {
+        label: 'Not yet paid',
+        dot: 'bg-muted-foreground/40',
+        text: 'text-muted-foreground',
+    },
+} as const;
+
+function PaymentsVisual() {
+    return (
+        <div className="rounded-2xl border border-border bg-card p-5 shadow-frost-md">
+            <div className="flex items-center justify-between gap-3">
+                <p className="text-sm font-semibold">Payments · contract</p>
+                <Badge
+                    variant="outline"
+                    className="border-glacier-500/30 bg-glacier-500/10 text-glacier-700 dark:text-glacier-400"
+                >
+                    2 of 4 collected
                 </Badge>
             </div>
 
             <ol className="mt-4 flex flex-col gap-2.5">
-                {routeStops.map((stop, index) => {
-                    const status = stopStatuses[stop.status];
+                {paymentSlots.map((slot) => {
+                    const status =
+                        slotStatusStyles[slot.status as 'paid' | 'due'];
                     return (
                         <li
-                            key={stop.address}
-                            className="flex items-center gap-3 rounded-lg border border-border bg-muted/30 px-3.5 py-2.5"
+                            key={slot.slot}
+                            className="flex items-center justify-between gap-3 rounded-lg border border-border bg-muted/30 px-3.5 py-2.5"
                         >
-                            <span className="flex size-6 shrink-0 items-center justify-center rounded-full border border-border font-mono text-[11px] text-muted-foreground">
-                                {index + 1}
-                            </span>
                             <span className="min-w-0 flex-1 truncate font-mono text-xs font-medium">
-                                {stop.address}
+                                {slot.slot}
+                                <span className="ml-2 text-muted-foreground">
+                                    {slot.amount}
+                                </span>
                             </span>
                             <span
                                 className={cn(
@@ -219,13 +239,13 @@ function RouteVisual() {
             <div className="mt-4 border-t border-border pt-3.5">
                 <div className="flex items-center justify-between">
                     <p className="font-mono text-xs text-muted-foreground">
-                        9 stops · 14.2 km · ETA 12 min
+                        $500 collected of $850
                     </p>
-                    <p className="font-mono text-xs font-medium">56%</p>
+                    <p className="font-mono text-xs font-medium">59%</p>
                 </div>
                 <Progress
-                    value={56}
-                    aria-label="Route 12 progress: 5 of 9 stops complete"
+                    value={59}
+                    aria-label="Payments collected: 500 of 850 dollars"
                     className="mt-2.5 h-1.5"
                 />
             </div>
@@ -233,155 +253,11 @@ function RouteVisual() {
     );
 }
 
-/* ── Visual 3 · Driver app phone mock ───────────────────────────── */
-function DriverAppVisual() {
-    return (
-        <div className="mx-auto w-64 rounded-[2rem] border border-border bg-card p-3 shadow-frost-lg">
-            <div className="flex items-center justify-between px-1.5 pt-1">
-                <p className="font-mono text-[11px] font-medium">3:12</p>
-                <div aria-hidden="true" className="flex items-end gap-0.5">
-                    <span className="h-1 w-0.5 rounded-full bg-foreground/60" />
-                    <span className="h-1.5 w-0.5 rounded-full bg-foreground/60" />
-                    <span className="h-2 w-0.5 rounded-full bg-foreground/60" />
-                    <span className="h-2.5 w-0.5 rounded-full bg-foreground/25" />
-                </div>
-            </div>
-
-            <div className="mt-3 rounded-2xl bg-muted/40 p-3.5">
-                <p className="font-mono text-[10px] font-medium tracking-[0.16em] text-muted-foreground uppercase">
-                    Next stop
-                </p>
-                <p className="mt-1.5 truncate font-mono text-sm font-medium">
-                    118 Maple Grove Dr
-                </p>
-                <Badge
-                    variant="outline"
-                    className="mt-2.5 border-info/25 bg-info/10 text-info"
-                >
-                    En route
-                </Badge>
-                <div className="mt-3 flex gap-1.5">
-                    <Badge
-                        variant="outline"
-                        className="px-2 font-mono text-[10px] tracking-wider uppercase"
-                    >
-                        Plow
-                    </Badge>
-                    <Badge
-                        variant="outline"
-                        className="px-2 font-mono text-[10px] tracking-wider uppercase"
-                    >
-                        Salt
-                    </Badge>
-                </div>
-            </div>
-
-            <div className="mt-3 flex flex-col gap-2">
-                <span className={cn(buttonVariants(), 'h-12 w-full text-sm')}>
-                    Arrived · start pass
-                </span>
-                <span
-                    className={cn(
-                        buttonVariants({ variant: 'outline' }),
-                        'h-12 w-full text-sm',
-                    )}
-                >
-                    <Camera aria-hidden="true" className="size-4" />
-                    Photo proof
-                </span>
-            </div>
-
-            <p className="mt-3 pb-1 text-center font-mono text-[10px] text-muted-foreground">
-                Sync queued · offline
-            </p>
-        </div>
-    );
-}
-
-/* ── Visual 4 · Pass log timeline ───────────────────────────────── */
-const passEvents = [
-    {
-        time: '01:58',
-        label: 'Plow pass complete',
-        caption: 'Site A · main lot',
-        verified: false,
-    },
-    {
-        time: '02:17',
-        label: 'Salt applied · 220 kg',
-        caption: 'Site A · driveways',
-        verified: false,
-    },
-    {
-        time: '02:41',
-        label: 'Plow pass complete',
-        caption: 'Site B · east lot',
-        verified: true,
-    },
+/* ── Visual 4 · Invoice & receipt ───────────────────────────────── */
+const receiptLines = [
+    { label: 'Deposit — received 12 Nov', amount: '$200' },
+    { label: '1st installment — received 15 Jan', amount: '$300' },
 ] as const;
-
-function ProofVisual() {
-    return (
-        <div className="rounded-2xl border border-border bg-card p-5 shadow-frost-md">
-            <div className="flex items-center justify-between">
-                <p className="text-sm font-semibold">Pass log · JOB-2041</p>
-                <p className="font-mono text-[11px] text-muted-foreground">
-                    Crew 4 · Feb 3
-                </p>
-            </div>
-
-            <div className="relative mt-5">
-                <div
-                    aria-hidden="true"
-                    className="absolute top-4 bottom-4 left-[4.25rem] w-px bg-border"
-                />
-                <ol className="flex flex-col gap-5">
-                    {passEvents.map((event) => (
-                        <li key={event.time} className="flex items-start gap-3">
-                            <span className="w-10 shrink-0 pt-2 font-mono text-xs text-muted-foreground">
-                                {event.time}
-                            </span>
-                            {/* Opaque card base + ring masks the timeline line; inner span carries the tint */}
-                            <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-card ring-4 ring-card">
-                                <span className="flex size-8 items-center justify-center rounded-lg bg-glacier-500/10 text-glacier-600 dark:text-glacier-400">
-                                    <Camera
-                                        aria-hidden="true"
-                                        className="size-4"
-                                    />
-                                </span>
-                            </span>
-                            <div className="min-w-0 pt-0.5">
-                                <div className="flex flex-wrap items-center gap-2">
-                                    <p className="text-sm font-medium">
-                                        {event.label}
-                                    </p>
-                                    {event.verified ? (
-                                        <Badge
-                                            variant="outline"
-                                            className="border-glacier-500/30 bg-glacier-500/10 text-glacier-700 dark:text-glacier-400"
-                                        >
-                                            Verified
-                                        </Badge>
-                                    ) : null}
-                                </div>
-                                <p className="mt-1 font-mono text-[11px] text-muted-foreground">
-                                    {event.caption}
-                                </p>
-                            </div>
-                        </li>
-                    ))}
-                </ol>
-            </div>
-        </div>
-    );
-}
-
-/* ── Visual 5 · Invoice ─────────────────────────────────────────── */
-const invoiceItems = [
-    { label: 'Plow pass — driveways ×2', amount: '$180' },
-    { label: 'Salting — lot B · 220 kg', amount: '$410' },
-    { label: 'Priority dispatch surcharge', amount: '$690' },
-];
 
 function InvoiceVisual() {
     return (
@@ -391,56 +267,129 @@ function InvoiceVisual() {
                     <Receipt aria-hidden="true" className="size-4" />
                 </span>
                 <div className="min-w-0">
-                    <p className="text-sm font-medium">Invoice #INV-2043</p>
+                    <p className="text-sm font-medium">Receipt · contract</p>
                     <p className="mt-0.5 font-mono text-[11px] text-muted-foreground">
-                        Issued 06:12 · 2h after final pass
+                        Gestion Summit Inc. · 2 payments
                     </p>
                 </div>
             </div>
 
-            <div className="mt-4 flex items-center justify-between border-t border-border pt-4">
-                <p className="text-2xl font-semibold tabular-nums">
-                    1,280.00{' '}
-                    <span className="text-sm font-normal text-muted-foreground">
-                        USD
-                    </span>
-                </p>
-                <Badge
-                    variant="outline"
-                    className="border-success/25 bg-success/10 text-success"
-                >
-                    Paid
-                </Badge>
-            </div>
-
             <div className="mt-4 flex flex-col gap-2.5 rounded-lg border border-border bg-muted/30 p-3.5">
-                {invoiceItems.map((item) => (
+                {receiptLines.map((line) => (
                     <div
-                        key={item.label}
+                        key={line.label}
                         className="flex items-baseline justify-between gap-4"
                     >
                         <p className="font-mono text-xs text-muted-foreground">
-                            {item.label}
+                            {line.label}
                         </p>
                         <p className="font-mono text-xs font-medium">
-                            {item.amount}
+                            {line.amount}
                         </p>
                     </div>
                 ))}
             </div>
 
             <div className="mt-4 flex items-center justify-between border-t border-border pt-4">
-                <span
-                    className={cn(
-                        buttonVariants({ variant: 'outline', size: 'sm' }),
-                    )}
-                >
-                    <Download aria-hidden="true" className="size-3.5" />
-                    View invoice
-                </span>
+                <div className="flex gap-1.5">
+                    <span
+                        className={cn(
+                            buttonVariants({ variant: 'outline' }),
+                            'h-9 px-3 text-xs',
+                        )}
+                    >
+                        <FileText aria-hidden="true" className="size-3.5" />
+                        Print
+                    </span>
+                    <span
+                        className={cn(
+                            buttonVariants({ variant: 'outline' }),
+                            'h-9 px-3 text-xs',
+                        )}
+                    >
+                        <Mail aria-hidden="true" className="size-3.5" />
+                        Email
+                    </span>
+                </div>
                 <p className="font-mono text-[11px] text-muted-foreground">
-                    NET-14 · auto-sent
+                    Amounts from the contract
                 </p>
+            </div>
+        </div>
+    );
+}
+
+/* ── Visual 5 · Dashboard ───────────────────────────────────────── */
+function DashboardVisual() {
+    return (
+        <div className="rounded-2xl border border-border bg-card p-5 shadow-frost-md">
+            <div className="flex items-center justify-between gap-3">
+                <p className="text-sm font-semibold">Season dashboard</p>
+                <Badge
+                    variant="outline"
+                    className="border-success/25 bg-success/10 text-success"
+                >
+                    Live totals
+                </Badge>
+            </div>
+
+            {/* KPI row */}
+            <div className="mt-4 grid grid-cols-3 gap-3">
+                <div className="rounded-lg border border-border bg-muted/40 p-3">
+                    <p className="font-mono text-[10px] tracking-wider text-muted-foreground uppercase">
+                        Collected
+                    </p>
+                    <p className="mt-1.5 text-lg font-semibold tabular-nums">
+                        $41.2k
+                    </p>
+                </div>
+                <div className="rounded-lg border border-border bg-muted/40 p-3">
+                    <p className="font-mono text-[10px] tracking-wider text-muted-foreground uppercase">
+                        Outstanding
+                    </p>
+                    <p className="mt-1.5 text-lg font-semibold tabular-nums">
+                        $12.8k
+                    </p>
+                </div>
+                <div className="rounded-lg border border-border bg-muted/40 p-3">
+                    <p className="font-mono text-[10px] tracking-wider text-muted-foreground uppercase">
+                        Clients
+                    </p>
+                    <p className="mt-1.5 text-lg font-semibold tabular-nums">
+                        118
+                    </p>
+                </div>
+            </div>
+
+            {/* Decorative revenue chart */}
+            <div
+                aria-hidden="true"
+                className="mt-4 rounded-lg border border-border bg-muted/30 p-3"
+            >
+                <p className="font-mono text-[10px] tracking-wider text-muted-foreground uppercase">
+                    Revenue by month
+                </p>
+                <div className="mt-3 flex h-24 items-end gap-1.5">
+                    {[35, 55, 45, 70, 62, 82, 95].map((height, index) => (
+                        <div
+                            key={index}
+                            style={{ height: `${height}%` }}
+                            className="flex-1 rounded-t-sm bg-linear-to-t from-glacier-500/70 to-glacier-400/80"
+                        />
+                    ))}
+                </div>
+            </div>
+
+            <div className="mt-4 flex items-center justify-between border-t border-border pt-3.5">
+                <div className="flex items-center gap-2">
+                    <BarChart3
+                        aria-hidden="true"
+                        className="size-4 text-glacier-600 dark:text-glacier-400"
+                    />
+                    <p className="font-mono text-xs text-muted-foreground">
+                        Revenue & client growth
+                    </p>
+                </div>
             </div>
         </div>
     );
@@ -457,71 +406,74 @@ interface FeatureRowData {
     Visual: React.ComponentType;
 }
 
+/* NOTE: The "print or email" item below is a launch commitment — it must
+   ship before this page goes live. The season CSV export is live on the
+   contracts page of the app. */
 const featureRows: FeatureRowData[] = [
     {
-        icon: Radar,
-        eyebrow: '01 · Dispatch',
-        title: 'Weather-triggered dispatch',
-        copy: 'The worst calls are the ones you make at 2 a.m. with half the information. Every property carries its own trigger depth, armed by pavement sensors and hyperlocal weather feeds — so the closest crew is dispatched the moment accumulation crosses the line, before the roads get dangerous and before the phones start ringing.',
+        icon: Building2,
+        eyebrow: '01 · Clients',
+        title: 'A client directory that ends the phone book',
+        copy: 'Every snow business runs on the same fragile system: a binder, a spreadsheet, and one person who remembers which entrance has the hidden fire hydrant. Frostline OPS gives every client a record — commercial or residential, billing and postal address, phone numbers, email, and the notes that only you know.',
         bullets: [
-            'Per-contract trigger depths',
-            'Pavement-temperature aware',
-            'Full manual override',
+            'Commercial & residential clients',
+            'Billing & postal addresses, phones, email',
+            'Free-form remarks per client',
         ],
         tint: 'glacier',
-        Visual: TriggerVisual,
+        Visual: DirectoryVisual,
     },
     {
-        icon: Route,
-        eyebrow: '02 · Routes',
-        title: 'Smart route optimization',
-        copy: 'A route that only lives in one dispatcher\u2019s head is a route that fails when they\u2019re asleep. The optimizer sequences every stop by priority, fuel, and shift hours — not just shortest distance. And when a truck drops out mid-storm, the remaining stops are re-sorted and pushed to every driver in seconds.',
+        icon: FileSpreadsheet,
+        eyebrow: '02 · Contracts',
+        title: 'Seasonal contracts, written down',
+        copy: 'One contract per client per season, made of itemized service lines — driveway, walkway, salting, whatever you actually sell. The total is the sum of its lines, so the number you and the client agreed on is the number in the system. When someone asks what they paid for, the answer is a list, not a shrug.',
         bullets: [
-            'Priority-aware sequencing',
-            'Live re-route on breakdown',
-            'Fuel and shift-hour constraints',
+            'One contract per client per season',
+            'Itemized service lines with amounts',
+            'Contract totals computed from lines',
         ],
         tint: 'ember',
-        Visual: RouteVisual,
+        Visual: ContractVisual,
     },
     {
-        icon: Smartphone,
-        eyebrow: '03 · Driver app',
-        title: 'Driver-first mobile app',
-        copy: 'Most software was designed for a desk, a mouse, and good lighting — none of which exist in a cab at -30°. The driver app is offline-first and built for gloves and glare: from arrival to photo proof, a full stop takes three taps or fewer, and everything else syncs when signal returns.',
+        icon: CreditCard,
+        eyebrow: '03 · Payments',
+        title: 'Payment tracking without the shoebox',
+        copy: 'Snow contracts are paid in pieces — a deposit in October, installments through the winter, the balance in spring. Each piece gets a slot on the contract, marked paid with the method and date as the money arrives. The question "who still owes us?" stops requiring an afternoon of reconciliation.',
         bullets: [
-            'Works in dead zones',
-            'Glove-friendly 44px+ targets',
-            'Photo + timestamp in one tap',
+            'Deposit, installments & balance slots',
+            'Method & date recorded when marked paid',
+            'At-a-glance collected vs. outstanding',
         ],
         tint: 'glacier',
-        Visual: DriverAppVisual,
-    },
-    {
-        icon: Camera,
-        eyebrow: '04 · Proof',
-        title: 'Proof of service',
-        copy: '"Are you sure lot B was done?" is a question that should never start an argument. Every pass ends with a geo-stamped photo and a field-verified timestamp, attached to the exact invoice line it belongs to — so the answer is always evidence, never a phone call.',
-        bullets: [
-            'Dispute-ending photo trail',
-            'Geo + time verified in the field, not on upload',
-            'Client portal access',
-        ],
-        tint: 'ember',
-        Visual: ProofVisual,
+        Visual: PaymentsVisual,
     },
     {
         icon: Receipt,
-        eyebrow: '05 · Billing',
-        title: 'Billing that keeps up',
-        copy: 'The storm ends at dawn — the paperwork shouldn\u2019t eat the whole week. Per-storm, seasonal, and per-push contracts compile into invoices within 24 hours of the final pass, with photos, salt usage, and surcharges itemized. NET-14 is the standard, not an upgrade.',
+        eyebrow: '04 · Invoices & receipts',
+        title: 'Invoices and receipts, from the numbers you already have',
+        copy: 'Retyping amounts into a word-processor template is how errors — and arguments — start. Print or email an invoice or payment receipt straight from the contract; the amounts come from the services and payments already recorded, so what the client receives matches what you track.',
         bullets: [
-            'Mixed contract types per client',
-            'Photos + salt usage itemized',
-            'Accounting software sync',
+            'Printable invoices & payment receipts',
+            'Email directly from the contract',
+            'Amounts drawn from recorded services & payments',
+        ],
+        tint: 'ember',
+        Visual: InvoiceVisual,
+    },
+    {
+        icon: BarChart3,
+        eyebrow: '05 · Dashboard',
+        title: 'See the season before it ends',
+        copy: 'Most snow businesses discover their collections problem in April, when it is too late to fix it. The dashboard charts revenue and client growth as the season unfolds, so you can see where the money actually is — collected, outstanding, and by which clients — while there is still snow on the ground.',
+        bullets: [
+            'Revenue chart for the season',
+            'Client growth over time',
+            'Collected vs. outstanding at a glance',
         ],
         tint: 'glacier',
-        Visual: InvoiceVisual,
+        Visual: DashboardVisual,
     },
 ];
 
@@ -575,43 +527,65 @@ function FeatureRow({ row, index }: { row: FeatureRowData; index: number }) {
     );
 }
 
-/* ── Integrations strip ─────────────────────────────────────────── */
-const integrations: { name: string; icon: LucideIcon }[] = [
-    { name: 'Accounting', icon: FileCheck },
-    { name: 'Weather feeds', icon: Cloudy },
-    { name: 'Communications', icon: MessageSquare },
-    { name: 'Payments', icon: CreditCard },
-    { name: 'Payroll', icon: Building },
-    { name: 'Reporting', icon: BarChart3 },
+/* ── Also-included strip ────────────────────────────────────────── */
+const alsoIncluded: { name: string; icon: LucideIcon }[] = [
+    { name: 'Season CSV export', icon: FileSpreadsheet },
+    { name: 'Payment notifications', icon: Mail },
+    { name: 'Team & roles', icon: ShieldCheck },
+    { name: 'Bilingual EN/FR', icon: FileText },
+    { name: 'Dark mode', icon: BarChart3 },
 ];
 
-function IntegrationsStrip() {
+function AlsoIncludedStrip() {
     return (
         <MarketingSection
-            eyebrow="Connections"
-            title="Plays well with your back office"
+            eyebrow="Also included"
+            title="The rest of the back office"
             className="py-12 md:py-16"
         >
             <div className="flex flex-wrap items-center justify-center gap-2.5">
-                {integrations.map((integration) => {
-                    const Icon = integration.icon;
+                {alsoIncluded.map((item) => {
+                    const Icon = item.icon;
                     return (
                         <span
-                            key={integration.name}
+                            key={item.name}
                             className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-4 py-2 text-sm font-medium transition hover:border-glacier-500/40 hover:shadow-frost-xs"
                         >
                             <Icon
                                 aria-hidden="true"
                                 className="size-4 text-glacier-600 dark:text-glacier-400"
                             />
-                            {integration.name}
+                            {item.name}
                         </span>
                     );
                 })}
             </div>
             <p className="mt-6 text-center font-mono text-xs tracking-[0.14em] text-muted-foreground uppercase">
-                API + webhooks on Fleet plans
+                On every plan — no feature gates on the basics
             </p>
+        </MarketingSection>
+    );
+}
+
+/* ── Scope note ─────────────────────────────────────────────────── */
+function ScopeNote() {
+    return (
+        <MarketingSection
+            eyebrow="Honest scope"
+            title="What we deliberately don't do (yet)"
+            className="py-12 md:py-16"
+        >
+            <div className="mx-auto max-w-2xl rounded-xl border border-border bg-card px-5 text-center md:px-6">
+                <p className="text-sm leading-relaxed text-muted-foreground">
+                    Frostline OPS is a back office, not a dispatch system.
+                    Weather-triggered dispatch, route optimization, a driver
+                    app, photo proof-of-service, and a client portal are on our
+                    roadmap — but they are not in the product today, and we
+                    would rather you know that now than discover it in January.
+                    If running crews in the field is your priority this season,
+                    we will happily tell you we are not your tool — yet.
+                </p>
+            </div>
         </MarketingSection>
     );
 }
@@ -624,9 +598,9 @@ export default function Features() {
             route={ROUTES.features}
         >
             <PageHero
-                eyebrow="The platform"
-                title="Built for the night the forecast turns"
-                description="When the forecast turns, you shouldn't be rebuilding routes on a whiteboard. Six systems that replace the whiteboard, the group chat, and the shoebox of receipts — from the first flake to the final invoice."
+                eyebrow="The product"
+                title="The back office your snow business runs on"
+                description="Clients, contracts, payments, invoices — the five systems that replace the binder, the spreadsheet, and the shoebox of receipts. Built for the season, from first contract to final balance."
             >
                 <Button asChild size="lg">
                     <Link href={ROUTES.contact}>
@@ -646,11 +620,13 @@ export default function Features() {
                 ))}
             </div>
 
-            <IntegrationsStrip />
+            <AlsoIncludedStrip />
+
+            <ScopeNote />
 
             <CTABand
-                title="See it on your routes"
-                description="Bring your property list to a 20-minute demo — we'll import it live and route your first storm before the call ends."
+                title="Set up before the snow flies"
+                description="Bring your client list — we'll import it and set up your first season's contracts and payment schedules with you."
             />
         </MarketingLayout>
     );

@@ -43,6 +43,8 @@ type ServiceRow = {
 
 type PaymentRow = {
     amount: string;
+    /** Optional reminder due date, as a `YYYY-MM-DD` input value. */
+    dueDate?: string;
     paid?: boolean;
 };
 
@@ -123,10 +125,14 @@ export default function ContractForm({
             ),
         );
 
-    const updatePayment = (slot: string, value: string) =>
+    const updatePayment = (
+        slot: string,
+        field: 'amount' | 'dueDate',
+        value: string,
+    ) =>
         setPayments((current) => ({
             ...current,
-            [slot]: { ...current[slot], amount: value },
+            [slot]: { ...current[slot], [field]: value },
         }));
 
     const balanced = servicesTotal === paymentsTotal;
@@ -146,9 +152,13 @@ export default function ContractForm({
                 payments: Object.fromEntries(
                     slots.map((slot) => [
                         slot.value,
-                        Math.round(
-                            (Number(payments[slot.value]?.amount) || 0) * 100,
-                        ),
+                        {
+                            amount: Math.round(
+                                (Number(payments[slot.value]?.amount) || 0) *
+                                    100,
+                            ),
+                            dueDate: payments[slot.value]?.dueDate || null,
+                        },
                     ]),
                 ),
             })}
@@ -334,27 +344,54 @@ export default function ContractForm({
                                                 </Badge>
                                             )}
                                         </Label>
-                                        <Input
-                                            id={`payments-${slot.value}`}
-                                            type="number"
-                                            min="0"
-                                            step="0.01"
-                                            disabled={locked}
-                                            name={`payments[${slot.value}]`}
-                                            value={payment.amount}
-                                            onChange={(event) =>
-                                                updatePayment(
-                                                    slot.value,
-                                                    event.target.value,
-                                                )
-                                            }
-                                            placeholder={
-                                                t.contracts
-                                                    .paymentAmountPlaceholder
-                                            }
-                                        />
+                                        <div className="grid grid-cols-[1fr_140px] gap-2">
+                                            <Input
+                                                id={`payments-${slot.value}`}
+                                                type="number"
+                                                min="0"
+                                                step="0.01"
+                                                disabled={locked}
+                                                name={`payments[${slot.value}][amount]`}
+                                                value={payment.amount}
+                                                onChange={(event) =>
+                                                    updatePayment(
+                                                        slot.value,
+                                                        'amount',
+                                                        event.target.value,
+                                                    )
+                                                }
+                                                placeholder={
+                                                    t.contracts
+                                                        .paymentAmountPlaceholder
+                                                }
+                                            />
+                                            <Input
+                                                id={`payments-${slot.value}-dueDate`}
+                                                type="date"
+                                                disabled={locked}
+                                                name={`payments[${slot.value}][dueDate]`}
+                                                value={payment.dueDate ?? ''}
+                                                onChange={(event) =>
+                                                    updatePayment(
+                                                        slot.value,
+                                                        'dueDate',
+                                                        event.target.value,
+                                                    )
+                                                }
+                                                aria-label={
+                                                    t.contracts.paymentDueDate
+                                                }
+                                                title={
+                                                    t.contracts.paymentDueDate
+                                                }
+                                                data-test={`payments-${slot.value}-dueDate`}
+                                            />
+                                        </div>
                                         <InputError
                                             message={
+                                                errors[
+                                                    `payments.${slot.value}.amount`
+                                                ] ??
                                                 errors[`payments.${slot.value}`]
                                             }
                                         />

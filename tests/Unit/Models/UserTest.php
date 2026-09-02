@@ -21,6 +21,7 @@ test('to array', function (): void {
             'updated_at',
             'role',
             'organization_id',
+            'invitation_accepted_at',
         ]);
 });
 

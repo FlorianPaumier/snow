@@ -1,5 +1,5 @@
 export type User = {
-    id: number;
+    id: string;
     name: string;
     email: string;
     avatar?: string;
@@ -12,6 +12,7 @@ export type User = {
 export type Organization = {
     id: string;
     name: string;
+    ownerId: string | null;
 };
 
 export type Subscription = {
@@ -30,5 +31,6 @@ export type Auth = {
         manageClients?: boolean;
         manageContracts?: boolean;
         manageBilling?: boolean;
+        manageOrganization?: boolean;
     };
 };

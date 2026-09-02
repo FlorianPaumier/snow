@@ -6,5 +6,6 @@
     "Password updated.": "Password updated.",
     "Profile updated.": "Profile updated.",
     "A reset link will be sent if the account exists.": "A reset link will be sent if the account exists.",
-    "Your :plan plan allows :count :resource. Upgrade to add more.": "Your :plan plan allows :count :resource. Upgrade to add more."
+    "Your :plan plan allows :count :resource. Upgrade to add more.": "Your :plan plan allows :count :resource. Upgrade to add more.",
+    "You must accept the Terms of Service and the Privacy Policy to create an account.": "You must accept the Terms of Service and the Privacy Policy to create an account."
 }

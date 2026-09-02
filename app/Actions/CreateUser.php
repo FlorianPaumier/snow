@@ -7,21 +7,27 @@ namespace App\Actions;
 use App\Exceptions\PlanLimitExceeded;
 use App\Models\Organization;
 use App\Models\User;
-use Illuminate\Auth\Events\Registered;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use SensitiveParameter;
+use Illuminate\Support\Str;
 
 final readonly class CreateUser
 {
-    public function __construct(private GetPlanLimits $getPlanLimits) {}
+    public function __construct(
+        private GetPlanLimits $getPlanLimits,
+        private SendUserInvitation $sendUserInvitation,
+    ) {}
 
     /**
+     * Create a staff member without admin-chosen credentials: the password
+     * is a throwaway until the invited person sets their own through the
+     * invitation email.
+     *
      * @param  array<string, mixed>  $attributes
      */
-    public function handle(array $attributes, #[SensitiveParameter] string $password): User
+    public function handle(array $attributes): User
     {
-        return DB::transaction(function () use ($attributes, $password): User {
+        return DB::transaction(function () use ($attributes): User {
             $organizationId = Auth::user()?->organization_id;
 
             $this->assertWithinUserLimit($organizationId);
@@ -30,10 +36,12 @@ final readonly class CreateUser
                 ...$attributes,
                 // New staff members join the creating admin's organization...
                 'organization_id' => $attributes['organization_id'] ?? $organizationId,
-                'password' => $password,
+                'password' => Str::password(32),
+                'email_verified_at' => null,
+                'invitation_accepted_at' => null,
             ]);
 
-            event(new Registered($user));
+            $this->sendUserInvitation->handle($user, Auth::user()?->name);
 
             return $user;
         });

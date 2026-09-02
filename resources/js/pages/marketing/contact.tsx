@@ -50,8 +50,8 @@ function xsrfToken(): string | null {
 
 const QUICK_FACTS = [
     { value: '2h', label: 'median first reply' },
-    { value: '24/7', label: 'storm-season support' },
-    { value: '11 min', label: 'median dispatch time' },
+    { value: 'EN/FR', label: 'bilingual support' },
+    { value: '14-day', label: 'free trial, no card' },
 ] as const;
 
 function validateField(
@@ -275,7 +275,7 @@ export default function Contact() {
                 compact
                 eyebrow="Contact"
                 title="Get your season under control"
-                description="Questions, a tricky operation to untangle, or ready to start — tell us where it hurts. Median first reply: 2 business hours."
+                description="Questions, a tricky client book to untangle, or ready to start — tell us where it hurts. Median first reply: 2 business hours."
             />
 
             {/* Form + info column */}
@@ -287,8 +287,9 @@ export default function Contact() {
                                 Start your trial
                             </h2>
                             <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-                                Tell us about your operation — we'll set you up
-                                before the next system moves through.
+                                Tell us about your business — we'll set you up
+                                and import your client list before the next
+                                system moves through.
                             </p>
 
                             {submitted ? (
@@ -428,7 +429,7 @@ export default function Contact() {
                                                 )
                                             }
                                             onBlur={() => handleBlur('message')}
-                                            placeholder="Properties under contract, crews, biggest headache on storm nights…"
+                                            placeholder="Clients under contract, how payments are tracked today, biggest headache at season-end…"
                                             aria-invalid={
                                                 touched.message &&
                                                 errors.message
@@ -503,10 +504,11 @@ export default function Contact() {
                                             aria-hidden="true"
                                             className="size-2 animate-pulse-soft rounded-full bg-ember-400 shadow-glow-ember"
                                         />
-                                        Built for storm nights
+                                        Built for snow businesses
                                     </p>
                                     <p className="mt-1 font-mono text-xs text-white/80">
-                                        Dispatch · routes · proof · billing
+                                        Clients · contracts · payments ·
+                                        receipts
                                     </p>
                                 </div>
                             </div>
@@ -517,8 +519,8 @@ export default function Contact() {
                                 title="Talk to sales"
                             >
                                 <p className="text-sm">
-                                    Tell us about your operation — properties,
-                                    crews, and what breaks on storm nights.
+                                    Tell us about your business — clients,
+                                    contracts, and what breaks at season-end.
                                 </p>
                                 <p className="text-xs text-muted-foreground">
                                     Use the form · median first reply 2h
@@ -528,14 +530,15 @@ export default function Contact() {
                             <ContactInfoCard
                                 icon={LifeBuoy}
                                 iconClass="bg-ember-500/10 text-ember-700 dark:bg-ember-400/10 dark:text-ember-400"
-                                title="Crew support"
+                                title="Product support"
                             >
                                 <p className="text-sm">
-                                    In-app chat with real operators, staffed
-                                    around the clock through storm season.
+                                    Email support for every plan, with priority
+                                    handling on Pro and a dedicated manager on
+                                    Fleet.
                                 </p>
                                 <Badge className="mt-1 w-fit border-success/25 bg-success/10 text-success">
-                                    Median reply 12 min
+                                    Median reply 12h
                                 </Badge>
                             </ContactInfoCard>
                         </div>

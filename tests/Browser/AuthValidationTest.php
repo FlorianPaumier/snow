@@ -56,6 +56,7 @@ it('shows an error when the register password confirmation does not match', func
         ->fill('#email', 'jean@example.com')
         ->fill('#password', 'super-secret-password')
         ->fill('#password_confirmation', 'different-password')
+        ->click('#terms')
         ->press('Créer le compte')
         ->assertPathIs('/register')
         ->assertSee('La confirmation du champ mot de passe ne correspond pas.');
@@ -70,6 +71,7 @@ it('shows an error when registering with an existing email', function (): void {
         ->fill('#email', $user->email)
         ->fill('#password', 'super-secret-password')
         ->fill('#password_confirmation', 'super-secret-password')
+        ->click('#terms')
         ->press('Créer le compte')
         ->assertPathIs('/register')
         ->assertSee('La valeur du champ adresse courriel est déjà utilisée.');

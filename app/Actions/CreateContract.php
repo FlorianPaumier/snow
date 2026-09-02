@@ -16,7 +16,7 @@ final readonly class CreateContract
     public function __construct(private FlushOrganizationCache $flushCache) {}
 
     /**
-     * @param  array{client: Client, season: string, services: list<array{label: string, amount: int}>, payments: array<string, int>}  $attributes
+     * @param  array{client: Client, season: string, services: list<array{label: string, amount: int}>, payments: array<string, array{amount: int, dueDate: string|null}>}  $attributes
      */
     public function handle(array $attributes): Contract
     {
@@ -59,7 +59,7 @@ final readonly class CreateContract
     }
 
     /**
-     * @param  array<string, int>  $payments
+     * @param  array<string, array{amount: int, dueDate: string|null}>  $payments
      */
     private function createPayments(Contract $contract, array $payments): void
     {
@@ -68,7 +68,8 @@ final readonly class CreateContract
                 'organization_id' => $contract->organization_id,
                 'contract_id' => $contract->id,
                 'slot' => $slot,
-                'amount' => $payments[$slot->value] ?? 0,
+                'amount' => $payments[$slot->value]['amount'] ?? 0,
+                'due_date' => $payments[$slot->value]['dueDate'] ?? null,
                 'paid' => false,
                 'method' => null,
                 'paid_at' => null,

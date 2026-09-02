@@ -29,12 +29,14 @@ it('creates a contract with ordered services and the four payment slots', functi
             ['label' => 'Déglaçage', 'amount' => 10000],
         ],
         'payments' => [
-            'deposit' => 15000,
-            'first' => 10000,
-            'second' => 10000,
-            'balance' => 10000,
+            'deposit' => ['amount' => 15000, 'dueDate' => null],
+            'first' => ['amount' => 10000, 'dueDate' => '2026-12-01'],
+            'second' => ['amount' => 10000, 'dueDate' => null],
+            'balance' => ['amount' => 10000, 'dueDate' => '2027-04-01'],
         ],
     ]);
+
+    $payments = $contract->payments->keyBy('slot.value');
 
     expect($contract)->toBeInstanceOf(Contract::class)
         ->and($contract->client_id)->toBe($client->id)
@@ -44,5 +46,8 @@ it('creates a contract with ordered services and the four payment slots', functi
         ->and($contract->payments)->toHaveCount(4)
         ->and($contract->payments->pluck('slot.value')->sort()->values()->all())
         ->toBe(['balance', 'deposit', 'first', 'second'])
-        ->and($contract->payments->every(fn ($payment): bool => $payment->paid === false))->toBeTrue();
+        ->and($contract->payments->every(fn ($payment): bool => $payment->paid === false))->toBeTrue()
+        ->and($payments['first']->due_date->toDateString())->toBe('2026-12-01')
+        ->and($payments['balance']->due_date->toDateString())->toBe('2027-04-01')
+        ->and($payments['deposit']->due_date)->toBeNull();
 });

@@ -68,6 +68,19 @@ final class Client extends Model
     }
 
     /**
+     * The client's display name: the company name for companies, the
+     * first and last name for individuals.
+     */
+    public function displayName(): string
+    {
+        if ($this->type === ClientType::CLIENT_COMPANY && $this->companyName !== null) {
+            return $this->companyName;
+        }
+
+        return sprintf('%s %s', $this->firstName, $this->lastName);
+    }
+
+    /**
      * @return HasMany<Contract, $this>
      */
     public function contracts(): HasMany

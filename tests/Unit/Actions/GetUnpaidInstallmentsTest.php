@@ -52,10 +52,11 @@ it('lists unpaid installments of the requested slot with client details', functi
         'address_street' => '1250 Rue Sainte-Catherine',
         'address_city' => 'Montréal',
         'phoneDay' => '514-555-0142',
+        'email' => 'marc.tremblay@example.com',
     ]);
 
     $debtorContract = Contract::query()->create(['season' => $season->label, 'client_id' => $debtor->id]);
-    Payment::query()->create(['contract_id' => $debtorContract->id, 'slot' => PaymentSlot::SLOT_SECOND_INSTALLMENT, 'amount' => 20000, 'paid' => false]);
+    Payment::query()->create(['contract_id' => $debtorContract->id, 'slot' => PaymentSlot::SLOT_SECOND_INSTALLMENT, 'amount' => 20000, 'paid' => false, 'due_date' => '2026-11-15', 'last_reminder_at' => '2026-09-01 09:00:00']);
 
     // Paid second installment: must not appear...
     $paidClient = unpaidClient()->create();
@@ -84,7 +85,10 @@ it('lists unpaid installments of the requested slot with client details', functi
                 'address_street' => '1250 Rue Sainte-Catherine',
                 'address_city' => 'Montréal',
                 'phone' => '514-555-0142',
+                'email' => 'marc.tremblay@example.com',
             ],
+            'dueDate' => '2026-11-15',
+            'lastReminderAt' => '2026-09-01',
         ]);
 });
 

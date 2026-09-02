@@ -33,10 +33,10 @@ it('syncs services keeping order as position and updates unpaid amounts only', f
             ['label' => 'Stationnement', 'amount' => 5000],
         ],
         'payments' => [
-            'deposit' => 20000,
-            'first' => 20000,
-            'second' => 0,
-            'balance' => 0,
+            'deposit' => ['amount' => 20000, 'dueDate' => '2026-12-01'],
+            'first' => ['amount' => 20000, 'dueDate' => null],
+            'second' => ['amount' => 0, 'dueDate' => null],
+            'balance' => ['amount' => 0, 'dueDate' => null],
         ],
     ]);
 
@@ -45,5 +45,6 @@ it('syncs services keeping order as position and updates unpaid amounts only', f
     expect($contract->services->pluck('label')->all())->toBe(['Déneigement entrée', 'Stationnement'])
         ->and($contract->services->pluck('position')->all())->toBe([1, 2])
         ->and($removed->fresh())->toBeNull()
-        ->and($deposit->fresh()->amount)->toBe(20000);
+        ->and($deposit->fresh()->amount)->toBe(20000)
+        ->and($deposit->fresh()->due_date->toDateString())->toBe('2026-12-01');
 });

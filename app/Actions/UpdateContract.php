@@ -16,10 +16,10 @@ final readonly class UpdateContract
     /**
      * Syncs the contract's services (kept rows updated, removed rows deleted,
      * new rows created; positions re-derived from the submitted order) and
-     * updates payment amounts for the unpaid slots only — an installment
-     * already marked paid is locked until it is unmarked.
+     * updates payment amounts and due dates for the unpaid slots only — an
+     * installment already marked paid is locked until it is unmarked.
      *
-     * @param  array{clientId: string, season: string, services: list<array{id?: int, label: string, amount: int}>, payments: array<string, int>}  $attributes
+     * @param  array{clientId: string, season: string, services: list<array{id?: int, label: string, amount: int}>, payments: array<string, array{amount: int, dueDate: string|null}>}  $attributes
      */
     public function handle(Contract $contract, array $attributes): void
     {
@@ -40,7 +40,10 @@ final readonly class UpdateContract
             foreach ($unpaidSlots as $paymentId => $slot) {
                 $contract->payments()
                     ->whereKey($paymentId)
-                    ->update(['amount' => $attributes['payments'][$slot->value] ?? 0]);
+                    ->update([
+                        'amount' => $attributes['payments'][$slot->value]['amount'] ?? 0,
+                        'due_date' => $attributes['payments'][$slot->value]['dueDate'] ?? null,
+                    ]);
             }
         });
 

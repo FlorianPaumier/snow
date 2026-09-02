@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Exceptions\OrganizationOwnerProtected;
 use App\Exceptions\PlanLimitExceeded;
 use App\Http\Middleware\HandleAppearance;
 use App\Http\Middleware\HandleInertiaRequests;
@@ -36,6 +37,15 @@ return Application::configure(basePath: dirname(__DIR__))
         $exceptions->render(function (PlanLimitExceeded $exception, Request $request) {
             if ($request->header('X-Inertia')) {
                 return back()->withErrors(['planLimit' => $exception->getMessage()]);
+            }
+
+            return back()->with('status', $exception->getMessage());
+        });
+
+        // The same courtesy applies to ownership protections...
+        $exceptions->render(function (OrganizationOwnerProtected $exception, Request $request) {
+            if ($request->header('X-Inertia')) {
+                return back()->withErrors(['ownerProtected' => $exception->getMessage()]);
             }
 
             return back()->with('status', $exception->getMessage());

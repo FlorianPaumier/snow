@@ -49,7 +49,7 @@ final class CreateContractRequest extends FormRequest
             'services.*.amount' => ['required', 'integer', 'min:0', 'max:10000000'],
 
             'payments' => ['required', 'array'],
-            ...$this->paymentAmountRules(),
+            ...$this->paymentRules(),
         ];
     }
 
@@ -71,11 +71,11 @@ final class CreateContractRequest extends FormRequest
 
             /** @var list<array{amount: int|string}> $serviceRows */
             $serviceRows = array_values($services);
-            /** @var list<int|string> $paymentRows */
-            $paymentRows = array_values($payments);
+            /** @var list<array{amount: int|string}> $paymentRows */
+            $paymentRows = array_values(array_filter($payments, 'is_array'));
 
             $servicesTotal = array_sum(array_map(fn (array $service): int => (int) $service['amount'], $serviceRows));
-            $paymentsTotal = array_sum(array_map(fn (int|string $amount): int => (int) $amount, $paymentRows));
+            $paymentsTotal = array_sum(array_map(fn (array $payment): int => (int) $payment['amount'], $paymentRows));
 
             if ($servicesTotal !== $paymentsTotal) {
                 $validator->errors()->add('payments', __('contracts.totals_mismatch'));
@@ -86,12 +86,14 @@ final class CreateContractRequest extends FormRequest
     /**
      * @return array<string, array<mixed>>
      */
-    private function paymentAmountRules(): array
+    private function paymentRules(): array
     {
         $rules = [];
 
         foreach (PaymentSlot::cases() as $slot) {
-            $rules['payments.'.$slot->value] = ['present', 'integer', 'min:0', 'max:10000000'];
+            $rules['payments.'.$slot->value] = ['present', 'array'];
+            $rules['payments.'.$slot->value.'.amount'] = ['required', 'integer', 'min:0', 'max:10000000'];
+            $rules['payments.'.$slot->value.'.dueDate'] = ['nullable', 'date'];
         }
 
         return $rules;

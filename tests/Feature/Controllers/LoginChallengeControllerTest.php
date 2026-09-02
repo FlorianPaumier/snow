@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 use App\Mail\LoginChallengeCodeMail;
 use App\Models\User;
+use Illuminate\Auth\Events\Lockout;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 
@@ -178,4 +180,90 @@ it('redirects to login when the challenge session points at an unknown user', fu
         ->post(route('login-challenge.store'), [
             'code' => '123456',
         ])->assertRedirectToRoute('login');
+});
+
+it('throttles challenge attempts after too many failures', function (): void {
+    $user = User::factory()->withoutTwoFactor()->create([
+        'login_challenge_code' => Hash::make('123456'),
+        'login_challenge_code_expires_at' => now()->addMinutes(15),
+    ]);
+
+    for ($i = 0; $i < 5; $i++) {
+        $this->withSession([
+            'login.id' => $user->getKey(),
+            'login.remember' => false,
+        ])->fromRoute('login-challenge.show')
+            ->post(route('login-challenge.store'), [
+                'code' => '654321',
+            ]);
+    }
+
+    // The 6th attempt is throttled even when it carries the correct code...
+    $response = $this->withSession([
+        'login.id' => $user->getKey(),
+        'login.remember' => false,
+    ])->fromRoute('login-challenge.show')
+        ->post(route('login-challenge.store'), [
+            'code' => '123456',
+        ]);
+
+    $this->assertGuest();
+
+    $response->assertRedirectToRoute('login-challenge.show')
+        ->assertSessionHasErrors('code');
+
+    $errors = session('errors');
+    expect($errors->get('code')[0])->toContain('Trop de tentatives de connexion')
+        // ...and the stored code was not consumed by the throttled attempt.
+        ->and($user->refresh()->login_challenge_code)->not->toBeNull();
+});
+
+it('allows a correct code within the attempt limit', function (): void {
+    $user = User::factory()->withoutTwoFactor()->create([
+        'login_challenge_code' => Hash::make('123456'),
+        'login_challenge_code_expires_at' => now()->addMinutes(15),
+    ]);
+
+    for ($i = 0; $i < 4; $i++) {
+        $this->withSession([
+            'login.id' => $user->getKey(),
+            'login.remember' => false,
+        ])->fromRoute('login-challenge.show')
+            ->post(route('login-challenge.store'), [
+                'code' => '654321',
+            ]);
+    }
+
+    $response = $this->withSession([
+        'login.id' => $user->getKey(),
+        'login.remember' => false,
+    ])->fromRoute('login-challenge.show')
+        ->post(route('login-challenge.store'), [
+            'code' => '123456',
+        ]);
+
+    $this->assertAuthenticatedAs($user);
+
+    $response->assertRedirectToRoute('dashboard');
+});
+
+it('dispatches a lockout event when the challenge is rate limited', function (): void {
+    Event::fake([Lockout::class]);
+
+    $user = User::factory()->withoutTwoFactor()->create([
+        'login_challenge_code' => Hash::make('123456'),
+        'login_challenge_code_expires_at' => now()->addMinutes(15),
+    ]);
+
+    for ($i = 0; $i < 6; $i++) {
+        $this->withSession([
+            'login.id' => $user->getKey(),
+            'login.remember' => false,
+        ])->fromRoute('login-challenge.show')
+            ->post(route('login-challenge.store'), [
+                'code' => '654321',
+            ]);
+    }
+
+    Event::assertDispatched(Lockout::class);
 });

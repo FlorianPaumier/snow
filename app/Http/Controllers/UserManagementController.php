@@ -50,6 +50,8 @@ final readonly class UserManagementController
                 'name' => $user->name,
                 'email' => $user->email,
                 'role' => $user->role,
+                'status' => $user->hasPendingInvitation() ? 'pending' : 'active',
+                'is_owner' => $user->id === $request->user()->organization->owner_id,
                 'created_at' => $user->created_at->toDateString(),
             ]),
             'filters' => [
@@ -67,13 +69,7 @@ final readonly class UserManagementController
 
     public function store(CreateUserManagementRequest $request, CreateUser $action): RedirectResponse
     {
-        /** @var array<string, mixed>  $attributes */
-        $attributes = $request->safe()->except('password');
-
-        $action->handle(
-            $attributes,
-            $request->string('password')->value(),
-        );
+        $action->handle($request->validated());
 
         return to_route('users.index')->with('status', __('statuses.user_created'));
     }
@@ -92,14 +88,7 @@ final readonly class UserManagementController
 
     public function update(UpdateUserManagementRequest $request, User $user, UpdateUser $action): RedirectResponse
     {
-        /** @var array<string, mixed>  $attributes */
-        $attributes = $request->safe()->except('password');
-
-        if ($request->filled('password')) {
-            $attributes['password'] = $request->string('password')->value();
-        }
-
-        $action->handle($user, $attributes);
+        $action->handle($user, $request->validated());
 
         return to_route('users.index')->with('status', __('statuses.user_updated'));
     }

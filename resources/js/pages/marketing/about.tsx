@@ -2,11 +2,11 @@ import { Link } from '@inertiajs/react';
 import {
     Accessibility,
     Crosshair,
-    Truck,
+    ShieldCheck,
     Waves,
     type LucideIcon,
 } from 'lucide-react';
-import { companyStats } from '@/components/marketing/data';
+import { companyFacts } from '@/components/marketing/data';
 import { MarketingLayout } from '@/components/marketing/marketing-layout';
 import {
     CTABand,
@@ -30,17 +30,17 @@ interface Value {
 const VALUES: Value[] = [
     {
         icon: Crosshair,
-        title: 'Clarity in the storm',
-        body: 'Dispatchers make split-second calls at 3 a.m. Ruthless hierarchy does the thinking, so the next move is obvious in seconds.',
+        title: 'Clarity in the season',
+        body: 'Office staff answer real questions in season: who paid, who owes, what was agreed. Ruthless hierarchy does the thinking, so the answer is obvious in seconds.',
         practice: 'one primary action per view',
         iconClass:
             'bg-glacier-500/10 text-glacier-700 dark:bg-glacier-400/10 dark:text-glacier-400',
         accentClass: 'text-glacier-700 dark:text-glacier-400',
     },
     {
-        icon: Truck,
-        title: 'Field-first',
-        body: 'Every decision is made for gloves, glare, and grime — glanceable status, zero-friction flows, targets you can hit with a mitt on.',
+        icon: Accessibility,
+        title: 'Office-first',
+        body: 'Every decision is made for the person reconciling payments at the end of a long winter — glanceable status, zero-friction flows, interfaces that stay readable after hours.',
         practice: '44px minimum touch targets',
         iconClass:
             'bg-ember-500/10 text-ember-700 dark:bg-ember-400/10 dark:text-ember-400',
@@ -49,17 +49,17 @@ const VALUES: Value[] = [
     {
         icon: Waves,
         title: 'Calm confidence',
-        body: 'Glacier-calm surfaces keep stressful nights readable. Ember only speaks when it matters, so urgency never becomes wallpaper.',
+        body: 'Glacier-calm surfaces keep the busy season readable. Ember only speaks when it matters, so urgency never becomes wallpaper.',
         practice: 'alerts earn their color',
         iconClass:
             'bg-glacier-500/10 text-glacier-700 dark:bg-glacier-400/10 dark:text-glacier-400',
         accentClass: 'text-glacier-700 dark:text-glacier-400',
     },
     {
-        icon: Accessibility,
-        title: 'Accessible always',
-        body: 'AA contrast, full keyboard paths, and screen-reader-first semantics — in both themes, checked on every release.',
-        practice: 'WCAG 2.1 AA, both themes',
+        icon: ShieldCheck,
+        title: 'Honest scope',
+        body: 'We market what exists and label what does not. If a capability is on the roadmap, we say so — the same way we expect invoices to match the work.',
+        practice: 'no invented features',
         iconClass:
             'bg-ember-500/10 text-ember-700 dark:bg-ember-400/10 dark:text-ember-400',
         accentClass: 'text-ember-700 dark:text-ember-400',
@@ -71,8 +71,8 @@ export default function About() {
         <MarketingLayout title="About — Frostline OPS" route={ROUTES.about}>
             <PageHero
                 eyebrow="Our mission"
-                title="Built for the crews who clear the way"
-                description="Snow operations still run on whiteboards, group texts, and memory. Frostline OPS exists to replace that chaos with one system — from the first flake to the final invoice."
+                title="Built for the people who run the season"
+                description="Snow removal businesses still run their back office on binders, spreadsheets, and memory. Frostline OPS exists to replace that chaos with one system — from the first contract to the final balance."
             >
                 <Button asChild variant="outline">
                     <Link href={ROUTES.features}>See what we built</Link>
@@ -87,25 +87,26 @@ export default function About() {
                     </h2>
                     <div className="mt-6 space-y-4 text-base leading-relaxed text-muted-foreground">
                         <p>
-                            Every snow contractor knows the version of this
-                            night: the forecast shifts at 10 p.m., and someone
-                            starts rebuilding routes from scratch — a clipboard,
-                            a group chat, and hope. Coverage lives in one
-                            person's head, proof of service lives in a shoebox
-                            of photos, and billing waits weeks for someone to
-                            reconcile it all.
+                            Every snow contractor knows this version of the
+                            season: contracts are signed in a rush before the
+                            first snowfall and live in a binder. Payments come
+                            in pieces — a deposit here, an installment there —
+                            and nobody is quite sure who still owes what. Then
+                            spring arrives, the melt starts, and the balance
+                            chase begins with a shoebox of receipts and a
+                            spreadsheet nobody trusts.
                         </p>
                         <p>
-                            It doesn't have to work that way. When triggers,
-                            routes, proof, and billing live in one system, the 3
-                            a.m. question stops being &ldquo;who is covering
-                            which lot?&rdquo; and starts being answered before
-                            anyone wakes up.
+                            It doesn't have to work that way. When clients,
+                            contracts, payments, and receipts live in one
+                            system, the end-of-season question stops being
+                            &ldquo;who still owes us?&rdquo; and becomes a
+                            number you already have.
                         </p>
                         <p>
                             That's the product we build — and the rule we build
-                            it by: if it doesn't work at -30° in gloves, it
-                            doesn't ship.
+                            it by: the back office should be as reliable as the
+                            crews it supports.
                         </p>
                     </div>
                 </div>
@@ -149,19 +150,19 @@ export default function About() {
                 </ul>
             </MarketingSection>
 
-            {/* Stats band */}
+            {/* Product facts band */}
             <section className="border-y border-border bg-card/40">
                 <dl className="mx-auto grid w-full max-w-6xl grid-cols-2 gap-x-4 gap-y-8 px-4 py-10 sm:px-6 md:grid-cols-4 md:py-12 lg:px-8">
-                    {companyStats.map((stat) => (
+                    {companyFacts.map((fact) => (
                         <div
-                            key={stat.label}
+                            key={fact.label}
                             className="flex flex-col items-center gap-1.5 text-center"
                         >
                             <dt className="order-2 font-mono text-[11px] font-medium tracking-[0.14em] text-muted-foreground uppercase">
-                                {stat.label}
+                                {fact.label}
                             </dt>
                             <dd className="order-1 text-2xl font-semibold tracking-tight tabular-nums md:text-3xl">
-                                {stat.value}
+                                {fact.value}
                             </dd>
                         </div>
                     ))}
@@ -169,8 +170,8 @@ export default function About() {
             </section>
 
             <CTABand
-                title="Come run the night with us"
-                description="Whether you run two trucks or two hundred, see what your storm nights look like when the software does the organizing."
+                title="Run your season with us"
+                description="Whether you manage 20 properties or 200, see what your season looks like when the clients, contracts, and payments organize themselves."
                 primaryLabel="Talk to us"
                 primaryTo={ROUTES.contact}
                 secondaryLabel="See pricing"

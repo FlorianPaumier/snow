@@ -34,6 +34,19 @@ final class CreateUserRequest extends FormRequest
                 'confirmed',
                 Password::defaults(),
             ],
+            'terms' => ['accepted'],
+        ];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public function messages(): array
+    {
+        return [
+            'terms.accepted' => __(
+                'You must accept the Terms of Service and the Privacy Policy to create an account.',
+            ),
         ];
     }
 }

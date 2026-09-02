@@ -1,7 +1,6 @@
 import { Form } from '@inertiajs/react';
 import UserManagementController from '@/actions/App/Http/Controllers/UserManagementController';
 import InputError from '@/components/input-error';
-import PasswordInput from '@/components/password-input';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -38,7 +37,6 @@ export default function Create() {
         >
             <Form
                 {...UserManagementController.store.form()}
-                resetOnSuccess={['password', 'password_confirmation']}
                 disableWhileProcessing
                 className="flex flex-col gap-6"
             >
@@ -67,34 +65,6 @@ export default function Create() {
                                 placeholder="email@example.com"
                             />
                             <InputError message={errors.email} />
-                        </div>
-
-                        <div className="grid gap-2">
-                            <Label htmlFor="password">
-                                {t.users.passwordField}
-                            </Label>
-                            <PasswordInput
-                                id="password"
-                                required
-                                name="password"
-                                placeholder={t.users.passwordField}
-                            />
-                            <InputError message={errors.password} />
-                        </div>
-
-                        <div className="grid gap-2">
-                            <Label htmlFor="password_confirmation">
-                                {t.users.confirmPasswordField}
-                            </Label>
-                            <PasswordInput
-                                id="password_confirmation"
-                                required
-                                name="password_confirmation"
-                                placeholder={t.users.confirmPasswordField}
-                            />
-                            <InputError
-                                message={errors.password_confirmation}
-                            />
                         </div>
 
                         <div className="grid gap-2">
