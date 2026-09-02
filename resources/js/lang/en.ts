@@ -176,6 +176,22 @@ const en: Translations = {
         chooseClient: 'Choose a client',
         noMatchingClient: 'No matching client',
         openClientList: 'Open the client list',
+        anonymizedName: 'Anonymized client',
+        anonymizedBadge: 'Anonymized',
+        anonymizedSince: 'Anonymized on :date',
+        anonymizedNotice:
+            'This client’s personal data has been irreversibly erased. The client number, contracts, and payments are kept for accountability.',
+        anonymizeButton: 'Anonymize client',
+        anonymizeConfirmTitle: 'Anonymize this client?',
+        anonymizeConfirmDescription:
+            'Name, address, email, phone numbers, and remarks will be irreversibly erased. Financial records are kept for accountability. This action cannot be undone.',
+        filterViewAriaLabel: 'Filter client records',
+        filterActive: 'Active clients',
+        filterAnonymized: 'Anonymized',
+        filterAll: 'All clients',
+        emptyStateAnonymized: 'No anonymized clients.',
+        emptyStateAnonymizedHint:
+            'Clients erased after an anonymization request appear here.',
     },
     contracts: {
         title: 'Contracts',

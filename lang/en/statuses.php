@@ -18,6 +18,7 @@ return [
     'client_created' => 'Client created.',
     'client_updated' => 'Client updated.',
     'client_deleted' => 'Client deleted.',
+    'client_anonymized' => 'Client anonymized. Personal data was erased; financial records are kept for accountability.',
     'profile_updated' => 'Profile updated.',
     'password_updated' => 'Password updated.',
     'reset_link_sent' => 'A reset link will be sent if the account exists.',

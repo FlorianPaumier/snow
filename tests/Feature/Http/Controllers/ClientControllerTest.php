@@ -8,6 +8,7 @@ use App\Enums\PaymentSlot;
 use App\Models\Client;
 use App\Models\Contract;
 use App\Models\User;
+use App\ValueObjects\Season;
 use Illuminate\Support\Facades\Event;
 
 it('renders the clients index for admins', function (): void {
@@ -384,4 +385,126 @@ it('renders the client creation page for admins', function (): void {
         ->get(route('clients.create'))
         ->assertOk()
         ->assertInertia(fn ($page) => $page->component('clients/create'));
+});
+
+it('hides anonymized clients from the index unless explicitly requested', function (): void {
+    $admin = User::factory()->admin()->create();
+    $active = Client::factory()->forOrganization($admin->organization)->individual()->create([
+        'firstName' => 'Jean',
+        'lastName' => 'Tremblay',
+    ]);
+    $erased = Client::factory()->forOrganization($admin->organization)->individual()->create([
+        'firstName' => '',
+        'lastName' => '',
+        'email' => null,
+        'anonymized_at' => now(),
+    ]);
+
+    $this->actingAs($admin)
+        ->get(route('clients.index'))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->has('clients.data', 1)
+            ->where('clients.data.0.id', $active->id)
+            ->where('filters.view', 'active'));
+
+    $this->actingAs($admin)
+        ->get(route('clients.index', ['view' => 'anonymized']))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->has('clients.data', 1)
+            ->where('clients.data.0.id', $erased->id)
+            ->where('clients.data.0.anonymized_at', now()->toDateString()));
+
+    $this->actingAs($admin)
+        ->get(route('clients.index', ['view' => 'all']))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page->has('clients.data', 2));
+
+    $this->actingAs($admin)
+        ->get(route('clients.index', ['view' => 'nonsense']))
+        ->assertSessionHasErrors('view');
+});
+
+it('anonymizes a client through the http endpoint and records who did it', function (): void {
+    Event::fake();
+    $admin = User::factory()->admin()->create();
+    $client = Client::factory()->forOrganization($admin->organization)->create();
+    Contract::factory()->forClient($client)->create();
+
+    $this->actingAs($admin)
+        ->post(route('clients.anonymize', $client))
+        ->assertRedirect(route('clients.show', $client))
+        ->assertSessionHas('status', __('statuses.client_anonymized'));
+
+    $client->refresh();
+    expect($client->isAnonymized())->toBeTrue()
+        ->and($client->anonymized_by)->toBe($admin->id)
+        ->and($client->contracts()->count())->toBe(1);
+});
+
+it('prevents non-admins from anonymizing clients', function (): void {
+    $user = User::factory()->create();
+    $client = Client::factory()->forOrganization($user->organization)->create();
+
+    $this->actingAs($user)
+        ->post(route('clients.anonymize', $client))
+        ->assertForbidden();
+
+    expect($client->fresh()->isAnonymized())->toBeFalse();
+});
+
+it('blocks editing an anonymized client', function (): void {
+    Event::fake();
+    $admin = User::factory()->admin()->create();
+    $client = Client::factory()->forOrganization($admin->organization)->create([
+        'anonymized_at' => now(),
+    ]);
+    $originalFirstName = $client->firstName;
+    $originalEmail = $client->email;
+
+    $this->actingAs($admin)
+        ->fromRoute('clients.edit', $client)
+        ->put(route('clients.update', $client), [
+            'type' => ClientType::CLIENT_INDIVIDUAL->value,
+            'firstName' => 'Jean',
+            'lastName' => 'Tremblay',
+            'email' => 'jean@example.com',
+            'phoneDay' => '514 555-0100',
+            'addressStreet' => '500 Rue Sherbrooke',
+            'addressCity' => 'Montréal',
+            'addressPostalCode' => 'H2L 1L1',
+            'addressCountry' => 'Canada',
+        ])
+        ->assertSessionHasErrors('client');
+
+    $client->refresh();
+    expect($client->firstName)->toBe($originalFirstName)
+        ->and($client->email)->toBe($originalEmail);
+});
+
+it('blocks creating a contract for an anonymized client', function (): void {
+    $admin = User::factory()->admin()->create();
+    $client = Client::factory()->forOrganization($admin->organization)->create([
+        'anonymized_at' => now(),
+    ]);
+
+    $this->actingAs($admin)
+        ->fromRoute('contracts.create')
+        ->post(route('contracts.store'), [
+            'clientId' => $client->id,
+            'season' => Season::current()->label,
+            'services' => [
+                ['label' => 'Déneigement entrée', 'amount' => 35000],
+            ],
+            'payments' => [
+                'deposit' => ['amount' => 35000, 'dueDate' => null],
+                'first' => ['amount' => 0, 'dueDate' => null],
+                'second' => ['amount' => 0, 'dueDate' => null],
+                'balance' => ['amount' => 0, 'dueDate' => null],
+            ],
+        ])
+        ->assertSessionHasErrors('client');
+
+    expect(Contract::query()->where('client_id', $client->id)->exists())->toBeFalse();
 });

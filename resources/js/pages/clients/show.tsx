@@ -9,16 +9,27 @@ import {
     MapPin,
     Pencil,
     Phone,
+    ShieldOff,
     Smartphone,
     Trash2,
     User,
 } from 'lucide-react';
 import type { ReactNode } from 'react';
+import AnonymizeClientController from '@/actions/App/Http/Controllers/AnonymizeClientController';
 import ClientController from '@/actions/App/Http/Controllers/ClientController';
 import ContractController from '@/actions/App/Http/Controllers/ContractController';
 import Heading from '@/components/heading';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import {
+    Dialog,
+    DialogClose,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogTitle,
+    DialogTrigger,
+} from '@/components/ui/dialog';
 import { Separator } from '@/components/ui/separator';
 import {
     Table,
@@ -54,6 +65,7 @@ type ClientRecord = {
     };
     contracts: ContractSummary[];
     contractsCount: number;
+    anonymizedAt: string | null;
     created_at: string;
 };
 
@@ -119,10 +131,12 @@ export default function Show({ client }: { client: ClientRecord }) {
     const { status, errors, auth } = usePage().props;
     const canManageClients = auth.can?.manageClients ?? false;
     const typeMeta = TYPE_META[client.type] ?? TYPE_META.individual;
-    const displayName =
-        client.type === 'company' && client.companyName
-            ? client.companyName
-            : `${client.firstName} ${client.lastName}`;
+    const isAnonymized = client.anonymizedAt !== null;
+    const displayName = isAnonymized
+        ? t.clients.anonymizedName
+        : client.type === 'company' && client.companyName
+          ? client.companyName
+          : `${client.firstName} ${client.lastName}`;
 
     const breadcrumbs: BreadcrumbItem[] = [
         { title: t.clients.title, href: index().url },
@@ -136,6 +150,28 @@ export default function Show({ client }: { client: ClientRecord }) {
             <div className="flex h-full flex-1 flex-col gap-6 p-4">
                 {typeof status === 'string' && (
                     <p className="text-sm text-success">{status}</p>
+                )}
+
+                {isAnonymized && (
+                    <div
+                        className="mx-auto flex w-full max-w-3xl items-start gap-3 rounded-lg border border-border bg-muted/40 p-4"
+                        data-test="client-anonymized-notice"
+                    >
+                        <ShieldOff
+                            aria-hidden="true"
+                            className="mt-0.5 size-4 shrink-0 text-muted-foreground"
+                        />
+                        <div className="flex flex-col gap-1">
+                            <p className="text-sm font-medium">
+                                {interpolate(t.clients.anonymizedSince, {
+                                    date: client.anonymizedAt ?? '',
+                                })}
+                            </p>
+                            <p className="text-sm text-muted-foreground">
+                                {t.clients.anonymizedNotice}
+                            </p>
+                        </div>
+                    </div>
                 )}
 
                 <div className="mx-auto flex w-full max-w-3xl flex-col gap-6">
@@ -160,6 +196,7 @@ export default function Show({ client }: { client: ClientRecord }) {
                             <Heading
                                 title={displayName}
                                 description={
+                                    !isAnonymized &&
                                     client.type === 'company' &&
                                     client.companyName
                                         ? interpolate(
@@ -182,6 +219,18 @@ export default function Show({ client }: { client: ClientRecord }) {
                                     />
                                     {t.clients[typeMeta.labelKey]}
                                 </Badge>
+                                {isAnonymized && (
+                                    <Badge
+                                        variant="outline"
+                                        className="gap-1.5 border-border bg-muted text-muted-foreground"
+                                    >
+                                        <span
+                                            aria-hidden="true"
+                                            className="size-1.5 shrink-0 rounded-full bg-current"
+                                        />
+                                        {t.clients.anonymizedBadge}
+                                    </Badge>
+                                )}
                                 <Link
                                     href={contractsIndex.url({
                                         query: { client: client.id },
@@ -213,7 +262,7 @@ export default function Show({ client }: { client: ClientRecord }) {
                                 icon={<Mail aria-hidden="true" />}
                                 label={t.clients.emailLabel}
                             >
-                                {client.email}
+                                {client.email ?? '—'}
                             </InfoRow>
                             {client.phoneDay && (
                                 <InfoRow
@@ -248,9 +297,9 @@ export default function Show({ client }: { client: ClientRecord }) {
                                 label={t.clients.serviceAddress}
                                 mono
                             >
-                                {client.address.street}, {client.address.city}{' '}
-                                {client.address.postalCode},{' '}
-                                {client.address.country}
+                                {isAnonymized
+                                    ? '—'
+                                    : `${client.address.street}, ${client.address.city} ${client.address.postalCode}, ${client.address.country}`}
                             </InfoRow>
                         </div>
 
@@ -268,7 +317,7 @@ export default function Show({ client }: { client: ClientRecord }) {
                             </>
                         )}
 
-                        {canManageClients && (
+                        {canManageClients && !isAnonymized && (
                             <>
                                 <Separator />
                                 {/* Record footer: separated actions, destructive last */}
@@ -284,6 +333,82 @@ export default function Show({ client }: { client: ClientRecord }) {
                                             {t.clients.editClient}
                                         </Link>
                                     </Button>
+                                    {client.contractsCount > 0 && (
+                                        <Dialog>
+                                            <DialogTrigger asChild>
+                                                <Button
+                                                    variant="outline"
+                                                    data-test="anonymize-client"
+                                                >
+                                                    <ShieldOff
+                                                        aria-hidden="true"
+                                                        className="size-4"
+                                                    />{' '}
+                                                    {t.clients.anonymizeButton}
+                                                </Button>
+                                            </DialogTrigger>
+                                            <DialogContent>
+                                                <DialogTitle>
+                                                    {
+                                                        t.clients.anonymizeConfirmTitle
+                                                    }
+                                                </DialogTitle>
+                                                <DialogDescription>
+                                                    {
+                                                        t.clients.anonymizeConfirmDescription
+                                                    }
+                                                </DialogDescription>
+
+                                                <Form
+                                                    {...AnonymizeClientController.form(
+                                                        {
+                                                            client: client.id,
+                                                        },
+                                                    )}
+                                                    options={{
+                                                        preserveScroll: true,
+                                                    }}
+                                                    resetOnSuccess
+                                                    className="contents"
+                                                >
+                                                    {({
+                                                        processing,
+                                                    }) => (
+                                                        <DialogFooter className="gap-2">
+                                                            <DialogClose
+                                                                asChild
+                                                            >
+                                                                <Button variant="secondary">
+                                                                    {
+                                                                        t.common
+                                                                            .cancel
+                                                                    }
+                                                                </Button>
+                                                            </DialogClose>
+
+                                                            <Button
+                                                                variant="destructive"
+                                                                disabled={
+                                                                    processing
+                                                                }
+                                                                asChild
+                                                            >
+                                                                <button
+                                                                    type="submit"
+                                                                    data-test="confirm-anonymize-client"
+                                                                >
+                                                                    {
+                                                                        t.clients
+                                                                            .anonymizeButton
+                                                                    }
+                                                                </button>
+                                                            </Button>
+                                                        </DialogFooter>
+                                                    )}
+                                                </Form>
+                                            </DialogContent>
+                                        </Dialog>
+                                    )}
                                     <Form
                                         {...ClientController.destroy.form({
                                             client: client.id,

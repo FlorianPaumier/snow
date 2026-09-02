@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace App\Actions;
 
 use App\Enums\PaymentSlot;
+use App\Models\Client;
 use App\Models\Contract;
 use App\Models\ContractService;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 final readonly class UpdateContract
 {
@@ -23,6 +25,15 @@ final readonly class UpdateContract
      */
     public function handle(Contract $contract, array $attributes): void
     {
+        // Reassigning a contract onto an anonymized client would attach new
+        // business activity to an identity that no longer exists...
+        throw_if(
+            Client::query()->findOrFail($attributes['clientId'])->isAnonymized(),
+            ValidationException::withMessages([
+                'client' => __('clients.anonymized_no_new_contract'),
+            ]),
+        );
+
         DB::transaction(function () use ($contract, $attributes): void {
             $contract->update([
                 'client_id' => $attributes['clientId'],

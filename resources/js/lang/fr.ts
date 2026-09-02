@@ -182,6 +182,22 @@ const fr = {
         chooseClient: 'Choisir un client',
         noMatchingClient: 'Aucun client correspondant',
         openClientList: 'Ouvrir la liste des clients',
+        anonymizedName: 'Client anonymisé',
+        anonymizedBadge: 'Anonymisé',
+        anonymizedSince: 'Anonymisé le :date',
+        anonymizedNotice:
+            'Les renseignements personnels de ce client ont été effacés de façon irréversible. Le numéro de client, les contrats et les paiements sont conservés à des fins de reddition de comptes.',
+        anonymizeButton: 'Anonymiser ce client',
+        anonymizeConfirmTitle: 'Anonymiser ce client?',
+        anonymizeConfirmDescription:
+            'Les nom, adresse, courriel, téléphones et remarques seront effacés de façon irréversible. Les dossiers financiers seront conservés à des fins de reddition de comptes. Cette action ne peut pas être annulée.',
+        filterViewAriaLabel: 'Filtrer l’affichage des clients',
+        filterActive: 'Clients actifs',
+        filterAnonymized: 'Anonymisés',
+        filterAll: 'Tous les clients',
+        emptyStateAnonymized: 'Aucun client anonymisé.',
+        emptyStateAnonymizedHint:
+            'Les clients effacés à la suite d’une demande d’anonymisation apparaissent ici.',
     },
     contracts: {
         title: 'Contrats',

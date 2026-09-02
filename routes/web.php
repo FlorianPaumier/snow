@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Actions\GetSystemStatus;
+use App\Http\Controllers\AnonymizeClientController;
 use App\Http\Controllers\BillingController;
 use App\Http\Controllers\ClientController;
 use App\Http\Controllers\ContactInquiryController;
@@ -96,6 +97,9 @@ Route::middleware(['auth', 'verified:login-challenge.show', 'not-read-only'])->g
     Route::delete('clients/{client}', [ClientController::class, 'destroy'])
         ->middleware('can:manage-clients')
         ->name('clients.destroy');
+    Route::post('clients/{client}/anonymize', AnonymizeClientController::class)
+        ->middleware('can:manage-clients')
+        ->name('clients.anonymize');
 
     // Contracts (staff can browse; admins manage)...
     Route::get('contracts', [ContractController::class, 'index'])->name('contracts.index');

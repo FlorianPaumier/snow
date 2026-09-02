@@ -7,6 +7,7 @@ namespace App\Actions;
 use App\Enums\ClientType;
 use App\Models\Client;
 use App\ValueObjects\Address;
+use Illuminate\Validation\ValidationException;
 
 final readonly class UpdateClient
 {
@@ -17,6 +18,15 @@ final readonly class UpdateClient
      */
     public function handle(Client $client, array $attributes): void
     {
+        // An anonymized record has no identity left to edit; letting data
+        // back in would undo the irreversibility the law requires...
+        throw_if(
+            $client->isAnonymized(),
+            ValidationException::withMessages([
+                'client' => __('clients.anonymized_readonly'),
+            ]),
+        );
+
         $type = $attributes['type'] instanceof ClientType
             ? $attributes['type']
             : ClientType::from($attributes['type']);

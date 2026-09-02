@@ -78,8 +78,11 @@ final readonly class CreateClient
             return;
         }
 
+        // Anonymized skeletons are kept for accountability only; they must
+        // not consume the organization's plan slots...
         $clientCount = Client::query()->withoutGlobalScopes()
             ->where('organization_id', $organizationId)
+            ->whereNull('anonymized_at')
             ->count();
 
         if ($clientCount >= $limits['maxClients']) {

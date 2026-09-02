@@ -29,14 +29,19 @@ final readonly class ClientController
 
     public function index(Request $request): Response
     {
-        /** @var array{search?: string, sort?: string, direction?: string}  $validated */
+        /** @var array{search?: string, view?: string, sort?: string, direction?: string}  $validated */
         $validated = $request->validate([
             'search' => ['nullable', 'string', 'max:255'],
+            // Anonymized clients are hidden unless the caller asks for
+            // them — they surface only for accountability reviews...
+            'view' => ['nullable', 'string', Rule::in(['active', 'anonymized', 'all'])],
             'sort' => ['nullable', 'string', Rule::in($this->sortableColumns())],
             'direction' => ['nullable', 'string', Rule::in(['asc', 'desc'])],
         ]);
 
         $search = $validated['search'] ?? null;
+        $view = $validated['view'] ?? 'active';
+        $view = in_array($view, ['active', 'anonymized', 'all'], true) ? $view : 'active';
         $sort = in_array($validated['sort'] ?? null, $this->sortableColumns(), true) ? $validated['sort'] : 'created_at';
         $direction = ($validated['direction'] ?? null) === 'asc' ? 'asc' : 'desc';
 
@@ -48,8 +53,8 @@ final readonly class ClientController
         /** @var array{rows: list<array<string, mixed>>, total: int} $payload */
         $payload = $this->cache->remember(
             'clients-index',
-            [(string) $search, (string) $sort, $direction, (string) $page],
-            fn (): array => $this->indexPage($search, $sort, $direction, $page, $perPage),
+            [$view, (string) $search, (string) $sort, $direction, (string) $page],
+            fn (): array => $this->indexPage($view, $search, $sort, $direction, $page, $perPage),
             TenantCache::TTL_SHORT,
         );
 
@@ -65,6 +70,7 @@ final readonly class ClientController
             'clients' => $clients,
             'filters' => [
                 'search' => $search ?? '',
+                'view' => $view,
                 'sort' => $sort,
                 'direction' => $direction,
             ],
@@ -115,6 +121,7 @@ final readonly class ClientController
                 ],
                 'contractsCount' => $contracts->count(),
                 'contracts' => $this->contractSummaries($contracts),
+                'anonymizedAt' => $client->anonymized_at?->toDateString(),
                 'created_at' => $client->created_at->toDateString(),
             ],
         ]);
@@ -162,13 +169,16 @@ final readonly class ClientController
     /**
      * Query one page of clients and flatten it to a cacheable payload.
      *
+     * @param  'active'|'anonymized'|'all'  $view
      * @param  'asc'|'desc'  $direction
-     * @return array{rows: list<array{id: string, clientNumber: string, type: ClientType, companyName: string|null, firstName: string, lastName: string, email: string|null, created_at: string}>, total: int}
+     * @return array{rows: list<array{id: string, clientNumber: string, type: ClientType, companyName: string|null, firstName: string, lastName: string, email: string|null, anonymized_at: string|null, created_at: string}>, total: int}
      */
-    private function indexPage(?string $search, string $sort, string $direction, int $page, int $perPage): array
+    private function indexPage(string $view, ?string $search, string $sort, string $direction, int $page, int $perPage): array
     {
         /** @var LengthAwarePaginator<int, Client> $clients */
         $clients = Client::query()
+            ->when($view === 'active', fn (Builder $query): Builder => $query->whereNotAnonymized())
+            ->when($view === 'anonymized', fn (Builder $query): Builder => $query->whereAnonymized())
             ->when($search !== null, fn (Builder $query): Builder => $query->where(
                 fn (Builder $query): Builder => $query
                     ->where('clientNumber', 'like', sprintf('%%%s%%', $search))
@@ -180,7 +190,7 @@ final readonly class ClientController
             ->orderBy($sort, $direction)
             ->paginate(perPage: $perPage, page: $page);
 
-        /** @var list<array{id: string, clientNumber: string, type: ClientType, companyName: string|null, firstName: string, lastName: string, email: string|null, created_at: string}> $rows */
+        /** @var list<array{id: string, clientNumber: string, type: ClientType, companyName: string|null, firstName: string, lastName: string, email: string|null, anonymized_at: string|null, created_at: string}> $rows */
         $rows = $clients->map(fn (Client $client): array => [
             'id' => $client->id,
             'clientNumber' => $client->clientNumber,
@@ -189,6 +199,7 @@ final readonly class ClientController
             'firstName' => $client->firstName,
             'lastName' => $client->lastName,
             'email' => $client->email,
+            'anonymized_at' => $client->anonymized_at?->toDateString(),
             'created_at' => $client->created_at->toDateString(),
         ])->all();
 

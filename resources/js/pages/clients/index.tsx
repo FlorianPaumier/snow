@@ -8,6 +8,7 @@ import {
     Pencil,
     Plus,
     Search,
+    ShieldOff,
     Trash2,
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -17,6 +18,13 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import {
     Table,
     TableBody,
@@ -39,6 +47,7 @@ type ManagedClient = {
     firstName: string;
     lastName: string;
     email: string;
+    anonymized_at: string | null;
     created_at: string;
 };
 
@@ -52,8 +61,11 @@ type Pagination = {
     data: ManagedClient[];
 };
 
+type ClientView = 'active' | 'anonymized' | 'all';
+
 type Filters = {
     search: string;
+    view: ClientView;
     sort: string;
     direction: 'asc' | 'desc';
 };
@@ -99,6 +111,10 @@ const displayName = (client: ManagedClient) =>
         : `${client.firstName} ${client.lastName}`;
 
 const initialsOf = (client: ManagedClient) => {
+    if (client.anonymized_at) {
+        return '·';
+    }
+
     if (client.type === 'company' && client.companyName) {
         return client.companyName
             .split(/\s+/)
@@ -147,19 +163,38 @@ export default function Index({
         const timeout = setTimeout(() => {
             router.get(
                 index(),
-                { search, sort: filters.sort, direction: filters.direction },
+                {
+                    search,
+                    view: filters.view,
+                    sort: filters.sort,
+                    direction: filters.direction,
+                },
                 { preserveState: true, replace: true },
             );
         }, 300);
 
         return () => clearTimeout(timeout);
-    }, [search, filters.search, filters.sort, filters.direction]);
+    }, [search, filters.search, filters.view, filters.sort, filters.direction]);
+
+    const selectView = (nextView: ClientView) => {
+        router.get(
+            index(),
+            {
+                ...(filters.search ? { search: filters.search } : {}),
+                view: nextView,
+                sort: filters.sort,
+                direction: filters.direction,
+            },
+            { preserveState: true, replace: true },
+        );
+    };
 
     const sortBy = (column: string) => {
         router.get(
             index(),
             {
                 ...(filters.search ? { search: filters.search } : {}),
+                view: filters.view,
                 sort: column,
                 direction:
                     filters.sort === column && filters.direction === 'asc'
@@ -175,6 +210,7 @@ export default function Index({
             index(),
             {
                 ...(filters.search ? { search: filters.search } : {}),
+                view: filters.view,
                 sort: filters.sort,
                 direction: filters.direction,
                 page,
@@ -252,6 +288,37 @@ export default function Index({
                                 data-test="client-search"
                             />
                         </div>
+                        <Select
+                            name="view"
+                            value={filters.view}
+                            onValueChange={(value) =>
+                                selectView(value as ClientView)
+                            }
+                        >
+                            <SelectTrigger
+                                id="view"
+                                aria-label={t.clients.filterViewAriaLabel}
+                                className="w-[170px]"
+                                data-test="client-view-filter"
+                            >
+                                <ShieldOff
+                                    aria-hidden="true"
+                                    className="size-4 text-muted-foreground"
+                                />
+                                <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="active">
+                                    {t.clients.filterActive}
+                                </SelectItem>
+                                <SelectItem value="anonymized">
+                                    {t.clients.filterAnonymized}
+                                </SelectItem>
+                                <SelectItem value="all">
+                                    {t.clients.filterAll}
+                                </SelectItem>
+                            </SelectContent>
+                        </Select>
                         <p
                             className="font-mono text-xs text-muted-foreground sm:ml-auto"
                             aria-live="polite"
@@ -294,6 +361,9 @@ export default function Index({
                                     clients.data.map((client) => {
                                         const typeBadge =
                                             TYPE_BADGES[client.type];
+                                        const label = client.anonymized_at
+                                            ? t.clients.anonymizedName
+                                            : displayName(client);
 
                                         return (
                                             <TableRow
@@ -320,32 +390,47 @@ export default function Index({
                                                             </AvatarFallback>
                                                         </Avatar>
                                                         <span className="flex flex-col">
-                                                            <span className="text-sm">
-                                                                {displayName(
-                                                                    client,
-                                                                )}
+                                                            <span
+                                                                className={
+                                                                    client.anonymized_at
+                                                                        ? 'text-sm text-muted-foreground italic'
+                                                                        : 'text-sm'
+                                                                }
+                                                            >
+                                                                {label}
                                                             </span>
                                                             <span className="text-xs text-muted-foreground">
-                                                                {client.email}
+                                                                {client.anonymized_at
+                                                                    ? '—'
+                                                                    : client.email}
                                                             </span>
                                                         </span>
                                                     </span>
                                                 </TableCell>
                                                 <TableCell>
-                                                    <StatusBadge
-                                                        label={
-                                                            typeBadge
-                                                                ? t.clients[
-                                                                      typeBadge
-                                                                          .labelKey
-                                                                  ]
-                                                                : client.type
-                                                        }
-                                                        className={
-                                                            typeBadge?.className ??
-                                                            'border-border bg-muted text-muted-foreground'
-                                                        }
-                                                    />
+                                                    {client.anonymized_at ? (
+                                                        <StatusBadge
+                                                            label={
+                                                                t.clients.anonymizedBadge
+                                                            }
+                                                            className="border-border bg-muted text-muted-foreground"
+                                                        />
+                                                    ) : (
+                                                        <StatusBadge
+                                                            label={
+                                                                typeBadge
+                                                                    ? t.clients[
+                                                                          typeBadge
+                                                                              .labelKey
+                                                                      ]
+                                                                    : client.type
+                                                            }
+                                                            className={
+                                                                typeBadge?.className ??
+                                                                'border-border bg-muted text-muted-foreground'
+                                                            }
+                                                        />
+                                                    )}
                                                 </TableCell>
                                                 <TableCell className="text-right text-xs text-muted-foreground">
                                                     {client.created_at}
@@ -361,9 +446,7 @@ export default function Index({
                                                                 t.clients
                                                                     .viewClient,
                                                                 {
-                                                                    client: displayName(
-                                                                        client,
-                                                                    ),
+                                                                    client: label,
                                                                 },
                                                             )}
                                                         >
@@ -381,7 +464,8 @@ export default function Index({
                                                                 />
                                                             </Link>
                                                         </Button>
-                                                        {canManageClients && (
+                                                        {canManageClients &&
+                                                            !client.anonymized_at && (
                                                             <>
                                                                 <Button
                                                                     asChild
@@ -393,9 +477,7 @@ export default function Index({
                                                                             .clients
                                                                             .editClientOf,
                                                                         {
-                                                                            client: displayName(
-                                                                                client,
-                                                                            ),
+                                                                            client: label,
                                                                         },
                                                                     )}
                                                                 >
@@ -431,9 +513,7 @@ export default function Index({
                                                                                 .clients
                                                                                 .deleteClientOf,
                                                                             {
-                                                                                client: displayName(
-                                                                                    client,
-                                                                                ),
+                                                                                client: label,
                                                                             },
                                                                         )}
                                                                     >
@@ -462,10 +542,18 @@ export default function Index({
                                                     className="size-6 text-muted-foreground"
                                                 />
                                                 <p className="text-sm font-medium">
-                                                    {t.clients.emptyState}
+                                                    {filters.view ===
+                                                    'anonymized'
+                                                        ? t.clients
+                                                              .emptyStateAnonymized
+                                                        : t.clients.emptyState}
                                                 </p>
                                                 <p className="text-xs text-muted-foreground">
-                                                    {t.clients.emptyStateHint}
+                                                    {filters.view ===
+                                                    'anonymized'
+                                                        ? t.clients
+                                                              .emptyStateAnonymizedHint
+                                                        : t.clients.emptyStateHint}
                                                 </p>
                                             </div>
                                         </TableCell>

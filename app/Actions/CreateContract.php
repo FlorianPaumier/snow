@@ -10,6 +10,7 @@ use App\Models\Contract;
 use App\Models\ContractService;
 use App\Models\Payment;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 final readonly class CreateContract
 {
@@ -20,6 +21,13 @@ final readonly class CreateContract
      */
     public function handle(array $attributes): Contract
     {
+        throw_if(
+            $attributes['client']->isAnonymized(),
+            ValidationException::withMessages([
+                'client' => __('clients.anonymized_no_new_contract'),
+            ]),
+        );
+
         $contract = DB::transaction(function () use ($attributes): Contract {
             // The caller resolves the client (scoped in HTTP contexts) so
             // the contract inherits its organization...

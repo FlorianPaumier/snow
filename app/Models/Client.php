@@ -10,6 +10,7 @@ use App\Models\Concerns\BelongsToOrganization;
 use App\ValueObjects\Address;
 use Carbon\CarbonInterface;
 use Database\Factories\ClientFactory;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -31,6 +32,8 @@ use Illuminate\Notifications\Notifiable;
  * @property-read string|null $cellPhone
  * @property-read string|null $email
  * @property-read string|null $remark
+ * @property-read CarbonInterface|null $anonymized_at
+ * @property-read string|null $anonymized_by
  * @property-read CarbonInterface $created_at
  * @property-read CarbonInterface $updated_at
  */
@@ -62,22 +65,59 @@ final class Client extends Model
             'cellPhone' => 'string',
             'email' => 'string',
             'remark' => 'string',
+            'anonymized_at' => 'datetime',
+            'anonymized_by' => 'string',
             'created_at' => 'datetime',
             'updated_at' => 'datetime',
         ];
     }
 
     /**
+     * Once anonymized (Quebec Law 25), the identity is irreversibly erased
+     * and the record can never carry personal data again.
+     */
+    public function isAnonymized(): bool
+    {
+        return $this->anonymized_at !== null;
+    }
+
+    /**
      * The client's display name: the company name for companies, the
-     * first and last name for individuals.
+     * first and last name for individuals. Anonymized records show a
+     * neutral placeholder — their identity fields no longer exist.
      */
     public function displayName(): string
     {
+        if ($this->isAnonymized()) {
+            return __('clients.anonymized_name');
+        }
+
         if ($this->type === ClientType::CLIENT_COMPANY && $this->companyName !== null) {
             return $this->companyName;
         }
 
         return sprintf('%s %s', $this->firstName, $this->lastName);
+    }
+
+    /**
+     * Clients whose identity has been erased; their financial skeleton
+     * remains for accountability.
+     *
+     * @param  Builder<Client>  $query
+     * @return Builder<Client>
+     */
+    public function scopeWhereAnonymized(Builder $query): Builder
+    {
+        return $query->whereNotNull('anonymized_at');
+    }
+
+    /**
+     * @param  Builder<Client>  $query
+     * @return Builder<Client>
+     */
+    public function scopeWhereNotAnonymized(Builder $query): Builder
+    {
+        return $query->whereNull('anonymized_at');
     }
 
     /**

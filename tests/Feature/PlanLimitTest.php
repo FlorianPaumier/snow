@@ -95,3 +95,32 @@ it('grants starter limits while on trial', function (): void {
 
     expect(User::query()->withoutGlobalScopes()->where('organization_id', $organization->id)->count())->toBe(2);
 });
+
+it('does not count anonymized clients against the plan limit', function (): void {
+    // Future trial keeps the org out of read-only enforcement so this test
+    // exercises the plan-limit wall in isolation...
+    $organization = Organization::factory()->create(['trial_ends_at' => now()->addDays(14)]);
+    $admin = User::factory()->admin()->forOrganization($organization)->create();
+
+    Client::factory()->count(24)->forOrganization($organization)->create();
+    // Anonymized skeletons are kept for accountability but must not
+    // consume the organization's quota...
+    Client::factory()->count(3)->forOrganization($organization)->create(['anonymized_at' => now()]);
+
+    $this->actingAs($admin)
+        ->fromRoute('clients.create')
+        ->post(route('clients.store'), [
+            'type' => 'individual',
+            'firstName' => 'Still',
+            'lastName' => 'Allowed',
+            'email' => 'still.allowed@example.com',
+            'phoneDay' => '418-555-0123',
+            'addressStreet' => '123 Rue',
+            'addressCity' => 'Québec',
+            'addressPostalCode' => 'G1K 0A1',
+            'addressCountry' => 'Canada',
+        ])
+        ->assertRedirect(route('clients.index'));
+
+    expect(Client::query()->withoutGlobalScopes()->where('organization_id', $organization->id)->whereNull('anonymized_at')->count())->toBe(25);
+});

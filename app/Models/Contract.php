@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Models;
 
 use App\Models\Concerns\BelongsToOrganization;
+use App\ValueObjects\Season;
+use Carbon\Carbon;
 use Carbon\CarbonInterface;
 use Database\Factories\ContractFactory;
 use Illuminate\Database\Eloquent\Collection;
@@ -14,6 +16,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Notifications\Notifiable;
+use InvalidArgumentException;
 
 /**
  * @property-read string $id
@@ -63,6 +66,22 @@ final class Contract extends Model
     public function payments(): HasMany
     {
         return $this->hasMany(Payment::class);
+    }
+
+    /**
+     * The date the contract's season ends (June 30 of the season's end
+     * year) — the anchor from which legal data-retention windows are
+     * counted. Falls back to the creation date for malformed labels.
+     */
+    public function seasonEndDate(): CarbonInterface
+    {
+        try {
+            $endYear = Season::fromString($this->season)->endYear;
+        } catch (InvalidArgumentException) {
+            $endYear = $this->created_at->year;
+        }
+
+        return Carbon::create($endYear, 6, 30, 23, 59, 59) ?? Carbon::now();
     }
 
     public function casts(): array

@@ -22,6 +22,7 @@ return [
     'client_created' => 'Client créé.',
     'client_updated' => 'Client mis à jour.',
     'client_deleted' => 'Client supprimé.',
+    'client_anonymized' => 'Client anonymisé. Les renseignements personnels ont été effacés; les dossiers financiers sont conservés à des fins de reddition de comptes.',
     'profile_updated' => 'Profil mis à jour.',
     'password_updated' => 'Mot de passe mis à jour.',
     'reset_link_sent' => 'Un lien de réinitialisation sera envoyé si le compte existe.',

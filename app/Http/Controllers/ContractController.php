@@ -275,8 +275,11 @@ final readonly class ContractController
             'client-options',
             [],
             function (): array {
+                // Anonymized clients cannot be picked for new or moved
+                // contracts: their identity no longer exists...
                 /** @var Collection<int, Client> $clients */
                 $clients = Client::query()
+                    ->whereNotAnonymized()
                     ->orderBy('lastName')
                     ->orderBy('firstName')
                     ->get();

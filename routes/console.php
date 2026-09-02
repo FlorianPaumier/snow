@@ -17,3 +17,11 @@ Schedule::command('payments:send-digest')
     ->weeklyOn(1, '08:00')
     ->withoutOverlapping()
     ->onOneServer();
+
+// Personal-data retention (Quebec Law 25 s. 22): clients whose last
+// season ended more than config('privacy.client_retention_years') ago
+// are anonymized; contractless ones are erased entirely.
+Schedule::command('clients:anonymize-expired')
+    ->dailyAt('03:00')
+    ->withoutOverlapping()
+    ->onOneServer();

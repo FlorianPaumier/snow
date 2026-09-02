@@ -109,5 +109,6 @@ You should see 100% test coverage and all quality checks passing.
 ### Production checklist
 
 - [ ] **Queue worker** — run `php artisan queue:work` under a process supervisor (e.g. Supervisor). Queued mail includes login codes, invitations, payment reminders, and weekly digests.
+- [ ] **Scheduler** — add the cron entry `* * * * * php /path/to/artisan schedule:run` (or run `php artisan schedule:work` under a supervisor). Required for `payments:send-reminders` (weekdays 09:00), `payments:send-digest` (Mondays 08:00), and `clients:anonymize-expired` (daily 03:00).
 - [ ] **Gotenberg** — a reachable Gotenberg service configured via `GOTENBERG_URL`, used to render contract PDFs and payment receipts.
 - [ ] **Stripe webhook** — an endpoint pointing to `POST /stripe/webhook`, signed with `STRIPE_WEBHOOK_SECRET`.
