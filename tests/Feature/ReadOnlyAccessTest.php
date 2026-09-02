@@ -155,6 +155,72 @@ it('refuses the unlock after the first one has expired', function (): void {
         ->toBe(now()->subHour()->toIso8601String()); // unchanged...
 });
 
+it('lets an admin unlock full access for 24 hours', function (): void {
+    $this->actingAs($this->admin)
+        ->fromRoute('billing.index')
+        ->post(route('billing.unlock'))
+        ->assertRedirectToRoute('billing.index');
+
+    expect($this->organization->fresh()->access_unlock_until)
+        ->not->toBeNull();
+
+    // Mutations work again immediately...
+    $this->actingAs($this->admin)
+        ->post(route('clients.store'), [
+            'type' => 'individual',
+            'firstName' => 'Back',
+            'lastName' => 'Online',
+            'email' => 'back@example.com',
+            'phoneDay' => '418-555-0123',
+            'addressStreet' => '123 Rue',
+            'addressCity' => 'Québec',
+            'addressPostalCode' => 'G1K 0A1',
+            'addressCountry' => 'Canada',
+        ])->assertRedirect();
+
+    expect(Client::query()->withoutGlobalScopes()
+        ->where('organization_id', $this->organization->id)
+        ->count())->toBe(1);
+});
+
+it('re-locks the organization once the unlock expires', function (): void {
+    $this->organization->forceFill(['access_unlock_until' => now()->subHour()])->save();
+
+    // The cached verdict was capped at the unlock expiry, so by now it
+    // has expired and the next request recomputes read-only...
+    $this->travelTo(now()->addHours(2));
+
+    $response = $this->actingAs($this->admin)
+        ->fromRoute('clients.create')
+        ->withHeaders(['X-Inertia' => 'true'])
+        ->post(route('clients.store'), [
+            'type' => 'individual',
+            'firstName' => 'Locked',
+            'lastName' => 'Again',
+            'email' => 'locked@example.com',
+            'phoneDay' => '418-555-0123',
+            'addressStreet' => '123 Rue',
+            'addressCity' => 'Québec',
+            'addressPostalCode' => 'G1K 0A1',
+            'addressCountry' => 'Canada',
+        ]);
+
+    $response->assertRedirectToRoute('clients.create')
+        ->assertSessionHas('errors');
+
+    expect(Client::query()->withoutGlobalScopes()
+        ->where('organization_id', $this->organization->id)
+        ->count())->toBe(0);
+});
+
+it('forbids non-admins from unlocking', function (): void {
+    $worker = User::factory()->forOrganization($this->organization)->create();
+
+    $this->actingAs($worker)
+        ->post(route('billing.unlock'))
+        ->assertForbidden();
+});
+
 /**
  * Local copy of the bindFakeStripeClient() helper from
  * tests/Feature/BillingControllerTest.php: Pest only loads a file's
