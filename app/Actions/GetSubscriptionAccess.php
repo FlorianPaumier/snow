@@ -92,7 +92,9 @@ final readonly class GetSubscriptionAccess
             $horizon = $horizon->min($organization->access_unlock_until);
         }
 
-        $ttl = $horizon->diffInSeconds(now());
+        // Carbon 3 diffs are signed: the horizon is in the future of now,
+        // so now must be the earlier operand or the diff is negative...
+        $ttl = now()->diffInSeconds($horizon);
 
         return max(1, (int) $ttl);
     }
