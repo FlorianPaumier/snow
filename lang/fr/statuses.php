@@ -25,6 +25,7 @@ return [
     'password_updated' => 'Mot de passe mis à jour.',
     'reset_link_sent' => 'Un lien de réinitialisation sera envoyé si le compte existe.',
     'plan_limit' => 'Votre forfait :plan permet :count :resource. Passez à un forfait supérieur pour en ajouter.',
+    'read_only_blocked' => 'Votre essai est terminé. Passez à un forfait payant pour continuer à gérer vos données — tout reste consultable en attendant.',
     'resource_clients' => 'clients',
     'resource_users' => 'utilisateurs',
     'user_created' => 'Utilisateur créé.',

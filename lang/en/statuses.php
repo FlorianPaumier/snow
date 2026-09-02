@@ -21,6 +21,7 @@ return [
     'password_updated' => 'Password updated.',
     'reset_link_sent' => 'A reset link will be sent if the account exists.',
     'plan_limit' => 'Your :plan plan allows :count :resource. Upgrade to add more.',
+    'read_only_blocked' => 'Your trial has ended. Upgrade your plan to keep managing your data — everything stays viewable meanwhile.',
     'resource_clients' => 'clients',
     'resource_users' => 'users',
     'user_created' => 'User created.',

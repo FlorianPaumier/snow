@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Exceptions\PlanLimitExceeded;
+use App\Http\Middleware\EnsureOrganizationNotReadOnly;
 use App\Http\Middleware\HandleAppearance;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\SetLocale;
@@ -22,6 +23,10 @@ return Application::configure(basePath: dirname(__DIR__))
 
         // Stripe signs its webhook payloads; CSRF does not apply...
         $middleware->validateCsrfTokens(except: ['stripe/webhook']);
+
+        $middleware->alias([
+            'not-read-only' => EnsureOrganizationNotReadOnly::class,
+        ]);
 
         $middleware->web(append: [
             HandleAppearance::class,
