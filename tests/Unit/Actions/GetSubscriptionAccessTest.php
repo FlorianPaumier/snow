@@ -85,6 +85,24 @@ it('grants full access for a valid subscription', function (): void {
     expect($verdict['readOnly'])->toBeFalse();
 });
 
+it('grants full access while a subscription is itself on trial', function (): void {
+    $organization = Organization::factory()->withoutTrial()->create();
+
+    $organization->subscriptions()->create([
+        'type' => 'pro',
+        'stripe_id' => 'sub_access_4',
+        'stripe_status' => 'trialing',
+        'stripe_price' => 'price_pro',
+        'quantity' => 1,
+        'trial_ends_at' => now()->addDays(7), // subscription-level trial...
+        'ends_at' => null,
+    ]);
+
+    $verdict = accessFor($organization);
+
+    expect($verdict['readOnly'])->toBeFalse();
+});
+
 it('treats a canceled subscription still in its grace period as full access', function (): void {
     $organization = Organization::factory()->withoutTrial()->create();
 
@@ -205,4 +223,37 @@ it('caps the cache TTL at the unlock expiry when it is the soonest transition', 
     $remaining = $entry['expiresAt'] - now()->getPreciseTimestamp(3) / 1000;
 
     expect($remaining)->toBeGreaterThan(0)->toBeLessThanOrEqual(600);
+});
+
+it('caps the cache TTL at the 900s ceiling when no transition is upcoming', function (): void {
+    $organization = Organization::factory()->expired()->create();
+
+    $user = User::factory()->forOrganization($organization)->create();
+    Auth::login($user);
+
+    resolve(GetSubscriptionAccess::class)->handle($organization);
+
+    // ArrayStore exposes raw storage: find the entry by name fragment
+    // (the key embeds a UUID version token)...
+    /** @var Illuminate\Cache\ArrayStore $arrayStore */
+    $arrayStore = cache()->store()->getStore();
+
+    $reflection = new ReflectionClass($arrayStore);
+    $property = $reflection->getProperty('storage');
+    $entries = $property->getValue($arrayStore);
+
+    $accessEntries = array_filter(
+        $entries,
+        fn (array $entry, string $key): bool => str_contains($key, ':subscription-access:'),
+        ARRAY_FILTER_USE_BOTH,
+    );
+
+    expect($accessEntries)->not->toBeEmpty();
+
+    $entry = reset($accessEntries);
+
+    // Time is frozen, so the remaining TTL is exactly the 900s ceiling...
+    $remaining = $entry['expiresAt'] - now()->getPreciseTimestamp(3) / 1000;
+
+    expect($remaining)->toBeGreaterThan(899.9)->toBeLessThanOrEqual(900);
 });
