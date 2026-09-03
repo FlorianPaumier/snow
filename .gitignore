@@ -29,3 +29,6 @@ Homestead.yaml
 /.worktrees
 /tmp/
 /.zcode
+/.pest-tia-home
+/.playwright-browsers
+/screenshots
