@@ -411,7 +411,8 @@ export default function Index({
                                                     {client.anonymized_at ? (
                                                         <StatusBadge
                                                             label={
-                                                                t.clients.anonymizedBadge
+                                                                t.clients
+                                                                    .anonymizedBadge
                                                             }
                                                             className="border-border bg-muted text-muted-foreground"
                                                         />
@@ -466,65 +467,65 @@ export default function Index({
                                                         </Button>
                                                         {canManageClients &&
                                                             !client.anonymized_at && (
-                                                            <>
-                                                                <Button
-                                                                    asChild
-                                                                    variant="ghost"
-                                                                    size="icon"
-                                                                    className="size-8 text-muted-foreground hover:text-foreground"
-                                                                    aria-label={interpolate(
-                                                                        t
-                                                                            .clients
-                                                                            .editClientOf,
-                                                                        {
-                                                                            client: label,
-                                                                        },
-                                                                    )}
-                                                                >
-                                                                    <Link
-                                                                        href={ClientController.edit.url(
-                                                                            {
-                                                                                client: client.id,
-                                                                            },
-                                                                        )}
-                                                                        prefetch
-                                                                    >
-                                                                        <Pencil
-                                                                            aria-hidden="true"
-                                                                            className="size-4"
-                                                                        />
-                                                                    </Link>
-                                                                </Button>
-                                                                <Form
-                                                                    {...ClientController.destroy.form(
-                                                                        {
-                                                                            client: client.id,
-                                                                        },
-                                                                    )}
-                                                                    className="contents"
-                                                                >
+                                                                <>
                                                                     <Button
-                                                                        type="submit"
+                                                                        asChild
                                                                         variant="ghost"
                                                                         size="icon"
-                                                                        className="size-8 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                                                                        className="size-8 text-muted-foreground hover:text-foreground"
                                                                         aria-label={interpolate(
                                                                             t
                                                                                 .clients
-                                                                                .deleteClientOf,
+                                                                                .editClientOf,
                                                                             {
                                                                                 client: label,
                                                                             },
                                                                         )}
                                                                     >
-                                                                        <Trash2
-                                                                            aria-hidden="true"
-                                                                            className="size-4"
-                                                                        />
+                                                                        <Link
+                                                                            href={ClientController.edit.url(
+                                                                                {
+                                                                                    client: client.id,
+                                                                                },
+                                                                            )}
+                                                                            prefetch
+                                                                        >
+                                                                            <Pencil
+                                                                                aria-hidden="true"
+                                                                                className="size-4"
+                                                                            />
+                                                                        </Link>
                                                                     </Button>
-                                                                </Form>
-                                                            </>
-                                                        )}
+                                                                    <Form
+                                                                        {...ClientController.destroy.form(
+                                                                            {
+                                                                                client: client.id,
+                                                                            },
+                                                                        )}
+                                                                        className="contents"
+                                                                    >
+                                                                        <Button
+                                                                            type="submit"
+                                                                            variant="ghost"
+                                                                            size="icon"
+                                                                            className="size-8 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                                                                            aria-label={interpolate(
+                                                                                t
+                                                                                    .clients
+                                                                                    .deleteClientOf,
+                                                                                {
+                                                                                    client: label,
+                                                                                },
+                                                                            )}
+                                                                        >
+                                                                            <Trash2
+                                                                                aria-hidden="true"
+                                                                                className="size-4"
+                                                                            />
+                                                                        </Button>
+                                                                    </Form>
+                                                                </>
+                                                            )}
                                                     </div>
                                                 </TableCell>
                                             </TableRow>
@@ -553,7 +554,8 @@ export default function Index({
                                                     'anonymized'
                                                         ? t.clients
                                                               .emptyStateAnonymizedHint
-                                                        : t.clients.emptyStateHint}
+                                                        : t.clients
+                                                              .emptyStateHint}
                                                 </p>
                                             </div>
                                         </TableCell>

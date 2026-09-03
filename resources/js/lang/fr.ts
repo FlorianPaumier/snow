@@ -100,6 +100,18 @@ const fr = {
         clientChartPointNew: ':season — :count nouveaux clients',
         clientChartPointTotal: ':season — :count clients au total',
     },
+    onboarding: {
+        title: 'Bienvenue, démarrons',
+        description: 'Quelques actions pour être opérationnel',
+        progress: ':done sur :total terminé(s)',
+        steps: {
+            first_client: 'Créez votre premier client',
+            first_contract: 'Enregistrez votre premier contrat',
+            first_paid_installment: 'Encaissez un premier versement',
+            invite_teammate: 'Invitez un coéquipier',
+        },
+        stepDone: 'Terminé',
+    },
     paymentSlots: {
         deposit: 'Dépôt',
         first: '1er versement',

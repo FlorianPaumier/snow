@@ -13,6 +13,9 @@ import {
 import ContractController from '@/actions/App/Http/Controllers/ContractController';
 import SendPaymentReminderController from '@/actions/App/Http/Controllers/SendPaymentReminderController';
 import Heading from '@/components/heading';
+import OnboardingChecklistCard, {
+    type OnboardingChecklist,
+} from '@/components/onboarding-checklist';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -141,6 +144,7 @@ export default function Dashboard({
     revenueEvolution,
     clientEvolution,
     slot,
+    onboardingChecklist,
 }: {
     season: string;
     seasons: string[];
@@ -150,6 +154,7 @@ export default function Dashboard({
     revenueEvolution: RevenuePoint[];
     clientEvolution: ClientEvolutionPoint[];
     slot: string;
+    onboardingChecklist?: OnboardingChecklist;
 }) {
     const { t } = useLocale();
     const formatCurrency = useCurrencyFormatter();
@@ -223,6 +228,10 @@ export default function Dashboard({
                         </SelectContent>
                     </Select>
                 </div>
+
+                {onboardingChecklist && (
+                    <OnboardingChecklistCard checklist={onboardingChecklist} />
+                )}
 
                 {/* KPI cards */}
                 <div className="grid auto-rows-min gap-4 md:grid-cols-3">

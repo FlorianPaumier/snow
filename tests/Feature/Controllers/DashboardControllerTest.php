@@ -44,6 +44,30 @@ it('renders the dashboard for workers and regular users', function (): void {
     expect(true)->toBeTrue();
 });
 
+it('shares the onboarding checklist while steps remain', function (): void {
+    $this->actingAs($this->admin)
+        ->get(route('dashboard'))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->has('onboardingChecklist.steps', 4)
+            ->where('onboardingChecklist.incompleteCount', 4)
+            ->where('onboardingChecklist.steps.0.key', 'first_client')
+            ->where('onboardingChecklist.steps.0.href', route('clients.create'))
+            ->where('onboardingChecklist.steps.0.completed', false));
+});
+
+it('omits the onboarding checklist once every step is completed', function (): void {
+    $client = Client::factory()->forOrganization($this->admin->organization)->create();
+    $contract = Contract::query()->create(['season' => Season::current()->label, 'client_id' => $client->id, 'organization_id' => $this->admin->organization_id]);
+    Payment::query()->create(['contract_id' => $contract->id, 'organization_id' => $this->admin->organization_id, 'slot' => PaymentSlot::SLOT_DEPOSIT, 'amount' => 10000, 'paid' => true, 'paid_at' => now()]);
+    User::factory()->forOrganization($this->admin->organization)->create();
+
+    $this->actingAs($this->admin)
+        ->get(route('dashboard'))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page->missing('onboardingChecklist'));
+});
+
 it('requires authentication', function (): void {
     $this->get(route('dashboard'))
         ->assertRedirect(route('login'));

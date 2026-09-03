@@ -350,12 +350,14 @@ export default function Show({ client }: { client: ClientRecord }) {
                                             <DialogContent>
                                                 <DialogTitle>
                                                     {
-                                                        t.clients.anonymizeConfirmTitle
+                                                        t.clients
+                                                            .anonymizeConfirmTitle
                                                     }
                                                 </DialogTitle>
                                                 <DialogDescription>
                                                     {
-                                                        t.clients.anonymizeConfirmDescription
+                                                        t.clients
+                                                            .anonymizeConfirmDescription
                                                     }
                                                 </DialogDescription>
 
@@ -371,9 +373,7 @@ export default function Show({ client }: { client: ClientRecord }) {
                                                     resetOnSuccess
                                                     className="contents"
                                                 >
-                                                    {({
-                                                        processing,
-                                                    }) => (
+                                                    {({ processing }) => (
                                                         <DialogFooter className="gap-2">
                                                             <DialogClose
                                                                 asChild
@@ -398,7 +398,8 @@ export default function Show({ client }: { client: ClientRecord }) {
                                                                     data-test="confirm-anonymize-client"
                                                                 >
                                                                     {
-                                                                        t.clients
+                                                                        t
+                                                                            .clients
                                                                             .anonymizeButton
                                                                     }
                                                                 </button>

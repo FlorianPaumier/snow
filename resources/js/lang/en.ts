@@ -95,6 +95,18 @@ const en: Translations = {
         clientChartPointNew: ':season — :count new clients',
         clientChartPointTotal: ':season — :count clients in total',
     },
+    onboarding: {
+        title: 'Welcome — let\u2019s get started',
+        description: 'A few actions to get you up and running',
+        progress: ':done of :total done',
+        steps: {
+            first_client: 'Create your first client',
+            first_contract: 'Record your first contract',
+            first_paid_installment: 'Collect a first installment',
+            invite_teammate: 'Invite a teammate',
+        },
+        stepDone: 'Done',
+    },
     paymentSlots: {
         deposit: 'Deposit',
         first: '1st installment',

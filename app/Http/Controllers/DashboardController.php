@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Actions\GetClientEvolution;
+use App\Actions\GetOnboardingChecklist;
 use App\Actions\GetRevenueEvolution;
 use App\Actions\GetSeasonRevenueRecap;
 use App\Actions\GetSeasonSummary;
@@ -30,6 +31,7 @@ final readonly class DashboardController
         GetUnpaidInstallments $unpaidInstallments,
         GetRevenueEvolution $revenueEvolution,
         GetClientEvolution $clientEvolution,
+        GetOnboardingChecklist $onboardingChecklist,
     ): Response {
         /** @var Collection<int, string> $seasons */
         $seasons = $this->cache->remember(
@@ -56,6 +58,12 @@ final readonly class DashboardController
             ? PaymentSlot::from($validated['slot'])
             : PaymentSlot::SLOT_SECOND_INSTALLMENT;
 
+        // The checklist is only shared while steps remain, so it naturally
+        // disappears from the payload (and the page) once the organization
+        // has performed each activation action...
+        $checklist = $onboardingChecklist->handle();
+        $hasIncompleteSteps = $checklist !== null && $checklist['incompleteCount'] > 0;
+
         return Inertia::render('dashboard', [
             'season' => $season->label,
             'seasons' => $seasons->all(),
@@ -65,6 +73,7 @@ final readonly class DashboardController
             'revenueEvolution' => $revenueEvolution->handle(),
             'clientEvolution' => $clientEvolution->handle(),
             'slot' => $slot->value,
+            ...($hasIncompleteSteps ? ['onboardingChecklist' => $checklist] : []),
         ]);
     }
 }
