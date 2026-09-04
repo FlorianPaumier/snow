@@ -94,6 +94,11 @@ variables:
         - .composer-cache/
         - .bun-cache/
   before_script:
+    # Dependencies first: artisan boots from vendor/autoload.php, so
+    # key:generate and the Wayfinder regeneration cannot run before
+    # composer install. The cache restore usually makes this a no-op.
+    - composer install --no-interaction --prefer-dist --optimize-autoloader --no-progress
+    - bun install --frozen-lockfile
     # App env for artisan + browser tests; phpunit.xml force-pins the test
     # environment (sqlite :memory:, array drivers) on top of this.
     - cp .env.example .env
@@ -102,8 +107,6 @@ variables:
     # for tsc and the vite-plus type-aware linter. --with-form matches the
     # vite plugin's formVariants: true (tsc fails without .form variants).
     - php artisan wayfinder:generate --with-form
-    - composer install --no-interaction --prefer-dist --optimize-autoloader --no-progress
-    - bun install --frozen-lockfile
 
 lint:
   extends: .base
