@@ -78,7 +78,20 @@ it('requires email verification', function (): void {
 
     $this->actingAs($unverified)
         ->get(route('dashboard'))
-        ->assertRedirectToRoute('login-challenge.show');
+        ->assertRedirectToRoute('verification.notice');
+});
+
+it('lands unverified users on the verify email notice instead of a redirect loop', function (): void {
+    $unverified = User::factory()->unverified()->create();
+
+    $this->actingAs($unverified)
+        ->get(route('dashboard'));
+
+    // The redirect target is auth-gated (not guest), so following it renders
+    // the notice page rather than bouncing back to the dashboard...
+    $this->get(route('verification.notice'))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page->component('user-email-verification-notification/create'));
 });
 
 it('accepts a season parameter', function (): void {

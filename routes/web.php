@@ -51,7 +51,7 @@ Route::get('status', fn (GetSystemStatus $systemStatus) => Inertia::render('mark
     'components' => $systemStatus->handle(),
 ]))->name('status');
 
-Route::middleware(['auth', 'verified:login-challenge.show'])->group(function (): void {
+Route::middleware(['auth', 'verified:verification.notice'])->group(function (): void {
     Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     // Billing (admin-only subscription management)...
