@@ -177,7 +177,47 @@ it('throttles login attempts after too many failures', function (): void {
     expect($errors->get('email')[0])->toContain('Trop de tentatives de connexion');
 });
 
-it('clears rate limit after a successful login attempt', function (): void {
+it('does not clear the rate limit after successful login attempts', function (): void {
+    Mail::fake();
+
+    User::factory()->withoutTwoFactor()->create([
+        'email' => 'test@example.com',
+        'password' => Hash::make('password'),
+    ]);
+
+    // Each successful credential check consumes an attempt and earns one
+    // challenge code email...
+    for ($i = 0; $i < 5; $i++) {
+        $this->fromRoute('login')
+            ->post(route('login.store'), [
+                'email' => 'test@example.com',
+                'password' => 'password',
+            ])
+            ->assertRedirectToRoute('login-challenge.show');
+    }
+
+    Mail::assertQueued(LoginChallengeCodeMail::class, 5);
+
+    // ...so the 6th attempt is throttled even with valid credentials, and no
+    // 6th code is emailed: challenge codes cannot be mail-bombed.
+    $response = $this->fromRoute('login')
+        ->post(route('login.store'), [
+            'email' => 'test@example.com',
+            'password' => 'password',
+        ]);
+
+    $response->assertRedirectToRoute('login')
+        ->assertSessionHasErrors('email');
+
+    $errors = session('errors');
+    expect($errors->get('email')[0])->toContain('Trop de tentatives de connexion');
+
+    Mail::assertQueued(LoginChallengeCodeMail::class, 5);
+
+    $this->assertGuest();
+});
+
+it('completes the login flow by verifying the emailed challenge code', function (): void {
     Mail::fake();
 
     $user = User::factory()->withoutTwoFactor()->create([
@@ -185,31 +225,23 @@ it('clears rate limit after a successful login attempt', function (): void {
         'password' => Hash::make('password'),
     ]);
 
-    // Make a few failed attempts
-    for ($i = 0; $i < 3; $i++) {
-        $this->fromRoute('login')
-            ->post(route('login.store'), [
-                'email' => 'test@example.com',
-                'password' => 'wrong-password',
-            ]);
-    }
-
-    // A successful credential check should clear the rate limit
-    $response = $this->fromRoute('login')
-        ->post(route('login.store'), [
-            'email' => 'test@example.com',
-            'password' => 'password',
-        ]);
-
-    $response->assertRedirectToRoute('login-challenge.show');
-
-    // The rate limit was cleared, so a subsequent attempt is not throttled...
     $this->fromRoute('login')
         ->post(route('login.store'), [
             'email' => 'test@example.com',
             'password' => 'password',
         ])
         ->assertRedirectToRoute('login-challenge.show');
+
+    /** @var LoginChallengeCodeMail $challengeMail */
+    $challengeMail = Mail::queued(LoginChallengeCodeMail::class)->first();
+
+    $this->fromRoute('login-challenge.show')
+        ->post(route('login-challenge.store'), [
+            'code' => $challengeMail->code,
+        ])
+        ->assertRedirectToRoute('dashboard');
+
+    $this->assertAuthenticatedAs($user);
 });
 
 it('dispatches lockout event when rate limit is reached', function (): void {

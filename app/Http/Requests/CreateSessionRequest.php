@@ -42,7 +42,10 @@ final class CreateSessionRequest extends FormRequest
             ]);
         }
 
-        RateLimiter::clear($this->throttleKey());
+        // A valid credential check still consumes an attempt: it only earns
+        // the emailed challenge code, not a login, so repeated successful
+        // checks must stay bounded to prevent code mail-bombing.
+        RateLimiter::hit($this->throttleKey());
 
         return $user;
     }

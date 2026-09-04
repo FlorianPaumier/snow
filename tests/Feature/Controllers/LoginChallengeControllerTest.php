@@ -247,6 +247,70 @@ it('allows a correct code within the attempt limit', function (): void {
     $response->assertRedirectToRoute('dashboard');
 });
 
+it('clears the challenge attempt counter once the code is verified', function (): void {
+    $user = User::factory()->withoutTwoFactor()->create([
+        'login_challenge_code' => Hash::make('123456'),
+        'login_challenge_code_expires_at' => now()->addMinutes(15),
+    ]);
+
+    // Four failed attempts leave the counter one shy of the limit...
+    for ($i = 0; $i < 4; $i++) {
+        $this->withSession([
+            'login.id' => $user->getKey(),
+            'login.remember' => false,
+        ])->fromRoute('login-challenge.show')
+            ->post(route('login-challenge.store'), [
+                'code' => '654321',
+            ]);
+    }
+
+    // ...so the correct code still verifies the login.
+    $this->withSession([
+        'login.id' => $user->getKey(),
+        'login.remember' => false,
+    ])->fromRoute('login-challenge.show')
+        ->post(route('login-challenge.store'), [
+            'code' => '123456',
+        ]);
+
+    $this->assertAuthenticatedAs($user);
+
+    // A later challenge flow starts from a cleared counter: without the
+    // clear, the failure below would exhaust the limit and the correct
+    // code afterwards would be throttled instead of logging in.
+    $this->post(route('logout'));
+
+    // Refresh so the in-memory model sees the nulled code columns before
+    // re-arming them (frozen time makes the new expiry identical to the
+    // stale in-memory original, which would skip persisting it).
+    $user->refresh();
+
+    $user->forceFill([
+        'login_challenge_code' => Hash::make('123456'),
+        'login_challenge_code_expires_at' => now()->addMinutes(15),
+    ])->save();
+
+    $this->withSession([
+        'login.id' => $user->getKey(),
+        'login.remember' => false,
+    ])->fromRoute('login-challenge.show')
+        ->post(route('login-challenge.store'), [
+            'code' => '654321',
+        ]);
+
+    $response = $this->withSession([
+        'login.id' => $user->getKey(),
+        'login.remember' => false,
+    ])->fromRoute('login-challenge.show')
+        ->post(route('login-challenge.store'), [
+            'code' => '123456',
+        ]);
+
+    $this->assertAuthenticatedAs($user);
+
+    $response->assertRedirectToRoute('dashboard');
+});
+
 it('dispatches a lockout event when the challenge is rate limited', function (): void {
     Event::fake([Lockout::class]);
 
