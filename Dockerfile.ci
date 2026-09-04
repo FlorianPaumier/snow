@@ -11,6 +11,15 @@
 # A mismatched bun.lock still runs — the tests job re-downloads browsers on
 # the fly — but the image should be re-baked to keep that path cold.
 
+# Tool images, declared as named stages: COPY --from must resolve
+# against a build stage on every builder. Docker pulls bare registry
+# references on the fly, but buildah only resolves stages and images
+# already in local storage — on a fresh runner a bare reference fails
+# with "no stage or image found with that name".
+FROM composer:2 AS composer
+FROM node:24 AS node
+FROM oven/bun:1.3.1 AS bun
+
 FROM php:8.5
 
 # System packages: unzip (composer dist zips), git (Pest TIA change
@@ -32,18 +41,18 @@ RUN docker-php-ext-install -j"$(nproc)" bcmath sockets pcntl intl \
     && mkdir -p /tmp/rector /tmp/phpstan
 
 # Composer, from the official image.
-COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+COPY --from=composer /usr/bin/composer /usr/bin/composer
 
 # Node 24 — the vp, tsc and playwright binaries are node scripts — from
 # the official image.
-COPY --from=node:24 /usr/local/bin/node /usr/local/bin/node
+COPY --from=node /usr/local/bin/node /usr/local/bin/node
 
 # Bun, pinned to the version that produced bun.lock (the frozen lockfile
 # install expects a compatible bun). The oven/bun image ships bunx as a
 # symlink to bun; copying both the binary and the shim keeps `bunx`
 # working, which the Playwright install below needs.
-COPY --from=oven/bun:1.3.1 /usr/local/bin/bun /usr/local/bin/bun
-COPY --from=oven/bun:1.3.1 /usr/local/bin/bunx /usr/local/bin/bunx
+COPY --from=bun /usr/local/bin/bun /usr/local/bin/bun
+COPY --from=bun /usr/local/bin/bunx /usr/local/bin/bunx
 
 # Chromium for the Pest browser tests (chromium only — add firefox/webkit
 # here if a test ever requests them). The version pin matters: browsers
