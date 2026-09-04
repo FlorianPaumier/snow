@@ -122,7 +122,7 @@ final class Client extends Model
      * @param  Builder<Client>  $query
      * @return Builder<Client>
      */
-    public function scopeWhereAnonymized(Builder $query): Builder
+    protected function scopeWhereAnonymized(Builder $query): Builder
     {
         return $query->whereNotNull('anonymized_at');
     }
@@ -131,7 +131,7 @@ final class Client extends Model
      * @param  Builder<Client>  $query
      * @return Builder<Client>
      */
-    public function scopeWhereNotAnonymized(Builder $query): Builder
+    protected function scopeWhereNotAnonymized(Builder $query): Builder
     {
         return $query->whereNull('anonymized_at');
     }
