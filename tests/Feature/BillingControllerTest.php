@@ -106,7 +106,10 @@ it('redirects to the Stripe checkout with tax enabled when the monthly price is 
     // billing address...
     expect($checkoutPayload['automatic_tax'])->toBe(['enabled' => true])
         ->and($checkoutPayload['billing_address_collection'])->toBe('required')
-        ->and($checkoutPayload['line_items'][0]['price'])->toBe('price_test_monthly');
+        ->and($checkoutPayload['line_items'][0]['price'])->toBe('price_test_monthly')
+        // Stripe only accepts absolute redirect URLs...
+        ->and($checkoutPayload['success_url'])->toBe(route('billing.index'))
+        ->and($checkoutPayload['cancel_url'])->toBe(route('billing.index'));
 });
 
 it('uses the annual price for annual checkouts', function (): void {
@@ -217,11 +220,16 @@ it('bills immediately when the organization already has a subscription', functio
 it('redirects to the billing portal for admins', function (): void {
     $this->admin->organization->forceFill(['stripe_id' => 'cus_test_123'])->save();
 
-    bindFakeStripeClient(portalUrl: 'https://billing.stripe.com/test');
+    $portalPayload = [];
+
+    bindFakeStripeClient(portalUrl: 'https://billing.stripe.com/test', portalPayload: $portalPayload);
 
     $this->actingAs($this->admin)
         ->put(route('billing.portal'), [])
         ->assertRedirect('https://billing.stripe.com/test');
+
+    // Stripe only accepts absolute redirect URLs...
+    expect($portalPayload['return_url'])->toBe(route('billing.index'));
 });
 
 /**
@@ -229,10 +237,11 @@ it('redirects to the billing portal for admins', function (): void {
  * the client through the container, so the double replaces every SDK call.
  * Only the services the covered flows touch are faked; the Checkout and
  * BillingPortal services wrap their session services because Cashier
- * reaches them through two magic-property hops. When $checkoutPayload is
- * given, it receives the params sent to the checkout session create call.
+ * reaches them through two magic-property hops. When $checkoutPayload or
+ * $portalPayload is given, it receives the params sent to the matching
+ * session create call.
  */
-function bindFakeStripeClient(string $checkoutUrl = 'https://checkout.stripe.com/unused', string $portalUrl = 'https://billing.stripe.com/unused', ?array &$checkoutPayload = null): void
+function bindFakeStripeClient(string $checkoutUrl = 'https://checkout.stripe.com/unused', string $portalUrl = 'https://billing.stripe.com/unused', ?array &$checkoutPayload = null, ?array &$portalPayload = null): void
 {
     $stripeCustomer = Customer::constructFrom(['id' => 'cus_test_123'], []);
 
@@ -249,7 +258,11 @@ function bindFakeStripeClient(string $checkoutUrl = 'https://checkout.stripe.com
     });
 
     $portalSessionService = Mockery::mock(Stripe\Service\BillingPortal\SessionService::class);
-    $portalSessionService->shouldReceive('create')->andReturn(['url' => $portalUrl]);
+    $portalSessionService->shouldReceive('create')->andReturnUsing(function (array $payload) use (&$portalPayload, $portalUrl): array {
+        $portalPayload = $payload;
+
+        return ['url' => $portalUrl];
+    });
 
     $checkoutService = new readonly class($checkoutSessionService)
     {

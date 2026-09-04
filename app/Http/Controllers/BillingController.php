@@ -51,8 +51,8 @@ final readonly class BillingController
         }
 
         $checkout = $subscription->checkout([
-            'success_url' => route('billing.index', absolute: false),
-            'cancel_url' => route('billing.index', absolute: false),
+            'success_url' => route('billing.index'),
+            'cancel_url' => route('billing.index'),
             // Stripe Tax computes GST/QST (or the customer's local tax) at
             // checkout: prices are tax-exclusive and the billing address
             // is required to resolve the rate...
@@ -71,7 +71,7 @@ final readonly class BillingController
     public function update(#[CurrentUser] User $user): RedirectResponse
     {
         return $user->organization->redirectToBillingPortal(
-            route('billing.index', absolute: false),
+            route('billing.index'),
         );
     }
 
