@@ -54,8 +54,7 @@ final readonly class ExportSeasonPayments
         $contracts = Contract::query()
             ->with('client', 'payments')
             ->when($season !== null, fn (Builder $query): Builder => $query->where('season', $season))
-            ->orderByDesc('season')
-            ->orderBy('created_at')
+            ->orderByDesc('season')->oldest()
             ->cursor();
 
         foreach ($contracts as $contract) {

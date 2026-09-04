@@ -72,7 +72,7 @@ final class CreateContractRequest extends FormRequest
             /** @var list<array{amount: int|string}> $serviceRows */
             $serviceRows = array_values($services);
             /** @var list<array{amount: int|string}> $paymentRows */
-            $paymentRows = array_values(array_filter($payments, 'is_array'));
+            $paymentRows = array_values(array_filter($payments, is_array(...)));
 
             $servicesTotal = array_sum(array_map(fn (array $service): int => (int) $service['amount'], $serviceRows));
             $paymentsTotal = array_sum(array_map(fn (array $payment): int => (int) $payment['amount'], $paymentRows));

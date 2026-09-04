@@ -8,4 +8,5 @@ export const ROUTES = {
     terms: '/terms',
     privacy: '/privacy',
     status: '/status',
+    register: '/register',
 } as const;

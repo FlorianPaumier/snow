@@ -13,7 +13,7 @@ it('sends the inquiry email and marks the inquiry sent', function (): void {
 
     $inquiry = ContactInquiry::factory()->withCompany()->create();
 
-    (new SendContactInquiry($inquiry->id))->handle();
+    new SendContactInquiry($inquiry->id)->handle();
 
     Mail::assertSent(ContactInquiryMail::class, 1);
     Mail::assertSent(ContactInquiryMail::class, function (ContactInquiryMail $mail) use ($inquiry): bool {
@@ -33,7 +33,7 @@ it('does not resend an inquiry already marked sent', function (): void {
 
     $inquiry = ContactInquiry::factory()->sent()->create();
 
-    (new SendContactInquiry($inquiry->id))->handle();
+    new SendContactInquiry($inquiry->id)->handle();
 
     Mail::assertNothingSent();
     expect($inquiry->fresh()->sent_at->format('Y-m-d H:i:s'))
@@ -43,7 +43,7 @@ it('does not resend an inquiry already marked sent', function (): void {
 it('marks the inquiry failed when retries are exhausted', function (): void {
     $inquiry = ContactInquiry::factory()->create();
 
-    (new SendContactInquiry($inquiry->id))
+    new SendContactInquiry($inquiry->id)
         ->failed(new RuntimeException('SMTP connection failed'));
 
     expect($inquiry->fresh()->status)->toBe(ContactInquiryStatus::STATUS_FAILED)
@@ -53,7 +53,7 @@ it('marks the inquiry failed when retries are exhausted', function (): void {
 it('leaves a sent inquiry untouched when the job fails after delivery', function (): void {
     $inquiry = ContactInquiry::factory()->sent()->create();
 
-    (new SendContactInquiry($inquiry->id))
+    new SendContactInquiry($inquiry->id)
         ->failed(new RuntimeException('worker crashed after send'));
 
     expect($inquiry->fresh()->status)->toBe(ContactInquiryStatus::STATUS_SENT)

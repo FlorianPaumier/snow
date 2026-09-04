@@ -16,7 +16,7 @@ final readonly class DownloadContractPdfController
      */
     public function __invoke(Contract $contract): StreamedResponse
     {
-        $disk = Storage::disk((string) config('filesystems.default'));
+        $disk = Storage::disk(config()->string('filesystems.default'));
         $path = GenerateContractPdf::pdfPath($contract->id);
 
         abort_unless($disk->exists($path), 404);

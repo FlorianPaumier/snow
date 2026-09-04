@@ -78,6 +78,7 @@ const fr = {
         sendReminder: 'Envoyer un rappel par courriel',
         reminderSentOn: 'Rappel envoyé le :date',
         reminderNoEmail: 'Aucun courriel enregistré pour ce client',
+        reminderProOnly: 'Les rappels de paiement font partie du forfait Pro',
         recapTitle: 'Revenus par saison',
         recapDescription: 'Récapitulatif de toutes les saisons',
         recapSeason: 'Saison',
@@ -360,27 +361,36 @@ const fr = {
         trial: 'Essai',
         subscribedPlan: 'Vous êtes abonné au plan :plan (:status).',
         trialUntil:
-            'Votre essai gratuit se poursuit jusqu\u2019au :date. Choisissez un plan ci-dessous pour continuer.',
+            'Votre essai gratuit se poursuit jusqu\u2019au :date — le produit complet, sans limite.',
         trialUntilUnknown:
-            'Votre essai gratuit touche à sa fin. Choisissez un plan ci-dessous pour continuer.',
-        pickPlan: 'Choisissez un plan ci-dessous pour commencer.',
+            'Votre essai gratuit touche à sa fin. Choisissez un forfait ci-dessous pour continuer.',
+        pickPlan:
+            'Vous êtes sur le forfait gratuit. Passez à Pro ci-dessous pour lever les limites.',
         manageInStripe: 'Gérer la facturation dans Stripe',
         unlimitedUsers: 'Utilisateurs illimités',
         unlimitedClients: 'clients illimités',
         userCount: ':count utilisateurs',
         clientCount: ':count clients',
-        subscribeMonthly: "S'abonner au mensuel",
-        subscribeAnnually: "S'abonner à l'annuel",
-        readOnlyTitle: 'Votre essai est terminé',
-        readOnlyBody:
-            'Vos données sont en lecture seule — passez à un forfait pour continuer à gérer votre organisation.',
-        readOnlyUpgrade: 'Passer à un forfait',
-        readOnlyUnlock: 'Débloquer 24 heures (unique)',
-        readOnlyPaymentTitle: 'Problème de paiement',
-        readOnlyPaymentBody:
-            'Votre abonnement n\u2019est pas actif actuellement. Vos données sont en lecture seule jusqu\u2019au rétablissement du paiement.',
+        subscribeMonthly: "S'abonner au mensuel (30 $CA)",
+        subscribeAnnually: "S'abonner à l'annuel (300 $CA)",
+        trialTitle: 'Votre essai gratuit est en cours',
+        trialBody:
+            'Vous profitez du produit complet jusqu\u2019au :date. Ensuite, les limites du forfait gratuit s\u2019appliquent — passez à Pro en tout temps pour tout garder illimité.',
+        trialBodyUnknown:
+            'Votre essai gratuit se termine bientôt. Ensuite, les limites du forfait gratuit s\u2019appliquent — passez à Pro en tout temps.',
+        freeTitle: 'Vous êtes sur le forfait gratuit',
+        freeBody:
+            'Votre organisation est limitée à 1 utilisateur et 15 clients. Tout ce que vous avez déjà reste accessible — passez à Pro pour des clients et des coéquipiers illimités.',
+        bannerUpgrade: 'Voir Pro',
+        freePlanName: 'Gratuit',
+        freePlanLimits: '1 utilisateur · 15 clients',
+        freeAfterDowngrade:
+            'Si vous annulez Pro, votre organisation revient ici — rien n\u2019est supprimé, seuls les nouveaux clients et utilisateurs au-delà des limites attendront une mise à niveau.',
+        freeCurrentNote:
+            'Votre forfait actuel. Toutes les fonctions sont incluses — les limites portent seulement sur le nombre de clients et d\u2019utilisateurs.',
+        proBadge: 'Pro',
         pricesNote:
-            'Les prix sont gérés dans Stripe. Vous avez besoin d\u2019une entente particulière?',
+            'Les prix sont en dollars canadiens, taxes applicables en sus (calculées au paiement). Vous avez besoin d\u2019une entente particulière?',
         contactUs: 'Nous contacter',
     },
     auth: {

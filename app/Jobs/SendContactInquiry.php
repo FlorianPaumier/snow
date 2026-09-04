@@ -10,18 +10,17 @@ use App\Models\ContactInquiry;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
+use Illuminate\Queue\Attributes\Backoff;
+use Illuminate\Queue\Attributes\Tries;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Throwable;
 
+#[Backoff([10, 30])]
+#[Tries(3)]
 final class SendContactInquiry implements ShouldBeUnique, ShouldQueue
 {
     use Queueable;
-
-    public int $tries = 3;
-
-    /** @var list<int> */
-    public array $backoff = [10, 30];
 
     public function __construct(public readonly string $inquiryId) {}
 

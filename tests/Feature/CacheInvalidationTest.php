@@ -159,7 +159,7 @@ it('flushes the organization cache when a Stripe webhook arrives', function (): 
                         ],
                     ],
                 ],
-                'metadata' => ['name' => 'starter'],
+                'metadata' => ['name' => 'pro'],
             ],
         ],
     ])->assertOk();
@@ -200,7 +200,7 @@ it('accepts a webhook for an unknown customer without flushing anything', functi
                         ],
                     ],
                 ],
-                'metadata' => ['name' => 'starter'],
+                'metadata' => ['name' => 'pro'],
             ],
         ],
     ])->assertOk();
@@ -233,18 +233,18 @@ it('accepts a webhook without a customer id without flushing anything', function
     expect(Cache::has($versionKey))->toBeTrue();
 });
 
-it('restores full access when a Stripe subscription becomes active', function (): void {
+it('restores pro limits when a Stripe subscription becomes active', function (): void {
     $this->admin->organization->forceFill([
         'trial_ends_at' => now()->subDay(),
         'stripe_id' => 'cus_test_123',
     ])->save();
 
-    // Seed a read-only verdict...
+    // Seed the free-plan summary (expired trial, no subscription)...
     $this->actingAs($this->admin)
         ->get(route('dashboard'))
         ->assertOk()
         ->assertInertia(fn ($page) => $page
-            ->where('auth.access.readOnly', true));
+            ->where('auth.subscription.plan', 'free'));
 
     // A subscription update webhook for this organization's customer,
     // shaped as Stripe sends it (Cashier reads items.data[0])...
@@ -265,7 +265,7 @@ it('restores full access when a Stripe subscription becomes active', function ()
                         ],
                     ],
                 ],
-                'metadata' => ['name' => 'starter'],
+                'metadata' => ['name' => 'pro'],
             ],
         ],
     ])->assertOk();
@@ -273,13 +273,13 @@ it('restores full access when a Stripe subscription becomes active', function ()
     // The acting user instance persists across test requests, and its
     // cached organization still carries the pre-webhook subscriptions
     // relation. Real requests hydrate the user per request, so drop the
-    // stale relation and let the recomputed verdict query fresh...
+    // stale relation and let the recomputed summary query fresh...
     $this->admin->unsetRelation('organization');
 
-    // The verdict recomputed from the flushed cache: mutations work again...
+    // The summary recomputed from the flushed cache: the org is on pro...
     $this->actingAs($this->admin)
         ->get(route('dashboard'))
         ->assertOk()
         ->assertInertia(fn ($page) => $page
-            ->where('auth.access.readOnly', false));
+            ->where('auth.subscription.plan', 'pro'));
 });

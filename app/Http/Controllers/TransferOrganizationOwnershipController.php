@@ -7,6 +7,7 @@ namespace App\Http\Controllers;
 use App\Actions\TransferOrganizationOwnership;
 use App\Http\Requests\TransferOrganizationOwnershipRequest;
 use App\Models\User;
+use Illuminate\Container\Attributes\CurrentUser;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
@@ -15,13 +16,17 @@ final readonly class TransferOrganizationOwnershipController
 {
     public function __invoke(
         TransferOrganizationOwnershipRequest $request,
+        #[CurrentUser] User $user,
         TransferOrganizationOwnership $action,
     ): RedirectResponse {
-        Gate::authorize('transfer-organization', $request->user()->organization);
+        Gate::authorize('transfer-organization', $user->organization);
 
-        $newOwner = User::query()->findOrFail($request->validated('user_id'));
+        /** @var array{user_id: string} $validated */
+        $validated = $request->validated();
 
-        $action->handle($request->user()->organization, $newOwner);
+        $newOwner = User::query()->findOrFail($validated['user_id']);
+
+        $action->handle($user->organization, $newOwner);
 
         Inertia::flash('toast', [
             'type' => 'success',

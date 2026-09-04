@@ -4,19 +4,25 @@ declare(strict_types=1);
 
 namespace App\Actions;
 
+use App\Exceptions\PlanFeatureLocked;
 use App\Mail\InstallmentReminderMail;
 use App\Models\Payment;
 use App\Models\User;
+use Carbon\CarbonInterface;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Number;
 use Illuminate\Validation\ValidationException;
 
 final readonly class SendPaymentReminder
 {
-    public function __construct(private FlushOrganizationCache $flushCache) {}
+    public function __construct(
+        private FlushOrganizationCache $flushCache,
+        private GetPlanFeatures $planFeatures,
+    ) {}
 
     /**
-     * One-click manual reminder from the unpaid installments list. A manual
+     * One-click manual reminder from the unpaid installments list. Payment
+     * reminders are a Pro feature, so the free plan stops here. A manual
      * send also resets the automated reminder cooldown: the owner just
      * reached out, so the cron stays quiet for another week.
      */
@@ -28,6 +34,12 @@ final readonly class SendPaymentReminder
             throw ValidationException::withMessages([
                 'payment' => __('payments.already_paid'),
             ]);
+        }
+
+        $features = $this->planFeatures->handle($payment->organization);
+
+        if (! $features['paymentReminders']) {
+            throw new PlanFeatureLocked(__('statuses.feature_locked'));
         }
 
         $this->send($payment);
@@ -71,7 +83,7 @@ final readonly class SendPaymentReminder
             'clientName' => $payment->contract->client->displayName(),
             'slotLabel' => $payment->slot->label(),
             'season' => $payment->contract->season,
-            'amount' => Number::currency($payment->amount / 100, 'CAD', locale: 'fr-CA'),
+            'amount' => Number::currency($payment->amount / 100, 'CAD', locale: 'fr-CA') ?: '—',
             'dueDate' => $dueDate?->locale('fr-CA')->translatedFormat('j F Y') ?? '—',
             'duePhrase' => $this->duePhrase($dueDate),
             'organizationName' => $payment->organization->name,
@@ -95,13 +107,13 @@ final readonly class SendPaymentReminder
     /**
      * Carbon's diffInDays is signed: negative when the due date is past.
      */
-    private function duePhrase(?\Carbon\CarbonInterface $dueDate): string
+    private function duePhrase(?CarbonInterface $dueDate): string
     {
-        if ($dueDate === null) {
+        if (! $dueDate instanceof CarbonInterface) {
             return 'sans échéance';
         }
 
-        $days = (int) now()->startOfDay()->diffInDays($dueDate->copy()->startOfDay(), false);
+        $days = (int) today()->diffInDays($dueDate->copy()->startOfDay(), false);
 
         return match (true) {
             $days < 0 => sprintf('en retard de %d jour%s', abs($days), abs($days) > 1 ? 's' : ''),

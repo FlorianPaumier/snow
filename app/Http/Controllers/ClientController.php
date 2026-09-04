@@ -42,6 +42,7 @@ final readonly class ClientController
         $search = $validated['search'] ?? null;
         $view = $validated['view'] ?? 'active';
         $view = in_array($view, ['active', 'anonymized', 'all'], true) ? $view : 'active';
+
         $sort = in_array($validated['sort'] ?? null, $this->sortableColumns(), true) ? $validated['sort'] : 'created_at';
         $direction = ($validated['direction'] ?? null) === 'asc' ? 'asc' : 'desc';
 

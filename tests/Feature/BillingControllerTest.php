@@ -22,7 +22,9 @@ it('renders the billing page for admins', function (): void {
         ->assertInertia(function ($page): void {
             $page->component('billing/index')
                 ->where('organization.name', 'Billing Org')
-                ->has('plans', 3);
+                ->has('plan')
+                ->where('plan.key', 'pro')
+                ->where('plan.name', 'Pro');
         });
 });
 
@@ -47,10 +49,19 @@ it('rejects an unknown plan at checkout', function (): void {
         ->assertSessionHasErrors('plan');
 });
 
+it('rejects the free plan at checkout', function (): void {
+    // Free is the default state, not something you subscribe to...
+    $this->actingAs($this->admin)
+        ->fromRoute('billing.index')
+        ->post(route('billing.checkout'), ['plan' => 'free', 'interval' => 'monthly'])
+        ->assertRedirectToRoute('billing.index')
+        ->assertSessionHasErrors('plan');
+});
+
 it('rejects an invalid billing interval at checkout', function (string $interval): void {
     $this->actingAs($this->admin)
         ->fromRoute('billing.index')
-        ->post(route('billing.checkout'), ['plan' => 'starter', 'interval' => $interval])
+        ->post(route('billing.checkout'), ['plan' => 'pro', 'interval' => $interval])
         ->assertRedirectToRoute('billing.index')
         ->assertSessionHasErrors('interval');
 })->with([
@@ -68,30 +79,55 @@ it('requires a plan and an interval at checkout', function (): void {
 });
 
 it('redirects to billing with a message when the plan has no price configured', function (): void {
-    config()->set('plans.starter.prices.monthly');
+    config()->set('plans.pro.prices.monthly');
 
     $this->actingAs($this->admin)
         ->fromRoute('billing.index')
-        ->post(route('billing.checkout'), ['plan' => 'starter', 'interval' => 'monthly'])
+        ->post(route('billing.checkout'), ['plan' => 'pro', 'interval' => 'monthly'])
         ->assertRedirectToRoute('billing.index')
         ->assertSessionHas('status', 'This plan is not configured yet. Please contact support.');
 });
 
-it('redirects to the Stripe checkout when the plan price is configured', function (): void {
-    config()->set('plans.starter.prices.monthly', 'price_test_monthly');
+it('redirects to the Stripe checkout with tax enabled when the monthly price is configured', function (): void {
+    config()->set('plans.pro.prices.monthly', 'price_test_monthly');
 
     $this->admin->organization->forceFill(['stripe_id' => 'cus_test_123'])->save();
 
-    bindFakeStripeClient(checkoutUrl: 'https://checkout.stripe.com/test');
+    $checkoutPayload = [];
+
+    bindFakeStripeClient(checkoutUrl: 'https://checkout.stripe.com/test', checkoutPayload: $checkoutPayload);
 
     $this->actingAs($this->admin)
         ->fromRoute('billing.index')
-        ->post(route('billing.checkout'), ['plan' => 'starter', 'interval' => 'monthly'])
+        ->post(route('billing.checkout'), ['plan' => 'pro', 'interval' => 'monthly'])
         ->assertRedirect('https://checkout.stripe.com/test');
+
+    // GST/QST is calculated by Stripe Tax at checkout, on a required
+    // billing address...
+    expect($checkoutPayload['automatic_tax'])->toBe(['enabled' => true])
+        ->and($checkoutPayload['billing_address_collection'])->toBe('required')
+        ->and($checkoutPayload['line_items'][0]['price'])->toBe('price_test_monthly');
+});
+
+it('uses the annual price for annual checkouts', function (): void {
+    config()->set('plans.pro.prices.annual', 'price_test_annual');
+
+    $this->admin->organization->forceFill(['stripe_id' => 'cus_test_123'])->save();
+
+    $checkoutPayload = [];
+
+    bindFakeStripeClient(checkoutUrl: 'https://checkout.stripe.com/test', checkoutPayload: $checkoutPayload);
+
+    $this->actingAs($this->admin)
+        ->fromRoute('billing.index')
+        ->post(route('billing.checkout'), ['plan' => 'pro', 'interval' => 'annual'])
+        ->assertRedirect('https://checkout.stripe.com/test');
+
+    expect($checkoutPayload['line_items'][0]['price'])->toBe('price_test_annual');
 });
 
 it('starts the checkout subscription at the end of the remaining signup trial', function (): void {
-    config()->set('plans.starter.prices.monthly', 'price_test_monthly');
+    config()->set('plans.pro.prices.monthly', 'price_test_monthly');
 
     $this->organization->forceFill([
         'stripe_id' => 'cus_test_123',
@@ -104,7 +140,7 @@ it('starts the checkout subscription at the end of the remaining signup trial', 
 
     $this->actingAs($this->admin)
         ->fromRoute('billing.index')
-        ->post(route('billing.checkout'), ['plan' => 'starter', 'interval' => 'monthly'])
+        ->post(route('billing.checkout'), ['plan' => 'pro', 'interval' => 'monthly'])
         ->assertRedirect('https://checkout.stripe.com/test');
 
     expect($checkoutPayload['subscription_data']['trial_end'])
@@ -112,7 +148,7 @@ it('starts the checkout subscription at the end of the remaining signup trial', 
 });
 
 it('bills immediately when the signup trial has expired', function (): void {
-    config()->set('plans.starter.prices.monthly', 'price_test_monthly');
+    config()->set('plans.pro.prices.monthly', 'price_test_monthly');
 
     $this->organization->forceFill([
         'stripe_id' => 'cus_test_123',
@@ -125,14 +161,14 @@ it('bills immediately when the signup trial has expired', function (): void {
 
     $this->actingAs($this->admin)
         ->fromRoute('billing.index')
-        ->post(route('billing.checkout'), ['plan' => 'starter', 'interval' => 'monthly'])
+        ->post(route('billing.checkout'), ['plan' => 'pro', 'interval' => 'monthly'])
         ->assertRedirect('https://checkout.stripe.com/test');
 
     expect($checkoutPayload['subscription_data'])->not->toHaveKey('trial_end');
 });
 
 it('bills immediately when the organization has no signup trial', function (): void {
-    config()->set('plans.starter.prices.monthly', 'price_test_monthly');
+    config()->set('plans.pro.prices.monthly', 'price_test_monthly');
 
     $this->organization->forceFill([
         'stripe_id' => 'cus_test_123',
@@ -145,19 +181,19 @@ it('bills immediately when the organization has no signup trial', function (): v
 
     $this->actingAs($this->admin)
         ->fromRoute('billing.index')
-        ->post(route('billing.checkout'), ['plan' => 'starter', 'interval' => 'monthly'])
+        ->post(route('billing.checkout'), ['plan' => 'pro', 'interval' => 'monthly'])
         ->assertRedirect('https://checkout.stripe.com/test');
 
     expect($checkoutPayload['subscription_data'])->not->toHaveKey('trial_end');
 });
 
 it('bills immediately when the organization already has a subscription', function (): void {
-    config()->set('plans.starter.prices.monthly', 'price_test_monthly');
+    config()->set('plans.pro.prices.monthly', 'price_test_monthly');
 
     $this->organization->forceFill(['stripe_id' => 'cus_test_123'])->save();
 
     $this->organization->subscriptions()->create([
-        'type' => 'starter',
+        'type' => 'pro',
         'stripe_id' => 'sub_test_123',
         'stripe_status' => 'active',
         'stripe_price' => 'price_test_monthly',
@@ -172,7 +208,7 @@ it('bills immediately when the organization already has a subscription', functio
 
     $this->actingAs($this->admin)
         ->fromRoute('billing.index')
-        ->post(route('billing.checkout'), ['plan' => 'starter', 'interval' => 'monthly'])
+        ->post(route('billing.checkout'), ['plan' => 'pro', 'interval' => 'monthly'])
         ->assertRedirect('https://checkout.stripe.com/test');
 
     expect($checkoutPayload['subscription_data'])->not->toHaveKey('trial_end');

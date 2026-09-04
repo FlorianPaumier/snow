@@ -30,7 +30,7 @@ final readonly class SubmitContactInquiry
             'message' => $attributes['message'],
         ]);
 
-        SendContactInquiry::dispatch($inquiry->id);
+        dispatch(new SendContactInquiry($inquiry->id));
 
         return $inquiry;
     }

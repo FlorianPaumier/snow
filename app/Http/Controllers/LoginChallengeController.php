@@ -121,7 +121,10 @@ final readonly class LoginChallengeController
      */
     private function throttleKey(User $user): string
     {
-        return 'login-challenge|'.$user->getKey().'|'.mb_strtolower($user->email);
+        /** @var string $key */
+        $key = $user->getKey();
+
+        return 'login-challenge|'.$key.'|'.mb_strtolower($user->email);
     }
 
     /**

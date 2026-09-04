@@ -7,7 +7,7 @@ namespace Database\Factories;
 use App\Enums\ContactInquiryStatus;
 use App\Models\ContactInquiry;
 use Illuminate\Database\Eloquent\Factories\Factory;
-use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Date;
 
 /**
  * @extends Factory<ContactInquiry>
@@ -42,7 +42,7 @@ final class ContactInquiryFactory extends Factory
     {
         return $this->state(fn (): array => [
             'status' => ContactInquiryStatus::STATUS_SENT,
-            'sent_at' => Carbon::now(),
+            'sent_at' => Date::now(),
         ]);
     }
 
@@ -50,7 +50,7 @@ final class ContactInquiryFactory extends Factory
     {
         return $this->state(fn (): array => [
             'status' => ContactInquiryStatus::STATUS_FAILED,
-            'failed_at' => Carbon::now(),
+            'failed_at' => Date::now(),
         ]);
     }
 }

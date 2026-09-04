@@ -19,8 +19,7 @@ return new class extends Migration
         foreach ($organizationIds as $organizationId) {
             $ownerId = DB::table('users')
                 ->where('organization_id', $organizationId)
-                ->orderByRaw("case when role = 'admin' then 0 else 1 end")
-                ->orderBy('created_at')
+                ->orderByRaw("case when role = 'admin' then 0 else 1 end")->oldest()
                 ->orderBy('id')
                 ->value('id');
 

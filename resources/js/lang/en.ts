@@ -73,6 +73,7 @@ const en: Translations = {
         sendReminder: 'Send an email reminder',
         reminderSentOn: 'Reminder sent on :date',
         reminderNoEmail: 'No email on file for this client',
+        reminderProOnly: 'Payment reminders are part of the Pro plan',
         recapTitle: 'Revenue per season',
         recapDescription: 'Summary of all seasons',
         recapSeason: 'Season',
@@ -352,26 +353,36 @@ const en: Translations = {
         trial: 'Trial',
         subscribedPlan: 'You are subscribed to the :plan plan (:status).',
         trialUntil:
-            'Your free trial runs until :date. Pick a plan below to keep going.',
+            'Your free trial runs until :date — the full product, no limits.',
         trialUntilUnknown:
             'Your free trial is coming to an end. Pick a plan below to keep going.',
-        pickPlan: 'Pick a plan below to get started.',
+        pickPlan:
+            'You are on the Free plan. Upgrade to Pro below to lift the caps.',
         manageInStripe: 'Manage billing in Stripe',
         unlimitedUsers: 'Unlimited users',
         unlimitedClients: 'unlimited clients',
         userCount: ':count users',
         clientCount: ':count clients',
-        subscribeMonthly: 'Subscribe monthly',
-        subscribeAnnually: 'Subscribe annually',
-        readOnlyTitle: 'Your trial has ended',
-        readOnlyBody:
-            'Your data is read-only — upgrade to keep managing your organization.',
-        readOnlyUpgrade: 'Upgrade now',
-        readOnlyUnlock: 'Unlock 24 hours (one-time)',
-        readOnlyPaymentTitle: 'Payment issue',
-        readOnlyPaymentBody:
-            'Your subscription is not currently active. Your data is read-only until payment is restored.',
-        pricesNote: 'Prices are managed in Stripe. Need a custom arrangement?',
+        subscribeMonthly: 'Subscribe monthly (CA$30)',
+        subscribeAnnually: 'Subscribe annually (CA$300)',
+        trialTitle: 'Your free trial is running',
+        trialBody:
+            'You have the full product until :date. After that, the Free plan caps apply — upgrade any time to keep everything unlimited.',
+        trialBodyUnknown:
+            'Your free trial is ending soon. After that, the Free plan caps apply — upgrade any time.',
+        freeTitle: 'You are on the Free plan',
+        freeBody:
+            'Your organization is capped at 1 user and 15 clients. Everything you have stays accessible — upgrade to Pro for unlimited clients and teammates.',
+        bannerUpgrade: 'View Pro',
+        freePlanName: 'Free',
+        freePlanLimits: '1 user · 15 clients',
+        freeAfterDowngrade:
+            'If you cancel Pro, your organization returns here — nothing is deleted, only new clients and users beyond the caps wait for an upgrade.',
+        freeCurrentNote:
+            'Your current plan. All features included — the caps only limit how many clients and users you manage.',
+        proBadge: 'Pro',
+        pricesNote:
+            'Prices are in Canadian dollars, plus applicable taxes (calculated at checkout). Need a custom arrangement?',
         contactUs: 'Contact us',
     },
     auth: {

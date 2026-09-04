@@ -8,7 +8,9 @@ use App\Mail\PaymentDigestMail;
 use App\Models\Organization;
 use App\Models\Payment;
 use App\Models\User;
+use Carbon\CarbonInterface;
 use Illuminate\Contracts\Database\Eloquent\Builder;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Number;
 
@@ -16,16 +18,19 @@ final readonly class SendPaymentDigest
 {
     /**
      * Weekly digest window: installments due within the next two weeks, or
-     * already overdue, surface in the organization's inbox. Only
-     * organizations with matching installments are emailed.
+     * already overdue, surface in the organization's inbox. Payment
+     * notifications are a Pro feature, so free-plan organizations are
+     * skipped. Only organizations with matching installments are emailed.
      */
     public const int DAYS_AHEAD = 14;
+
+    public function __construct(private GetPlanFeatures $planFeatures) {}
 
     public function handle(): int
     {
         $cutoff = now()->addDays(self::DAYS_AHEAD)->endOfDay();
 
-        /** @var \Illuminate\Support\Collection<int, Organization> $organizations */
+        /** @var Collection<int, Organization> $organizations */
         $organizations = Organization::query()
             ->whereHas('payments', fn (Builder $query): Builder => $query
                 ->where('paid', false)
@@ -41,6 +46,12 @@ final readonly class SendPaymentDigest
         $notified = 0;
 
         foreach ($organizations as $organization) {
+            $features = $this->planFeatures->handle($organization);
+
+            if (! $features['paymentReminders']) {
+                continue;
+            }
+
             $recipients = User::query()
                 ->where('organization_id', $organization->id)
                 ->pluck('email')
@@ -67,8 +78,9 @@ final readonly class SendPaymentDigest
      */
     private function overdueRows(Organization $organization): array
     {
+        /** @var list<array{clientName: string, slotLabel: string, season: string, amount: string, dueDate: string}> */
         return $organization->payments
-            ->filter(fn (Payment $payment): bool => $payment->due_date->isBefore(now()->startOfDay()))
+            ->filter(fn (Payment $payment): bool => $payment->due_date?->isBefore(today()) ?? false)
             ->sortBy('due_date')
             ->map(fn (Payment $payment): array => $this->row($payment))
             ->values()
@@ -80,19 +92,31 @@ final readonly class SendPaymentDigest
      */
     private function upcomingRows(Organization $organization): array
     {
+        /** @var list<array{clientName: string, slotLabel: string, season: string, amount: string, dueDate: string, duePhrase: string}> */
         return $organization->payments
-            ->filter(fn (Payment $payment): bool => ! $payment->due_date->isBefore(now()->startOfDay()))
+            ->filter(fn (Payment $payment): bool => ! ($payment->due_date?->isBefore(today()) ?? false))
             ->sortBy('due_date')
-            ->map(function (Payment $payment): array {
-                $days = (int) now()->startOfDay()->diffInDays($payment->due_date->copy()->startOfDay(), false);
-
-                return [
-                    ...$this->row($payment),
-                    'duePhrase' => $days === 0 ? 'échoit aujourd’hui' : sprintf('dans %d jour%s', $days, $days > 1 ? 's' : ''),
-                ];
-            })
+            ->map(fn (Payment $payment): array => [
+                ...$this->row($payment),
+                'duePhrase' => $this->upcomingPhrase($payment->due_date),
+            ])
             ->values()
             ->all();
+    }
+
+    /**
+     * Carbon's diffInDays is signed: the due date is always today or later
+     * here, but a null date still needs a phrase.
+     */
+    private function upcomingPhrase(?CarbonInterface $dueDate): string
+    {
+        if (! $dueDate instanceof CarbonInterface) {
+            return 'sans échéance';
+        }
+
+        $days = (int) today()->diffInDays($dueDate->copy()->startOfDay(), false);
+
+        return $days === 0 ? 'échoit aujourd’hui' : sprintf('dans %d jour%s', $days, $days > 1 ? 's' : '');
     }
 
     /**
@@ -104,8 +128,8 @@ final readonly class SendPaymentDigest
             'clientName' => $payment->contract->client->displayName(),
             'slotLabel' => $payment->slot->label(),
             'season' => $payment->contract->season,
-            'amount' => Number::currency($payment->amount / 100, 'CAD', locale: 'fr-CA'),
-            'dueDate' => $payment->due_date->locale('fr-CA')->translatedFormat('j F Y'),
+            'amount' => Number::currency($payment->amount / 100, 'CAD', locale: 'fr-CA') ?: '—',
+            'dueDate' => $payment->due_date?->locale('fr-CA')->translatedFormat('j F Y') ?? '—',
         ];
     }
 }

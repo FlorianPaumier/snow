@@ -18,7 +18,7 @@ final readonly class DownloadPaymentReceiptController
     {
         abort_unless($payment->paid, 404);
 
-        $disk = Storage::disk((string) config('filesystems.default'));
+        $disk = Storage::disk(config()->string('filesystems.default'));
         $path = GeneratePaymentReceiptPdf::pdfPath($payment->id);
 
         abort_unless($disk->exists($path), 404);

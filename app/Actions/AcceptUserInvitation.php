@@ -16,9 +16,9 @@ final readonly class AcceptUserInvitation
     /**
      * @param  array<string, mixed>  $credentials
      */
-    public function handle(array $credentials, #[SensitiveParameter] string $password): string
+    public function handle(array $credentials, #[SensitiveParameter] string $password): mixed
     {
-        return DB::transaction(fn (): string => Password::broker('invitations')->reset(
+        return DB::transaction(fn (): mixed => Password::broker('invitations')->reset(
             $credentials,
             function (User $user) use ($password): void {
                 $user->update([

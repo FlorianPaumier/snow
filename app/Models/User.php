@@ -94,6 +94,6 @@ final class User extends Authenticatable implements MustVerifyEmail
      */
     public function isOwner(): bool
     {
-        return $this->organization?->owner_id === $this->id;
+        return $this->organization->owner_id === $this->id;
     }
 }

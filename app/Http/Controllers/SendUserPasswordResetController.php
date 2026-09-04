@@ -7,6 +7,7 @@ namespace App\Http\Controllers;
 use App\Actions\CreateUserEmailResetNotification;
 use App\Actions\SendUserInvitation;
 use App\Models\User;
+use Illuminate\Container\Attributes\CurrentUser;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -20,12 +21,13 @@ final readonly class SendUserPasswordResetController
      */
     public function __invoke(
         Request $request,
+        #[CurrentUser] User $actor,
         User $user,
         SendUserInvitation $sendInvitation,
         CreateUserEmailResetNotification $sendResetLink,
     ): RedirectResponse {
         if ($user->hasPendingInvitation()) {
-            $sendInvitation->handle($user, $request->user()->name);
+            $sendInvitation->handle($user, $actor->name);
 
             Inertia::flash('toast', [
                 'type' => 'success',

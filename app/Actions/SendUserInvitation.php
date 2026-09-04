@@ -21,7 +21,7 @@ final readonly class SendUserInvitation
         $token = Password::broker('invitations')->createToken($user);
 
         Mail::to($user)->send(
-            (new UserInvitationMail($user->email, $user->organization->name, $token, $inviterName))->afterCommit(),
+            new UserInvitationMail($user->email, $user->organization->name, $token, $inviterName)->afterCommit(),
         );
     }
 }

@@ -108,11 +108,11 @@ export default function Privacy() {
                 <p>
                     We keep your organization&rsquo;s data for as long as your
                     account is active — including while a trial has lapsed into
-                    read-only access — so your season history is there when you
-                    come back. When you request deletion or close your account,
-                    we delete the organization&rsquo;s data, except where we
-                    must retain a minimal record for legal, accounting, or
-                    security reasons.
+                    the capped Free plan — so your season history is there when
+                    you come back. When you request deletion or close your
+                    account, we delete the organization&rsquo;s data, except
+                    where we must retain a minimal record for legal, accounting,
+                    or security reasons.
                 </p>
             </LegalSection>
 

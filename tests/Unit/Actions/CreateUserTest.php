@@ -65,10 +65,10 @@ it('skips the limit check on an unlimited plan', function (): void {
 
     // Any subscribed plan with unlimited users lifts the ceiling...
     $this->user->organization->subscriptions()->create([
-        'type' => 'fleet',
+        'type' => 'pro',
         'stripe_id' => 'sub_create_user_unlimited',
         'stripe_status' => 'active',
-        'stripe_price' => 'price_fleet',
+        'stripe_price' => 'price_pro',
         'quantity' => 1,
         'trial_ends_at' => null,
         'ends_at' => null,
@@ -78,7 +78,7 @@ it('skips the limit check on an unlimited plan', function (): void {
 
     expect($users)->toHaveCount(3);
 
-    // The fleet plan allows unlimited users; creation succeeds regardless
+    // The pro plan allows unlimited users; creation succeeds regardless
     // of the current count...
     $fourth = resolve(CreateUser::class)->handle([
         'name' => 'Fourth User',

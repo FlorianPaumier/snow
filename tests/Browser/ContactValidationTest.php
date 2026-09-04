@@ -57,7 +57,7 @@ it('re-validates a field after it has been touched', function (): void {
 it('accepts a valid inquiry', function (): void {
     Mail::fake();
 
-    visit('/contact')
+    $page = visit('/contact')
         ->fill('#contact-name', 'Jean Tremblay')
         ->fill('#contact-company', 'Tremblay Déneigement')
         ->fill('#contact-message', 'We manage 40 properties and need routes.')
@@ -65,8 +65,13 @@ it('accepts a valid inquiry', function (): void {
         // Enter in a text input submits the form (in a textarea it would
         // just add a newline)...
         ->keys('#contact-email', ['Enter'])
-        ->assertSee("Thanks — you're on the list.")
-        ->assertNoAccessibilityIssues(3)
+        ->assertSee("Thanks — you're on the list.");
+
+    // The success toast fades in; scanning mid-animation reports transient
+    // low-contrast colors as permanent failures. Let it settle first...
+    $page->wait(1);
+
+    $page->assertNoAccessibilityIssues(3)
         ->assertNoSmoke();
 });
 

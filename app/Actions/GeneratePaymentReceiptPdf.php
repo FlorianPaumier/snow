@@ -44,13 +44,13 @@ final readonly class GeneratePaymentReceiptPdf
         $response->throw();
 
         $path = self::pdfPath($payment->id);
-        Storage::disk((string) config('filesystems.default'))->put($path, $response->body());
+        Storage::disk(config()->string('filesystems.default'))->put($path, $response->body());
 
         return $path;
     }
 
     private function endpoint(): string
     {
-        return sprintf('%s/forms/chromium/convert/html', mb_rtrim((string) config('services.gotenberg.url'), '/'));
+        return sprintf('%s/forms/chromium/convert/html', mb_rtrim(config()->string('services.gotenberg.url'), '/'));
     }
 }

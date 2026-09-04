@@ -75,14 +75,15 @@ export const homeFeatures: MarketingFeature[] = [
 ];
 
 /* ── Pricing ────────────────────────────────────────────────────── */
-/* Limits mirror config/plans.php exactly: Starter 2 users/25 clients,
-   Pro 15/150, Fleet unlimited. Features must match what ships — verify
+/* Limits mirror config/plans.php exactly: Free 1 user/15 clients,
+   Pro unlimited. Prices are CAD, tax-exclusive (Stripe Tax adds
+   GST/QST at checkout). Features must match what ships — verify
    every item against the app before this site goes live. */
 export interface PricingTier {
     name: string;
     tagline: string;
-    monthly: number;
-    annual: number; // per year, 2 months free
+    monthly: number | null;
+    annual: number | null; // per year, 2 months free
     featured?: boolean;
     limits: string;
     cta: string;
@@ -92,49 +93,37 @@ export interface PricingTier {
 
 export const pricingTiers: PricingTier[] = [
     {
-        name: 'Starter',
-        tagline: 'For solo operators proving the model',
-        monthly: 99,
-        annual: 990,
-        limits: 'Up to 25 clients · 2 users',
-        cta: 'Start free trial',
-        ctaTo: ROUTES.contact,
+        name: 'Free',
+        tagline: 'For solo operators getting organized',
+        monthly: null,
+        annual: null,
+        limits: 'Up to 15 clients · 1 user',
+        cta: 'Start for free',
+        ctaTo: ROUTES.register,
         features: [
             'Client directory & contracts',
             'Payment tracking with mark-paid',
             'Printable invoices & receipts',
             'Season CSV export',
-            'Email support',
+            'No credit card required',
         ],
     },
     {
         name: 'Pro',
         tagline: 'For growing companies with a real client book',
-        monthly: 249,
-        annual: 2490,
+        monthly: 30,
+        annual: 300,
         featured: true,
-        limits: 'Up to 150 clients · 15 users',
-        cta: 'Start free trial',
-        ctaTo: ROUTES.contact,
-        features: [
-            'Everything in Starter',
-            'Revenue & client-growth dashboard',
-            'Payment notifications',
-            'Priority support',
-        ],
-    },
-    {
-        name: 'Fleet',
-        tagline: 'For municipalities and multi-region operators',
-        monthly: 599,
-        annual: 5990,
         limits: 'Unlimited clients · unlimited users',
-        cta: 'Talk to sales',
-        ctaTo: ROUTES.contact,
+        cta: 'Start 14-day trial',
+        ctaTo: ROUTES.register,
         features: [
-            'Everything in Pro',
-            'Multi-region client books',
-            'Dedicated success manager',
+            'Everything in Free',
+            'Invite your whole team',
+            'Revenue & client-growth dashboard',
+            'Automated payment reminders',
+            'Weekly payment digest',
+            'Email support',
         ],
     },
 ];
@@ -170,8 +159,8 @@ export const homeFaqs = [
 /* ── Pricing FAQ ────────────────────────────────────────────────── */
 export const pricingFaqs = [
     {
-        q: 'What happens if I exceed my client limit mid-season?',
-        a: 'Nothing breaks. You can exceed the limit for the rest of the billing cycle, and we\u2019ll invite you to the right tier when it renews — prorated, never back-charged.',
+        q: 'What happens if I exceed the Free plan caps?',
+        a: 'Nothing breaks. Your existing clients, contracts, and payment history all stay open — you just can\u2019t add the 16th client or a second user until you upgrade to Pro. No surprises, no lost data.',
     },
     {
         q: 'What counts as a user?',
@@ -179,11 +168,15 @@ export const pricingFaqs = [
     },
     {
         q: 'Is onboarding included?',
-        a: 'On every plan. We help you get your client list into the app, set up your first season\u2019s contracts, and get your payment schedules in place. Starter includes self-serve setup with full documentation; Pro and Fleet get guided onboarding.',
+        a: 'Yes. We help you get your client list into the app, set up your first season\u2019s contracts, and get your payment schedules in place.',
     },
     {
         q: 'Can I pay annually?',
-        a: 'Annual billing takes two months off the price — that\u2019s the toggle at the top of the plans.',
+        a: 'Yes — annual billing takes two months off the price (CA$300 instead of CA$360). That\u2019s the toggle at the top of the plans.',
+    },
+    {
+        q: 'Do prices include taxes?',
+        a: 'No — prices are in Canadian dollars before tax. GST/QST (or your local tax) is calculated automatically at checkout based on your billing address.',
     },
 ];
 

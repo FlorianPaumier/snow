@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 use App\Enums\PaymentMethod;
 use App\Enums\PaymentSlot;
+use App\Mail\InstallmentReminderMail;
 use App\Models\Client;
 use App\Models\Contract;
 use App\Models\Payment;
 use App\Models\User;
+use Illuminate\Support\Facades\Mail;
 
 function unpaidPayment(User $admin): Payment
 {
@@ -107,4 +109,46 @@ it('prevents non-admins from marking or unmarking payments', function (): void {
         ->assertForbidden();
 
     expect($payment->fresh()->paid)->toBeFalse();
+});
+
+it('blocks the manual payment reminder on the free plan with an upgrade prompt', function (): void {
+    $admin = User::factory()->admin()->create();
+    $admin->organization->forceFill(['trial_ends_at' => now()->subDay()])->save();
+    $payment = unpaidPayment($admin);
+
+    Mail::fake();
+
+    $this->actingAs($admin)
+        ->fromRoute('dashboard')
+        ->post(route('payments.send-reminder', $payment))
+        ->assertRedirect(route('dashboard'))
+        ->assertSessionHas('status', __('statuses.feature_locked'));
+
+    Mail::assertNothingQueued();
+    expect($payment->fresh()->last_reminder_at)->toBeNull();
+});
+
+it('sends the manual payment reminder while on the signup trial', function (): void {
+    $admin = User::factory()->admin()->create(); // trial by default...
+    $client = Client::factory()->forOrganization($admin->organization)->create([
+        'email' => 'client@example.com',
+    ]);
+    $contract = Contract::factory()->forClient($client)->create();
+    $payment = $contract->payments()->create([
+        'slot' => PaymentSlot::SLOT_DEPOSIT,
+        'amount' => 15000,
+        'paid' => false,
+        'method' => null,
+        'paid_at' => null,
+    ]);
+
+    Mail::fake();
+
+    $this->actingAs($admin)
+        ->fromRoute('dashboard')
+        ->post(route('payments.send-reminder', $payment))
+        ->assertRedirect(route('dashboard'))
+        ->assertSessionHas('status', __('statuses.payment_reminder_sent'));
+
+    Mail::assertQueued(InstallmentReminderMail::class);
 });

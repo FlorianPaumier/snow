@@ -6,7 +6,6 @@ namespace App\Models;
 
 use App\Models\Concerns\BelongsToOrganization;
 use App\ValueObjects\Season;
-use Carbon\Carbon;
 use Carbon\CarbonInterface;
 use Database\Factories\ContractFactory;
 use Illuminate\Database\Eloquent\Collection;
@@ -16,6 +15,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Date;
 use InvalidArgumentException;
 
 /**
@@ -81,7 +81,7 @@ final class Contract extends Model
             $endYear = $this->created_at->year;
         }
 
-        return Carbon::create($endYear, 6, 30, 23, 59, 59) ?? Carbon::now();
+        return Date::create($endYear, 6, 30, 23, 59, 59);
     }
 
     public function casts(): array

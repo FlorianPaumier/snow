@@ -21,13 +21,13 @@ final readonly class GeneratePaymentReceiptController
     {
         abort_unless($payment->paid, 404);
 
-        if (Storage::disk((string) config('filesystems.default'))->exists(GeneratePaymentReceiptPdf::pdfPath($payment->id))) {
+        if (Storage::disk(config()->string('filesystems.default'))->exists(GeneratePaymentReceiptPdf::pdfPath($payment->id))) {
             // Inertia answers a 409 + X-Inertia-Location header so the
             // client performs a full-page navigation and the PDF streams...
             return Inertia::location(route('payments.receipt.download', $payment));
         }
 
-        GeneratePaymentReceiptDocumentPdf::dispatch($payment->id);
+        dispatch(new GeneratePaymentReceiptDocumentPdf($payment->id));
 
         return back()->with('status', __('statuses.document_pdf_generating'));
     }

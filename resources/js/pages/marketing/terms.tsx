@@ -59,13 +59,15 @@ export default function Terms() {
                     entirely by Stripe; we never see or store your full card
                     details. Subscriptions renew automatically at the end of
                     each billing period unless you cancel before then. You can
-                    cancel at any time from your billing settings; access
-                    continues until the end of the period you have already paid
-                    for.
+                    cancel at any time from your billing settings; Pro features
+                    continue until the end of the period you have already paid
+                    for, after which your organization returns to the Free plan
+                    — your data stays, subject to the Free plan's caps.
                 </p>
                 <p>
-                    If a payment fails, we may suspend access to paid features
-                    until the billing issue is resolved. Prices may change with
+                    If a payment fails, your organization returns to the Free
+                    plan until the billing issue is resolved — your data stays,
+                    subject to the Free plan's caps. Prices may change with
                     reasonable notice before your next renewal.
                 </p>
             </LegalSection>

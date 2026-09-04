@@ -14,12 +14,31 @@ final class CreateBillingCheckoutRequest extends FormRequest
      */
     public function rules(): array
     {
-        /** @var array<string, mixed> $plans */
-        $plans = config('plans');
-
         return [
-            'plan' => ['required', 'string', Rule::in(array_keys($plans))],
+            'plan' => ['required', 'string', Rule::in($this->paidPlans())],
             'interval' => ['required', 'string', Rule::in(['monthly', 'annual'])],
         ];
+    }
+
+    /**
+     * Only plans with a Stripe price can be checked out; the Free plan is
+     * the default state, not something you subscribe to...
+     *
+     * @return list<string>
+     */
+    private function paidPlans(): array
+    {
+        /** @var array<string, array{name?: string, prices?: array<string, string>}> $plans */
+        $plans = config('plans');
+
+        $paidPlans = [];
+
+        foreach ($plans as $key => $plan) {
+            if (array_key_exists('prices', $plan)) {
+                $paidPlans[] = $key;
+            }
+        }
+
+        return $paidPlans;
     }
 }

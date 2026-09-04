@@ -9,23 +9,28 @@ return [
     | Subscription Plans
     |--------------------------------------------------------------------------
     |
-    | The SaaS plans sold on the marketing pricing page. Each plan maps its
-    | monthly and annual Stripe price IDs along with the resource limits
-    | enforced by the application. Tier names must match the pricing page
-    | copy (Starter / Pro / Fleet). Prices live in Stripe; the amounts on
-    | the marketing page are display copy only.
+    | The SaaS plans sold on the marketing pricing page. Free is the capped
+    | default every organization falls back to — with no Stripe price of
+    | its own, it is simply the absence of a valid subscription. Pro is
+    | the single paid tier; its monthly and annual Stripe price IDs are
+    | configured below. Amounts on the marketing page are display copy
+    | only — prices live in Stripe (CAD, tax-exclusive: Stripe Tax adds
+    | GST/QST at checkout).
+    |
+    | The "features" flags gate product features behind the paid tier
+    | (payment reminders & notifications). The marketing comparison
+    | table must stay in sync with these flags.
     |
     */
 
-    'starter' => [
-        'name' => 'Starter',
-        'prices' => [
-            'monthly' => env('STRIPE_PRICE_STARTER_MONTHLY'),
-            'annual' => env('STRIPE_PRICE_STARTER_ANNUAL'),
-        ],
+    'free' => [
+        'name' => 'Free',
         'limits' => [
-            'maxUsers' => 2,
-            'maxClients' => 25,
+            'maxUsers' => 1,
+            'maxClients' => 15,
+        ],
+        'features' => [
+            'paymentReminders' => false,
         ],
     ],
 
@@ -36,20 +41,11 @@ return [
             'annual' => env('STRIPE_PRICE_PRO_ANNUAL'),
         ],
         'limits' => [
-            'maxUsers' => 15,
-            'maxClients' => 150,
-        ],
-    ],
-
-    'fleet' => [
-        'name' => 'Fleet',
-        'prices' => [
-            'monthly' => env('STRIPE_PRICE_FLEET_MONTHLY'),
-            'annual' => env('STRIPE_PRICE_FLEET_ANNUAL'),
-        ],
-        'limits' => [
             'maxUsers' => null, // Unlimited...
             'maxClients' => null,
+        ],
+        'features' => [
+            'paymentReminders' => true,
         ],
     ],
 

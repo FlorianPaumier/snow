@@ -1,5 +1,4 @@
-import { Head, usePage } from '@inertiajs/react';
-import { Form } from '@inertiajs/react';
+import { Head, Form, usePage } from '@inertiajs/react';
 import Heading from '@/components/heading';
 import TextLink from '@/components/text-link';
 import { Badge } from '@/components/ui/badge';
@@ -28,14 +27,17 @@ type Plan = {
 
 export default function BillingIndex({
     organization,
-    plans,
+    plan,
 }: {
     organization: { name: string };
-    plans: Plan[];
+    plan: Plan;
 }) {
     const { auth } = usePage().props;
     const { t } = useLocale();
     const subscription = auth.subscription;
+
+    const isPro = subscription?.plan === plan.key && !subscription?.onTrial;
+    const isTrial = subscription?.status === 'trialing';
 
     const breadcrumbs: BreadcrumbItem[] = [
         {
@@ -77,87 +79,112 @@ export default function BillingIndex({
                                           plan: subscription.plan,
                                           status: subscription.status,
                                       })
-                                    : subscription?.onTrial
-                                      ? subscription.trialEndsAt
-                                          ? interpolate(t.billing.trialUntil, {
-                                                date: subscription.trialEndsAt,
-                                            })
-                                          : t.billing.trialUntilUnknown
-                                      : t.billing.pickPlan}
+                                    : t.billing.pickPlan}
                             </CardDescription>
                         </CardHeader>
-                        <CardContent>
-                            <Form {...portal.form()}>
-                                <Button variant="outline" type="submit">
-                                    {t.billing.manageInStripe}
-                                </Button>
-                            </Form>
-                        </CardContent>
+                        {isPro && (
+                            <CardContent>
+                                <Form {...portal.form()}>
+                                    <Button variant="outline" type="submit">
+                                        {t.billing.manageInStripe}
+                                    </Button>
+                                </Form>
+                            </CardContent>
+                        )}
+                        {isTrial && (
+                            <CardContent>
+                                <p className="text-sm text-muted-foreground">
+                                    {subscription?.trialEndsAt
+                                        ? interpolate(t.billing.trialUntil, {
+                                              date: subscription.trialEndsAt,
+                                          })
+                                        : t.billing.trialUntilUnknown}
+                                </p>
+                            </CardContent>
+                        )}
                     </Card>
 
-                    <div className="grid gap-4 md:grid-cols-3">
-                        {plans.map((plan) => (
-                            <Card key={plan.key}>
-                                <CardHeader>
-                                    <CardTitle>{plan.name}</CardTitle>
-                                    <CardDescription>
-                                        {plan.maxUsers === null
-                                            ? t.billing.unlimitedUsers
-                                            : interpolate(t.billing.userCount, {
-                                                  count: plan.maxUsers,
-                                              })}
-                                        {' · '}
-                                        {plan.maxClients === null
-                                            ? t.billing.unlimitedClients
-                                            : interpolate(
-                                                  t.billing.clientCount,
-                                                  { count: plan.maxClients },
-                                              )}
-                                    </CardDescription>
-                                </CardHeader>
-                                <CardContent>
-                                    <div className="flex flex-col gap-2">
-                                        <Form {...checkout.form()}>
-                                            <input
-                                                type="hidden"
-                                                name="plan"
-                                                value={plan.key}
-                                            />
-                                            <input
-                                                type="hidden"
-                                                name="interval"
-                                                value="monthly"
-                                            />
-                                            <Button
-                                                type="submit"
-                                                className="w-full"
-                                            >
-                                                {t.billing.subscribeMonthly}
-                                            </Button>
-                                        </Form>
-                                        <Form {...checkout.form()}>
-                                            <input
-                                                type="hidden"
-                                                name="plan"
-                                                value={plan.key}
-                                            />
-                                            <input
-                                                type="hidden"
-                                                name="interval"
-                                                value="annual"
-                                            />
-                                            <Button
-                                                type="submit"
-                                                variant="outline"
-                                                className="w-full"
-                                            >
-                                                {t.billing.subscribeAnnually}
-                                            </Button>
-                                        </Form>
-                                    </div>
-                                </CardContent>
-                            </Card>
-                        ))}
+                    <div className="grid gap-4 md:grid-cols-2">
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>{t.billing.freePlanName}</CardTitle>
+                                <CardDescription>
+                                    {t.billing.freePlanLimits}
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <p className="text-sm text-muted-foreground">
+                                    {isPro
+                                        ? t.billing.freeAfterDowngrade
+                                        : t.billing.freeCurrentNote}
+                                </p>
+                            </CardContent>
+                        </Card>
+
+                        <Card className="border-glacier-500/50 shadow-glow-cyan">
+                            <CardHeader>
+                                <CardTitle className="flex items-center gap-2">
+                                    {plan.name}
+                                    <Badge className="bg-glacier-600 text-white dark:bg-glacier-500 dark:text-glacier-950">
+                                        {t.billing.proBadge}
+                                    </Badge>
+                                </CardTitle>
+                                <CardDescription>
+                                    {plan.maxUsers === null
+                                        ? t.billing.unlimitedUsers
+                                        : interpolate(t.billing.userCount, {
+                                              count: plan.maxUsers,
+                                          })}
+                                    {' · '}
+                                    {plan.maxClients === null
+                                        ? t.billing.unlimitedClients
+                                        : interpolate(t.billing.clientCount, {
+                                              count: plan.maxClients,
+                                          })}
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="flex flex-col gap-2">
+                                    <Form {...checkout.form()}>
+                                        <input
+                                            type="hidden"
+                                            name="plan"
+                                            value={plan.key}
+                                        />
+                                        <input
+                                            type="hidden"
+                                            name="interval"
+                                            value="monthly"
+                                        />
+                                        <Button
+                                            type="submit"
+                                            className="w-full"
+                                        >
+                                            {t.billing.subscribeMonthly}
+                                        </Button>
+                                    </Form>
+                                    <Form {...checkout.form()}>
+                                        <input
+                                            type="hidden"
+                                            name="plan"
+                                            value={plan.key}
+                                        />
+                                        <input
+                                            type="hidden"
+                                            name="interval"
+                                            value="annual"
+                                        />
+                                        <Button
+                                            type="submit"
+                                            variant="outline"
+                                            className="w-full"
+                                        >
+                                            {t.billing.subscribeAnnually}
+                                        </Button>
+                                    </Form>
+                                </div>
+                            </CardContent>
+                        </Card>
                     </div>
 
                     <p className="text-sm text-muted-foreground">

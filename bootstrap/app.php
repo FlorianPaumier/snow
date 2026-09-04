@@ -3,9 +3,8 @@
 declare(strict_types=1);
 
 use App\Exceptions\OrganizationOwnerProtected;
-use App\Exceptions\OrganizationReadOnly;
+use App\Exceptions\PlanFeatureLocked;
 use App\Exceptions\PlanLimitExceeded;
-use App\Http\Middleware\EnsureOrganizationNotReadOnly;
 use App\Http\Middleware\HandleAppearance;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\SetLocale;
@@ -26,10 +25,6 @@ return Application::configure(basePath: dirname(__DIR__))
         // Stripe signs its webhook payloads; CSRF does not apply...
         $middleware->validateCsrfTokens(except: ['stripe/webhook']);
 
-        $middleware->alias([
-            'not-read-only' => EnsureOrganizationNotReadOnly::class,
-        ]);
-
         $middleware->web(append: [
             HandleAppearance::class,
             SetLocale::class,
@@ -48,20 +43,19 @@ return Application::configure(basePath: dirname(__DIR__))
             return back()->with('status', $exception->getMessage());
         });
 
-        // The same courtesy applies to ownership protections...
-        $exceptions->render(function (OrganizationOwnerProtected $exception, Request $request) {
+        // A feature behind the paid tier gets the same upgrade prompt...
+        $exceptions->render(function (PlanFeatureLocked $exception, Request $request) {
             if ($request->header('X-Inertia')) {
-                return back()->withErrors(['ownerProtected' => $exception->getMessage()]);
+                return back()->withErrors(['featureLocked' => $exception->getMessage()]);
             }
 
             return back()->with('status', $exception->getMessage());
         });
 
-        // A read-only organization (expired trial, lapsed subscription) gets
-        // the same redirect-back-with-prompt treatment as plan limits...
-        $exceptions->render(function (OrganizationReadOnly $exception, Request $request) {
+        // The same courtesy applies to ownership protections...
+        $exceptions->render(function (OrganizationOwnerProtected $exception, Request $request) {
             if ($request->header('X-Inertia')) {
-                return back()->withErrors(['readOnly' => $exception->getMessage()]);
+                return back()->withErrors(['ownerProtected' => $exception->getMessage()]);
             }
 
             return back()->with('status', $exception->getMessage());

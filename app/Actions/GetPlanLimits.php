@@ -6,17 +6,19 @@ namespace App\Actions;
 
 use App\Models\Organization;
 use App\Support\TenantCache;
-use Laravel\Cashier\Subscription;
 
 /**
- * Resolves the plan limits that apply to an organization: the subscribed
- * plan's limits, or — while trialing — the Starter defaults. Unsubscribed
- * organizations get no limits; enforcement is a business decision, not a
- * data-access concern.
+ * Resolves the plan limits that apply to an organization. Every
+ * organization always has a plan — Pro while subscribed or trialing,
+ * Free otherwise — so the limits come straight from the subscription
+ * summary and share its cache entry semantics.
  */
 final readonly class GetPlanLimits
 {
-    public function __construct(private TenantCache $cache) {}
+    public function __construct(
+        private TenantCache $cache,
+        private GetSubscriptionSummary $getSubscriptionSummary,
+    ) {}
 
     /**
      * @return array{plan: string, maxUsers: int|null, maxClients: int|null}
@@ -26,9 +28,14 @@ final readonly class GetPlanLimits
         /** @var array{plan: string, maxUsers: int|null, maxClients: int|null} */
         return $this->cache->remember(
             'plan-limits',
-            [],
+            // Keyed by the target organization, not just the acting one:
+            // in an unauthenticated context (queue job, console command)
+            // TenantCache falls back to a single "anon" namespace, and a
+            // bare entry name would collide every organization into one
+            // shared verdict...
+            [$organization->id],
             fn (): array => $this->compute($organization),
-            TenantCache::TTL_LONG,
+            TenantCache::TTL_SHORT,
         );
     }
 
@@ -37,18 +44,18 @@ final readonly class GetPlanLimits
      */
     private function compute(Organization $organization): array
     {
-        // The checkout creates the subscription with the plan key as its
-        // type, so any single active subscription is the plan...
-        $subscription = $organization->subscriptions->first();
+        $plan = $this->getSubscriptionSummary->handle($organization)['plan'] ?? 'free';
 
-        // Cashier keeps the plan key in the subscription's type column...
-        $plan = $subscription instanceof Subscription
-            ? $subscription->type
-            : 'starter';
+        /** @var array{limits: array{maxUsers: int|null, maxClients: int|null}}|null $config */
+        $config = config(sprintf('plans.%s', $plan));
+
+        // An unknown plan key (e.g. a legacy subscription type) must never
+        // grant unlimited access...
+        if ($config === null) {
+            $config = config('plans.free');
+        }
 
         /** @var array{limits: array{maxUsers: int|null, maxClients: int|null}} $config */
-        $config = config(sprintf('plans.%s', $plan), config('plans.starter'));
-
         return [
             'plan' => $plan,
             'maxUsers' => $config['limits']['maxUsers'],

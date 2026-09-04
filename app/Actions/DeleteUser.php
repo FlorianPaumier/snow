@@ -12,7 +12,7 @@ final readonly class DeleteUser
     public function handle(User $user): void
     {
         // Ownership must move to another member before the account can go...
-        throw_if($user->isOwner(), new OrganizationOwnerProtected(__('statuses.organization_owner_delete')));
+        throw_if($user->isOwner(), OrganizationOwnerProtected::class, __('statuses.organization_owner_delete'));
 
         $user->delete();
     }

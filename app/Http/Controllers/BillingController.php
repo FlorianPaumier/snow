@@ -21,7 +21,7 @@ final readonly class BillingController
             'organization' => [
                 'name' => $organization->name,
             ],
-            'plans' => $this->plans(),
+            'plan' => $this->plan(),
         ]);
     }
 
@@ -53,6 +53,16 @@ final readonly class BillingController
         $checkout = $subscription->checkout([
             'success_url' => route('billing.index', absolute: false),
             'cancel_url' => route('billing.index', absolute: false),
+            // Stripe Tax computes GST/QST (or the customer's local tax) at
+            // checkout: prices are tax-exclusive and the billing address
+            // is required to resolve the rate...
+            'automatic_tax' => [
+                'enabled' => true,
+            ],
+            'billing_address_collection' => 'required',
+            'customer_update' => [
+                'address' => 'auto',
+            ],
         ]);
 
         return $checkout->redirect();
@@ -66,24 +76,20 @@ final readonly class BillingController
     }
 
     /**
-     * @return list<array{key: string, name: string, maxUsers: int|null, maxClients: int|null}>
+     * The single paid plan offered at checkout.
+     *
+     * @return array{key: string, name: string, maxUsers: int|null, maxClients: int|null}
      */
-    private function plans(): array
+    private function plan(): array
     {
-        /** @var array<string, array{name: string, prices: array{monthly: string, annual: string}, limits: array{maxUsers: int|null, maxClients: int|null}}> $plans */
-        $plans = config('plans');
+        /** @var array{name: string, limits: array{maxUsers: int|null, maxClients: int|null}} $plan */
+        $plan = config('plans.pro');
 
-        $result = [];
-
-        foreach ($plans as $key => $plan) {
-            $result[] = [
-                'key' => $key,
-                'name' => $plan['name'],
-                'maxUsers' => $plan['limits']['maxUsers'],
-                'maxClients' => $plan['limits']['maxClients'],
-            ];
-        }
-
-        return $result;
+        return [
+            'key' => 'pro',
+            'name' => $plan['name'],
+            'maxUsers' => $plan['limits']['maxUsers'],
+            'maxClients' => $plan['limits']['maxClients'],
+        ];
     }
 }

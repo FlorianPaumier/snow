@@ -19,6 +19,8 @@ return [
     |
     */
 
-    'client_retention_years' => env('CLIENT_RETENTION_YEARS', 6),
+    // Cast to int: env() always yields strings from .env, and
+    // config()->integer() throws on anything else.
+    'client_retention_years' => (int) env('CLIENT_RETENTION_YEARS', 6),
 
 ];

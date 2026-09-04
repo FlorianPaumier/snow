@@ -28,18 +28,18 @@ it('renders marketing copy server-side so claims can be scanned', function (): v
     // Sanity anchor: the features hero is present in the rendered HTML.
     // If this fails, SSR is off/broken and every claims scan below is
     // testing an empty shell — fix SSR before trusting these tests.
-    expect(mb_strtolower($body))->toContain('back office your snow business runs on');
+    expect(mb_strtolower((string) $body))->toContain('back office your snow business runs on');
 });
 
 it('never advertises features that do not exist', function (string $path): void {
-    $body = mb_strtolower($this->get($path)->getContent());
+    $body = mb_strtolower((string) $this->get($path)->getContent());
 
     foreach (blockedSubstringClaims() as $claim) {
         expect($body)->not->toContain($claim);
     }
 
     foreach (blockedWordClaims() as $word) {
-        expect($body)->not->toMatch("/\b{$word}\b/");
+        expect($body)->not->toMatch(sprintf('/\b%s\b/', $word));
     }
 })->with([
     '/' => ['/'],

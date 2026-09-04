@@ -36,7 +36,7 @@ final readonly class UserInvitationController
 
         $status = $action->handle($credentials, $request->string('password')->value());
 
-        throw_if($status !== Password::PASSWORD_RESET, ValidationException::withMessages([
+        throw_if(! is_string($status) || $status !== Password::PASSWORD_RESET, ValidationException::withMessages([
             'email' => [__(is_string($status) ? $status : '')],
         ]));
 

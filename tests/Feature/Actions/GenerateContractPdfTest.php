@@ -53,12 +53,13 @@ it('renders the document and stores the Gotenberg PDF', function (): void {
     $user = User::factory()->create();
     $contract = pdfContract($user);
 
-    $path = app(GenerateContractPdf::class)->handle($contract);
+    $path = resolve(GenerateContractPdf::class)->handle($contract);
 
     expect($path)->toBe(GenerateContractPdf::pdfPath($contract->id));
 
     $disk = Storage::disk((string) config('filesystems.default'));
     $disk->assertExists($path);
+
     expect($disk->get($path))->toBe('%PDF-1.4 fake bytes');
 
     Http::assertSent(fn (Request $request): bool => str_contains((string) $request->url(), '/forms/chromium/convert/html'));
@@ -71,7 +72,7 @@ it('fails when Gotenberg rejects the render', function (): void {
     $user = User::factory()->create();
     $contract = pdfContract($user);
 
-    app(GenerateContractPdf::class)->handle($contract);
+    resolve(GenerateContractPdf::class)->handle($contract);
 })->throws(RequestException::class);
 
 it('resolves the contract from its id and generates the pdf', function (): void {
@@ -80,7 +81,7 @@ it('resolves the contract from its id and generates the pdf', function (): void 
     $user = User::factory()->create();
     $contract = pdfContract($user);
 
-    (new GenerateContractDocumentPdf($contract->id))->handle(app(GenerateContractPdf::class));
+    new GenerateContractDocumentPdf($contract->id)->handle(resolve(GenerateContractPdf::class));
 
     $disk->assertExists(GenerateContractPdf::pdfPath($contract->id));
 });

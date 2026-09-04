@@ -47,8 +47,8 @@ final class AnonymizeExpiredClientsCommand extends Command
 
             if ($this->option('dry-run')) {
                 $this->line($eraseEntirely
-                    ? "Would erase client [{$client->clientNumber}] (no contract history)."
-                    : "Would anonymize client [{$client->clientNumber}] (last season ended too long ago).");
+                    ? sprintf('Would erase client [%s] (no contract history).', $client->clientNumber)
+                    : sprintf('Would anonymize client [%s] (last season ended too long ago).', $client->clientNumber));
             } elseif ($eraseEntirely) {
                 $deleteClient->handle($client);
             } else {
@@ -63,8 +63,8 @@ final class AnonymizeExpiredClientsCommand extends Command
         }
 
         $this->info($this->option('dry-run')
-            ? "Dry run: {$anonymized} would be anonymized, {$deleted} would be erased."
-            : "Retention complete: {$anonymized} anonymized, {$deleted} erased.");
+            ? sprintf('Dry run: %d would be anonymized, %d would be erased.', $anonymized, $deleted)
+            : sprintf('Retention complete: %d anonymized, %d erased.', $anonymized, $deleted));
 
         return self::SUCCESS;
     }

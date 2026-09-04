@@ -16,16 +16,9 @@ export type Organization = {
 };
 
 export type Subscription = {
-    plan: string | null;
+    plan: string;
     status: string;
     onTrial: boolean;
-    trialEndsAt: string | null;
-};
-
-export type SubscriptionAccess = {
-    readOnly: boolean;
-    unlockAvailable: boolean;
-    unlockedUntil: string | null;
     trialEndsAt: string | null;
 };
 
@@ -33,7 +26,6 @@ export type Auth = {
     user: User;
     organization?: Organization | null;
     subscription?: Subscription | null;
-    access?: SubscriptionAccess | null;
     can?: {
         manageUsers?: boolean;
         manageClients?: boolean;

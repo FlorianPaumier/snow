@@ -19,13 +19,13 @@ final readonly class GenerateContractPdfController
      */
     public function __invoke(Contract $contract): SymfonyResponse
     {
-        if (Storage::disk((string) config('filesystems.default'))->exists(GenerateContractPdf::pdfPath($contract->id))) {
+        if (Storage::disk(config()->string('filesystems.default'))->exists(GenerateContractPdf::pdfPath($contract->id))) {
             // Inertia answers a 409 + X-Inertia-Location header so the
             // client performs a full-page navigation and the PDF streams...
             return Inertia::location(route('contracts.pdf.download', $contract));
         }
 
-        GenerateContractDocumentPdf::dispatch($contract->id);
+        dispatch(new GenerateContractDocumentPdf($contract->id));
 
         return back()->with('status', __('statuses.document_pdf_generating'));
     }

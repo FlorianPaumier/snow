@@ -6,18 +6,15 @@ use App\Models\Client;
 use App\Models\Organization;
 use App\Models\User;
 
-it('blocks creating a third user on the starter plan', function (): void {
-    // Future trial keeps the org out of read-only enforcement so this test
-    // exercises the plan-limit wall in isolation...
-    $organization = Organization::factory()->create(['trial_ends_at' => now()->addDays(14)]);
+it('blocks creating a second user on the free plan', function (): void {
+    $organization = Organization::factory()->expired()->create();
     $admin = User::factory()->admin()->forOrganization($organization)->create();
-    User::factory()->forOrganization($organization)->create();
 
     $response = $this->actingAs($admin)
         ->fromRoute('users.create')
         ->post(route('users.store'), [
-            'name' => 'Third User',
-            'email' => 'third@example.com',
+            'name' => 'Second User',
+            'email' => 'second@example.com',
             'role' => 'user',
         ]);
 
@@ -25,34 +22,42 @@ it('blocks creating a third user on the starter plan', function (): void {
         ->assertSessionHas(
             'status',
             __('statuses.plan_limit', [
-                'plan' => 'starter',
-                'count' => 2,
+                'plan' => 'free',
+                'count' => 1,
                 'resource' => __('statuses.resource_users'),
             ]),
         );
 
-    expect(User::query()->withoutGlobalScopes()->where('organization_id', $organization->id)->count())->toBe(2);
+    expect(User::query()->withoutGlobalScopes()->where('organization_id', $organization->id)->count())->toBe(1);
 });
 
-it('allows creating users on the fleet plan without a limit', function (): void {
+it('allows creating users on the pro plan without a limit', function (): void {
     $organization = Organization::factory()->withoutTrial()->create();
     $admin = User::factory()->admin()->forOrganization($organization)->create();
 
-    // Fleet has no user limit; create several beyond the starter cap...
+    // Pro has no user limit; create several beyond the free cap...
     User::factory()->count(5)->forOrganization($organization)->create();
 
     expect(User::query()->withoutGlobalScopes()->where('organization_id', $organization->id)->count())->toBe(6);
 });
 
-it('blocks creating clients beyond the starter plan limit', function (): void {
-    // Future trial keeps the org out of read-only enforcement so this test
-    // exercises the plan-limit wall in isolation...
-    $organization = Organization::factory()->create(['trial_ends_at' => now()->addDays(14)]);
+it('allows unlimited users while the signup trial runs', function (): void {
+    $organization = Organization::factory()->create(); // with trial...
+    $admin = User::factory()->admin()->forOrganization($organization)->create();
+
+    // The trial carries the full Pro plan: no cap to hit...
+    User::factory()->count(3)->forOrganization($organization)->create();
+
+    expect(User::query()->withoutGlobalScopes()->where('organization_id', $organization->id)->count())->toBe(4);
+});
+
+it('blocks creating clients beyond the free plan limit', function (): void {
+    $organization = Organization::factory()->expired()->create();
     $admin = User::factory()->admin()->forOrganization($organization)->create();
 
     // Use the model directly to fill the quota without hitting the limit
     // check itself...
-    Client::factory()->count(25)->forOrganization($organization)->create();
+    Client::factory()->count(15)->forOrganization($organization)->create();
 
     $response = $this->actingAs($admin)
         ->fromRoute('clients.create')
@@ -72,37 +77,44 @@ it('blocks creating clients beyond the starter plan limit', function (): void {
         ->assertSessionHas(
             'status',
             __('statuses.plan_limit', [
-                'plan' => 'starter',
-                'count' => 25,
+                'plan' => 'free',
+                'count' => 15,
                 'resource' => __('statuses.resource_clients'),
             ]),
         );
 
-    expect(Client::query()->withoutGlobalScopes()->where('organization_id', $organization->id)->count())->toBe(25);
+    expect(Client::query()->withoutGlobalScopes()->where('organization_id', $organization->id)->count())->toBe(15);
 });
 
-it('grants starter limits while on trial', function (): void {
-    $organization = Organization::factory()->create(); // with trial...
+it('keeps an expired-trial organization writable below the free caps', function (): void {
+    // The flagship behavior of the free model: the trial ending no
+    // longer locks the organization — writes keep working under the
+    // free caps...
+    $organization = Organization::factory()->expired()->create();
     $admin = User::factory()->admin()->forOrganization($organization)->create();
 
-    // One user exists (the admin); the starter limit of 2 allows one more...
     $this->actingAs($admin)
-        ->post(route('users.store'), [
-            'name' => 'Second User',
-            'email' => 'second@example.com',
-            'role' => 'user',
-        ]);
+        ->fromRoute('clients.create')
+        ->post(route('clients.store'), [
+            'type' => 'individual',
+            'firstName' => 'Still',
+            'lastName' => 'Writable',
+            'email' => 'still.writable@example.com',
+            'phoneDay' => '418-555-0123',
+            'addressStreet' => '123 Rue',
+            'addressCity' => 'Québec',
+            'addressPostalCode' => 'G1K 0A1',
+            'addressCountry' => 'Canada',
+        ])->assertRedirect(route('clients.index'));
 
-    expect(User::query()->withoutGlobalScopes()->where('organization_id', $organization->id)->count())->toBe(2);
+    expect(Client::query()->withoutGlobalScopes()->where('organization_id', $organization->id)->count())->toBe(1);
 });
 
 it('does not count anonymized clients against the plan limit', function (): void {
-    // Future trial keeps the org out of read-only enforcement so this test
-    // exercises the plan-limit wall in isolation...
-    $organization = Organization::factory()->create(['trial_ends_at' => now()->addDays(14)]);
+    $organization = Organization::factory()->expired()->create();
     $admin = User::factory()->admin()->forOrganization($organization)->create();
 
-    Client::factory()->count(24)->forOrganization($organization)->create();
+    Client::factory()->count(14)->forOrganization($organization)->create();
     // Anonymized skeletons are kept for accountability but must not
     // consume the organization's quota...
     Client::factory()->count(3)->forOrganization($organization)->create(['anonymized_at' => now()]);
@@ -122,5 +134,5 @@ it('does not count anonymized clients against the plan limit', function (): void
         ])
         ->assertRedirect(route('clients.index'));
 
-    expect(Client::query()->withoutGlobalScopes()->where('organization_id', $organization->id)->whereNull('anonymized_at')->count())->toBe(25);
+    expect(Client::query()->withoutGlobalScopes()->where('organization_id', $organization->id)->whereNull('anonymized_at')->count())->toBe(15);
 });

@@ -124,7 +124,7 @@ it('filters by season and exports every season when none is given', function ():
     expect($allSeasons)->toBe(['2025-2026', '2024-2025']);
 });
 
-it('never exports another organization\'s payments', function (): void {
+it("never exports another organization's payments", function (): void {
     $otherOrganization = Organization::factory()->create();
     $otherClient = Client::factory()->forOrganization($otherOrganization)->create();
     $otherContract = exportContract($otherClient, '2025-2026');

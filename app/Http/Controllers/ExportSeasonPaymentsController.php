@@ -30,17 +30,15 @@ final readonly class ExportSeasonPaymentsController
             function () use ($export, $season): void {
                 $output = fopen('php://output', 'w');
 
-                if ($output === false) {
-                    throw new RuntimeException('Unable to open the CSV output stream.');
-                }
+                throw_if($output === false, RuntimeException::class, 'Unable to open the CSV output stream.');
 
                 // UTF-8 BOM so accented headers survive Excel's default encoding.
                 fwrite($output, "\xEF\xBB\xBF");
 
-                fputcsv($output, ExportSeasonPayments::headers());
+                fputcsv($output, ExportSeasonPayments::headers(), escape: '\\');
 
                 foreach ($export->handle($season) as $row) {
-                    fputcsv($output, $row);
+                    fputcsv($output, $row, escape: '\\');
                 }
 
                 fclose($output);

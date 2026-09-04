@@ -44,11 +44,4 @@ final class OrganizationFactory extends Factory
             'trial_ends_at' => now()->subDay(),
         ]);
     }
-
-    public function unlocked(): self
-    {
-        return $this->state(fn (): array => [
-            'access_unlock_until' => now()->addHours(24),
-        ]);
-    }
 }

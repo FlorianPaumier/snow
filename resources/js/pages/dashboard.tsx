@@ -1,9 +1,10 @@
-import { Head, Link, router } from '@inertiajs/react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
 import {
     Banknote,
     CalendarRange,
     Eye,
     FileText,
+    Lock,
     Mail,
     MailCheck,
     TrendingUp,
@@ -158,6 +159,11 @@ export default function Dashboard({
 }) {
     const { t } = useLocale();
     const formatCurrency = useCurrencyFormatter();
+    const { auth } = usePage().props;
+
+    // Payment reminders are a Pro feature: on the free plan the send
+    // button is locked and points at the billing page...
+    const remindersLocked = auth.subscription?.plan === 'free';
 
     const breadcrumbs: BreadcrumbItem[] = [
         {
@@ -509,41 +515,55 @@ export default function Dashboard({
                                                         className="size-8 text-muted-foreground hover:text-foreground"
                                                         disabled={
                                                             !installment.client
-                                                                .email
+                                                                .email ||
+                                                            remindersLocked
                                                         }
                                                         title={
-                                                            installment.client
-                                                                .email
-                                                                ? installment.lastReminderAt
-                                                                    ? interpolate(
-                                                                          t
-                                                                              .dashboard
-                                                                              .reminderSentOn,
-                                                                          {
-                                                                              date: installment.lastReminderAt,
-                                                                          },
-                                                                      )
-                                                                    : t
-                                                                          .dashboard
-                                                                          .sendReminder
-                                                                : t.dashboard
-                                                                      .reminderNoEmail
+                                                            remindersLocked
+                                                                ? t.dashboard
+                                                                      .reminderProOnly
+                                                                : installment
+                                                                        .client
+                                                                        .email
+                                                                  ? installment.lastReminderAt
+                                                                      ? interpolate(
+                                                                            t
+                                                                                .dashboard
+                                                                                .reminderSentOn,
+                                                                            {
+                                                                                date: installment.lastReminderAt,
+                                                                            },
+                                                                        )
+                                                                      : t
+                                                                            .dashboard
+                                                                            .sendReminder
+                                                                  : t.dashboard
+                                                                        .reminderNoEmail
                                                         }
                                                         aria-label={
-                                                            installment.lastReminderAt
-                                                                ? interpolate(
-                                                                      t
-                                                                          .dashboard
-                                                                          .reminderSentOn,
-                                                                      {
-                                                                          date: installment.lastReminderAt,
-                                                                      },
-                                                                  )
-                                                                : t.dashboard
-                                                                      .sendReminder
+                                                            remindersLocked
+                                                                ? t.dashboard
+                                                                      .reminderProOnly
+                                                                : installment.lastReminderAt
+                                                                  ? interpolate(
+                                                                        t
+                                                                            .dashboard
+                                                                            .reminderSentOn,
+                                                                        {
+                                                                            date: installment.lastReminderAt,
+                                                                        },
+                                                                    )
+                                                                  : t.dashboard
+                                                                        .sendReminder
                                                         }
                                                         data-test="send-reminder"
-                                                        onClick={() =>
+                                                        onClick={() => {
+                                                            if (
+                                                                remindersLocked
+                                                            ) {
+                                                                return;
+                                                            }
+
                                                             router.post(
                                                                 SendPaymentReminderController.url(
                                                                     {
@@ -551,10 +571,15 @@ export default function Dashboard({
                                                                             installment.id,
                                                                     },
                                                                 ),
-                                                            )
-                                                        }
+                                                            );
+                                                        }}
                                                     >
-                                                        {installment.lastReminderAt ? (
+                                                        {remindersLocked ? (
+                                                            <Lock
+                                                                aria-hidden="true"
+                                                                className="size-4"
+                                                            />
+                                                        ) : installment.lastReminderAt ? (
                                                             <MailCheck
                                                                 aria-hidden="true"
                                                                 className="size-4"

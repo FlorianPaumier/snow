@@ -8,8 +8,10 @@ use App\Enums\PaymentSlot;
 use App\Mail\InstallmentReminderMail;
 use App\Models\Client;
 use App\Models\Contract;
+use App\Models\Organization;
 use App\Models\Payment;
 use App\Models\User;
+use Carbon\CarbonInterface;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
 
@@ -25,7 +27,7 @@ beforeEach(function (): void {
  * An unpaid installment with the given due date (absolute or relative to
  * the frozen test now).
  */
-function scheduledPayment(Client $client, Carbon\CarbonInterface|string|null $dueDate, array $attributes = []): Payment
+function scheduledPayment(Client $client, CarbonInterface|string|null $dueDate, array $attributes = []): Payment
 {
     // Contracts are unique per (client, season): stagger the season so a
     // single fixture client can hold several installments...
@@ -37,7 +39,7 @@ function scheduledPayment(Client $client, Carbon\CarbonInterface|string|null $du
         'slot' => PaymentSlot::SLOT_FIRST_INSTALLMENT,
         'amount' => 20000,
         'paid' => false,
-        'due_date' => $dueDate instanceof Carbon\CarbonInterface ? $dueDate->toDateString() : $dueDate,
+        'due_date' => $dueDate instanceof CarbonInterface ? $dueDate->toDateString() : $dueDate,
         ...$attributes,
     ]);
 }
@@ -152,4 +154,33 @@ it('a manual reminder suppresses the automated pass for the cooldown window', fu
     expect(resolve(SendAutomatedPaymentReminders::class)->handle())->toBe(0);
 
     Mail::assertQueued(InstallmentReminderMail::class, 1);
+});
+
+it('skips free-plan organizations in the automated pass', function (): void {
+    // The authenticated org is on trial (Pro); a second, expired-trial org
+    // must not have its installments reminded. The action runs from the
+    // scheduler where no organization scope applies, so the cross-org
+    // eager loads are read scope-free like the cron would...
+    Auth::logout();
+
+    $freeOrg = Organization::factory()->expired()->create();
+    $freeClient = Client::factory()->forOrganization($freeOrg)->create(['email' => 'free-client@example.com']);
+    scheduledPayment($freeClient, now()->addDays(5));
+
+    $proClient = Client::factory()->forOrganization($this->user->organization)->create();
+    $dueSoon = scheduledPayment($proClient, now()->addDays(5));
+
+    Mail::fake();
+
+    $sent = resolve(SendAutomatedPaymentReminders::class)->handle();
+
+    // Only the trialing organization's installment was reminded...
+    expect($sent)->toBe(1);
+
+    Mail::assertQueued(InstallmentReminderMail::class, 1);
+    Mail::assertNotQueued(InstallmentReminderMail::class, fn (InstallmentReminderMail $mail): bool => $mail->hasTo('free-client@example.com'));
+
+    $dueSoon->refresh();
+    expect($dueSoon->automated_reminders_sent)->toBe(1)
+        ->and($freeClient->contracts()->sole()->payments()->sole()->fresh()->automated_reminders_sent)->toBe(0);
 });

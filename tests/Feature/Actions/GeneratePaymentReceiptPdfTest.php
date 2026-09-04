@@ -54,12 +54,13 @@ it('renders the receipt and stores the Gotenberg PDF', function (): void {
     $user = User::factory()->create();
     $payment = receiptPayment($user);
 
-    $path = app(GeneratePaymentReceiptPdf::class)->handle($payment);
+    $path = resolve(GeneratePaymentReceiptPdf::class)->handle($payment);
 
     expect($path)->toBe(GeneratePaymentReceiptPdf::pdfPath($payment->id));
 
     $disk = Storage::disk((string) config('filesystems.default'));
     $disk->assertExists($path);
+
     expect($disk->get($path))->toBe('%PDF-1.4 fake bytes');
 
     Http::assertSent(fn (Request $request): bool => str_contains((string) $request->url(), '/forms/chromium/convert/html'));
@@ -72,7 +73,7 @@ it('fails when Gotenberg rejects the receipt render', function (): void {
     $user = User::factory()->create();
     $payment = receiptPayment($user);
 
-    app(GeneratePaymentReceiptPdf::class)->handle($payment);
+    resolve(GeneratePaymentReceiptPdf::class)->handle($payment);
 })->throws(RequestException::class);
 
 it('resolves the payment from its id and generates the receipt pdf', function (): void {
@@ -81,7 +82,7 @@ it('resolves the payment from its id and generates the receipt pdf', function ()
     $user = User::factory()->create();
     $payment = receiptPayment($user);
 
-    (new GeneratePaymentReceiptDocumentPdf($payment->id))->handle(app(GeneratePaymentReceiptPdf::class));
+    new GeneratePaymentReceiptDocumentPdf($payment->id)->handle(resolve(GeneratePaymentReceiptPdf::class));
 
     $disk->assertExists(GeneratePaymentReceiptPdf::pdfPath($payment->id));
 });

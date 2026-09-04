@@ -7,6 +7,7 @@ use App\Enums\PaymentSlot;
 use App\Mail\PaymentDigestMail;
 use App\Models\Client;
 use App\Models\Contract;
+use App\Models\Organization;
 use App\Models\User;
 use Illuminate\Support\Facades\Mail;
 
@@ -103,4 +104,54 @@ it('keeps each organization digest scoped to its own installments', function ():
     Mail::assertQueued(PaymentDigestMail::class, fn (PaymentDigestMail $mail): bool => $mail->hasTo($this->user->email)
         && $mail->digest['overdue'] === []
         && count($mail->digest['upcoming']) === 1);
+});
+
+it('skips free-plan organizations in the digest', function (): void {
+    $this->user->organization->forceFill(['trial_ends_at' => now()->subDay()])->save();
+
+    $client = Client::factory()->forOrganization($this->user->organization)->create();
+    $contract = Contract::factory()->forClient($client)->create(['season' => '2026-2027']);
+    $contract->payments()->create([
+        'slot' => PaymentSlot::SLOT_FIRST_INSTALLMENT,
+        'amount' => 20000,
+        'paid' => false,
+        'due_date' => now()->subDays(5),
+    ]);
+
+    Mail::fake();
+
+    // The installment is overdue, but the organization is on the free
+    // plan: no digest is sent...
+    expect(resolve(SendPaymentDigest::class)->handle())->toBe(0);
+
+    Mail::assertNothingQueued();
+});
+
+it('digests the trial organization while skipping a free-plan one', function (): void {
+    $freeOrg = Organization::factory()->expired()->create();
+    $freeClient = Client::factory()->forOrganization($freeOrg)->create();
+    $freeContract = Contract::factory()->forClient($freeClient)->create(['season' => '2026-2027']);
+    $freeContract->payments()->create([
+        'slot' => PaymentSlot::SLOT_FIRST_INSTALLMENT,
+        'amount' => 20000,
+        'paid' => false,
+        'due_date' => now()->subDays(5),
+    ]);
+
+    // The acting user's organization is on its trial (Pro) with the same
+    // shape of overdue installment...
+    $client = Client::factory()->forOrganization($this->user->organization)->create();
+    $contract = Contract::factory()->forClient($client)->create(['season' => '2026-2027']);
+    $contract->payments()->create([
+        'slot' => PaymentSlot::SLOT_FIRST_INSTALLMENT,
+        'amount' => 20000,
+        'paid' => false,
+        'due_date' => now()->subDays(5),
+    ]);
+
+    Mail::fake();
+
+    expect(resolve(SendPaymentDigest::class)->handle())->toBe(1);
+
+    Mail::assertQueued(PaymentDigestMail::class, fn (PaymentDigestMail $mail): bool => $mail->hasTo($this->user->email));
 });

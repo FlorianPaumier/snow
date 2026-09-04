@@ -11,7 +11,7 @@ it('returns null without an organization', function (): void {
     expect($summary)->toBeNull();
 });
 
-it('reports an active trial as trialing', function (): void {
+it('reports an active signup trial as the pro plan on trial', function (): void {
     $organization = Organization::factory()->create([
         'trial_ends_at' => now()->addDays(14),
     ]);
@@ -19,14 +19,14 @@ it('reports an active trial as trialing', function (): void {
     $summary = resolve(GetSubscriptionSummary::class)->handle($organization);
 
     expect($summary)->toBe([
-        'plan' => null,
+        'plan' => 'pro',
         'status' => 'trialing',
         'onTrial' => true,
         'trialEndsAt' => $organization->trial_ends_at->toIso8601String(),
     ]);
 });
 
-it('reports an expired trial as no longer on trial', function (): void {
+it('reports an expired trial as the free plan', function (): void {
     $organization = Organization::factory()->create([
         'trial_ends_at' => now()->subDay(),
     ]);
@@ -34,21 +34,21 @@ it('reports an expired trial as no longer on trial', function (): void {
     $summary = resolve(GetSubscriptionSummary::class)->handle($organization);
 
     expect($summary)->toBe([
-        'plan' => null,
-        'status' => 'none',
+        'plan' => 'free',
+        'status' => 'free',
         'onTrial' => false,
         'trialEndsAt' => $organization->trial_ends_at->toIso8601String(),
     ]);
 });
 
-it('reports a trial-less organization as not on trial', function (): void {
+it('reports a trial-less organization as the free plan', function (): void {
     $organization = Organization::factory()->withoutTrial()->create();
 
     $summary = resolve(GetSubscriptionSummary::class)->handle($organization);
 
     expect($summary)->toBe([
-        'plan' => null,
-        'status' => 'none',
+        'plan' => 'free',
+        'status' => 'free',
         'onTrial' => false,
         'trialEndsAt' => null,
     ]);
@@ -84,10 +84,10 @@ it('reports a subscription on trial as trialing with its plan', function (): voi
     $trialEndsAt = now()->addDays(7);
 
     $organization->subscriptions()->create([
-        'type' => 'fleet',
+        'type' => 'pro',
         'stripe_id' => 'sub_test_2',
         'stripe_status' => 'trialing',
-        'stripe_price' => 'price_fleet',
+        'stripe_price' => 'price_pro',
         'quantity' => 1,
         'trial_ends_at' => $trialEndsAt,
         'ends_at' => null,
@@ -96,9 +96,32 @@ it('reports a subscription on trial as trialing with its plan', function (): voi
     $summary = resolve(GetSubscriptionSummary::class)->handle($organization);
 
     expect($summary)->toBe([
-        'plan' => 'fleet',
+        'plan' => 'pro',
         'status' => 'trialing',
         'onTrial' => true,
         'trialEndsAt' => $trialEndsAt->toIso8601String(),
+    ]);
+});
+
+it('falls back to free when the only subscription is canceled', function (): void {
+    $organization = Organization::factory()->withoutTrial()->create();
+
+    $organization->subscriptions()->create([
+        'type' => 'pro',
+        'stripe_id' => 'sub_test_3',
+        'stripe_status' => 'canceled',
+        'stripe_price' => 'price_pro',
+        'quantity' => 1,
+        'trial_ends_at' => null,
+        'ends_at' => now()->subDay(),
+    ]);
+
+    $summary = resolve(GetSubscriptionSummary::class)->handle($organization);
+
+    expect($summary)->toBe([
+        'plan' => 'free',
+        'status' => 'free',
+        'onTrial' => false,
+        'trialEndsAt' => null,
     ]);
 });

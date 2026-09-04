@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Actions\DeleteContract;
 use App\Actions\GenerateContractPdf;
 use App\Enums\PaymentSlot;
 use App\Models\Client;
@@ -30,7 +31,7 @@ it('removes the stored pdf when a contract is deleted', function (): void {
 
     $disk->put(GenerateContractPdf::pdfPath($contract->id), '%PDF-1.4 fake bytes');
 
-    app(App\Actions\DeleteContract::class)->handle($contract);
+    resolve(DeleteContract::class)->handle($contract);
 
     expect($contract->fresh())->toBeNull();
     $disk->assertMissing(GenerateContractPdf::pdfPath($contract->id));
@@ -48,9 +49,10 @@ it('keeps the pdf when the contract cannot be deleted', function (): void {
 
     $disk->put(GenerateContractPdf::pdfPath($contract->id), '%PDF-1.4 fake bytes');
 
-    expect(fn (): null => app(App\Actions\DeleteContract::class)->handle($contract))
+    expect(fn (): null => resolve(DeleteContract::class)->handle($contract))
         ->toThrow(ValidationException::class);
 
     expect($contract->fresh())->not->toBeNull();
+
     $disk->assertExists(GenerateContractPdf::pdfPath($contract->id));
 });

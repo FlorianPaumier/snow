@@ -83,12 +83,12 @@ it('may create a company client with an ember... in its own sequence', function 
 });
 
 it('skips the limit check when the organization has an unlimited plan', function (): void {
-    // The fleet plan has no client ceiling...
+    // The pro plan has no client ceiling...
     $this->user->organization->subscriptions()->create([
-        'type' => 'fleet',
+        'type' => 'pro',
         'stripe_id' => 'sub_create_client_unlimited',
         'stripe_status' => 'active',
-        'stripe_price' => 'price_fleet',
+        'stripe_price' => 'price_pro',
         'quantity' => 1,
         'trial_ends_at' => null,
         'ends_at' => null,

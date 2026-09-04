@@ -7,16 +7,16 @@ namespace App\Http\Controllers;
 use App\Actions\UpdateOrganization;
 use App\Http\Requests\UpdateOrganizationRequest;
 use App\Models\User;
+use Illuminate\Container\Attributes\CurrentUser;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
 final readonly class OrganizationController
 {
-    public function edit(Request $request): Response
+    public function edit(#[CurrentUser] User $user): Response
     {
-        $organization = $request->user()->organization;
+        $organization = $user->organization;
 
         return Inertia::render('organization/edit', [
             'organization' => [
@@ -35,9 +35,12 @@ final readonly class OrganizationController
         ]);
     }
 
-    public function update(UpdateOrganizationRequest $request, UpdateOrganization $action): RedirectResponse
+    public function update(UpdateOrganizationRequest $request, #[CurrentUser] User $user, UpdateOrganization $action): RedirectResponse
     {
-        $action->handle($request->user()->organization, $request->validated());
+        /** @var array{name: string} $validated */
+        $validated = $request->validated();
+
+        $action->handle($user->organization, $validated);
 
         Inertia::flash('toast', [
             'type' => 'success',

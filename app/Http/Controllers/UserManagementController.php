@@ -10,6 +10,7 @@ use App\Actions\UpdateUser;
 use App\Http\Requests\CreateUserManagementRequest;
 use App\Http\Requests\UpdateUserManagementRequest;
 use App\Models\User;
+use Illuminate\Container\Attributes\CurrentUser;
 use Illuminate\Contracts\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -20,7 +21,7 @@ use Inertia\Response;
 
 final readonly class UserManagementController
 {
-    public function index(Request $request): Response
+    public function index(Request $request, #[CurrentUser] User $actor): Response
     {
         /** @var array{search?: string, sort?: string, direction?: string}  $validated */
         $validated = $request->validate([
@@ -51,7 +52,7 @@ final readonly class UserManagementController
                 'email' => $user->email,
                 'role' => $user->role,
                 'status' => $user->hasPendingInvitation() ? 'pending' : 'active',
-                'is_owner' => $user->id === $request->user()->organization->owner_id,
+                'is_owner' => $user->id === $actor->organization->owner_id,
                 'created_at' => $user->created_at->toDateString(),
             ]),
             'filters' => [

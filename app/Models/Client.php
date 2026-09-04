@@ -100,27 +100,6 @@ final class Client extends Model
     }
 
     /**
-     * Clients whose identity has been erased; their financial skeleton
-     * remains for accountability.
-     *
-     * @param  Builder<Client>  $query
-     * @return Builder<Client>
-     */
-    public function scopeWhereAnonymized(Builder $query): Builder
-    {
-        return $query->whereNotNull('anonymized_at');
-    }
-
-    /**
-     * @param  Builder<Client>  $query
-     * @return Builder<Client>
-     */
-    public function scopeWhereNotAnonymized(Builder $query): Builder
-    {
-        return $query->whereNull('anonymized_at');
-    }
-
-    /**
      * @return HasMany<Contract, $this>
      */
     public function contracts(): HasMany
@@ -134,5 +113,26 @@ final class Client extends Model
     public function lastContract(): HasOne
     {
         return $this->hasOne(Contract::class)->latestOfMany();
+    }
+
+    /**
+     * Clients whose identity has been erased; their financial skeleton
+     * remains for accountability.
+     *
+     * @param  Builder<Client>  $query
+     * @return Builder<Client>
+     */
+    protected function scopeWhereAnonymized(Builder $query): Builder
+    {
+        return $query->whereNotNull('anonymized_at');
+    }
+
+    /**
+     * @param  Builder<Client>  $query
+     * @return Builder<Client>
+     */
+    protected function scopeWhereNotAnonymized(Builder $query): Builder
+    {
+        return $query->whereNull('anonymized_at');
     }
 }

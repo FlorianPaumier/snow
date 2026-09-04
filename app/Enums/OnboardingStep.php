@@ -54,7 +54,11 @@ enum OnboardingStep: string
      */
     public function isVisibleFor(User $user): bool
     {
-        return $this->isCompletedFor($user) || $user->can($this->ability());
+        if ($this->isCompletedFor($user)) {
+            return true;
+        }
+
+        return $user->can($this->ability());
     }
 
     /**

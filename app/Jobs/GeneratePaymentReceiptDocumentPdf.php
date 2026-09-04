@@ -9,15 +9,14 @@ use App\Models\Payment;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
+use Illuminate\Queue\Attributes\Backoff;
+use Illuminate\Queue\Attributes\Tries;
 
+#[Backoff([10, 30])]
+#[Tries(3)]
 final class GeneratePaymentReceiptDocumentPdf implements ShouldBeUnique, ShouldQueue
 {
     use Queueable;
-
-    public int $tries = 3;
-
-    /** @var list<int> */
-    public array $backoff = [10, 30];
 
     public function __construct(public readonly int $paymentId) {}
 

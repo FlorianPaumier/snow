@@ -25,6 +25,7 @@ final readonly class SendAutomatedPaymentReminders
     public function __construct(
         private SendPaymentReminder $reminders,
         private FlushOrganizationCache $flushCache,
+        private GetPlanFeatures $planFeatures,
     ) {}
 
     public function handle(): int
@@ -47,9 +48,20 @@ final readonly class SendAutomatedPaymentReminders
         $flushed = [];
 
         foreach ($payments as $payment) {
-            $email = $payment->contract->client->email;
+            // Payment reminders are a Pro feature: free-plan organizations
+            // are silently skipped by the automated pass...
+            $features = $this->planFeatures->handle($payment->organization);
 
-            if (! is_string($email) || $email === '') {
+            if (! $features['paymentReminders']) {
+                continue;
+            }
+
+            $email = $payment->contract->client->email;
+            if (! is_string($email)) {
+                continue;
+            }
+
+            if ($email === '') {
                 continue;
             }
 

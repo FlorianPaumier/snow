@@ -26,10 +26,10 @@ function exportedRows(string $content): array
 
     $lines = array_values(array_filter(explode("\n", $content), fn (string $line): bool => $line !== ''));
 
-    $headers = str_getcsv($lines[0]);
+    $headers = str_getcsv($lines[0], escape: '\\');
 
     return array_map(
-        fn (string $line): array => array_combine($headers, str_getcsv($line)),
+        fn (string $line): array => array_combine($headers, str_getcsv($line, escape: '\\')),
         array_slice($lines, 1),
     );
 }
@@ -64,7 +64,7 @@ it('streams the season installments as a CSV download for admins', function (): 
     expect($response->headers->get('Content-Type'))->toContain('text/csv')
         ->and($response->headers->get('Content-Disposition'))->toContain('Paiements-2025-2026.csv')
         // UTF-8 BOM so accented headers survive Excel's default encoding...
-        ->and(str_starts_with($content, "\xEF\xBB\xBF"))->toBeTrue();
+        ->and(str_starts_with((string) $content, "\xEF\xBB\xBF"))->toBeTrue();
 
     $rows = exportedRows($content);
 

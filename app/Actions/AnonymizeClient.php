@@ -7,6 +7,7 @@ namespace App\Actions;
 use App\Models\Client;
 use App\Models\User;
 use App\ValueObjects\Address;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
@@ -76,7 +77,7 @@ final readonly class AnonymizeClient
     {
         $disk = Storage::disk(config()->string('filesystems.default'));
 
-        /** @var \Illuminate\Support\Collection<int, string> $contractIds */
+        /** @var Collection<int, string> $contractIds */
         $contractIds = $client->contracts()->pluck('id');
 
         foreach ($contractIds as $contractId) {

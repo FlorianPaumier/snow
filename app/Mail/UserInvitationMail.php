@@ -26,7 +26,7 @@ final class UserInvitationMail extends Mailable implements ShouldQueue
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: sprintf('Join %s on %s', $this->organizationName, config('app.name')),
+            subject: sprintf('Join %s on %s', $this->organizationName, config()->string('app.name')),
         );
     }
 
