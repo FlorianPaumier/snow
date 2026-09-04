@@ -1,5 +1,10 @@
 # GitLab CI/CD for Frostline OPS (Laravel 13 / Inertia SSR / Pest 5 / Bun).
 #
+# The toolchain (PHP 8.5 + extensions, pcov, Composer, Node 24, Bun,
+# Chromium) is baked into $CI_REGISTRY_IMAGE/ci:latest by the
+# build:ci-image job (see Dockerfile.ci) — jobs start ready to work and
+# only pay for composer/bun installs from warm caches.
+#
 # Test-stage jobs split the project's `composer test` gate:
 #   lint:    Pint + oxlint/oxfmt                     (strict)
 #   rector:  Rector dry-run                          (allow_failure: 36 files of
@@ -27,6 +32,7 @@ workflow:
     - if: '$CI_COMMIT_BRANCH'
 
 stages:
+  - build
   - test
   - deploy
 
@@ -35,41 +41,87 @@ variables:
   # graph was last recorded at (shallow clones would force graph rebuilds).
   GIT_DEPTH: "0"
 
+# ---------------------------------------------------------------------------
+# CI image: built only when the recipe changes. The registry pull is
+# authenticated with the job token automatically (same-project registry).
+# Every other job extending .base runs against this image.
+# ---------------------------------------------------------------------------
+
+build:ci-image:
+  stage: build
+  # Buildah builds rootless (no privileged runner needed) — GitLab's
+  # recommended builder since Kaniko was deprecated and its docs removed.
+  # --storage-driver=vfs is required on GitLab.com shared runners:
+  # overlayfs is unavailable in their unprivileged container runtime.
+  image:
+    name: quay.io/buildah/stable:latest
+    entrypoint: [""]
+  interruptible: true
+  timeout: 30 minutes
+  rules:
+    # The default-branch pipeline rebuilds :latest so every MR pipeline
+    # (and later branch pushes) pulls a ready image; MR pipelines use
+    # rules:changes, which would otherwise be missing this ref.
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+      changes: [Dockerfile.ci]
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      changes: [Dockerfile.ci]
+  script:
+    # Layer caching reuses unchanged Dockerfile.ci stages on rebuilds.
+    - buildah bud
+        --storage-driver=vfs
+        --layers
+        --file "$CI_PROJECT_DIR/Dockerfile.ci"
+        --tag "$CI_REGISTRY_IMAGE/ci:$CI_COMMIT_SHA"
+        --tag "$CI_REGISTRY_IMAGE/ci:latest"
+        "$CI_PROJECT_DIR"
+    # Push both tags: the immutable per-commit tag (auditable) and
+    # :latest (what the test jobs pull). The job token authenticates to
+    # the project's own registry.
+    - echo "$CI_REGISTRY_PASSWORD" | buildah login --username "$CI_REGISTRY_USER" --password-stdin "$CI_REGISTRY"
+    - buildah push --storage-driver=vfs "$CI_REGISTRY_IMAGE/ci:$CI_COMMIT_SHA"
+    - buildah push --storage-driver=vfs "$CI_REGISTRY_IMAGE/ci:latest"
+
+# ---------------------------------------------------------------------------
+# Test jobs
+# ---------------------------------------------------------------------------
+
 .base:
   stage: test
-  image: php:8.5
+  # Baked toolchain (PHP 8.5 + extensions, pcov, Composer, Node 24, Bun,
+  # Chromium) — see Dockerfile.ci. If this image is missing (first pipeline
+  # after introducing it, or a deleted registry tag), jobs fail with a
+  # registry 404: run the build:ci-image job once or trigger it manually.
+  image: $CI_REGISTRY_IMAGE/ci:latest
   interruptible: true
   timeout: 20 minutes
+  variables:
+    # Package download caches, kept inside the workspace so they ride the
+    # job cache. The static key survives lockfile bumps: a dependency
+    # change rebuilds vendor/node_modules from the lockfile-keyed cache
+    # below, and the archives it needs to download ride this one.
+    COMPOSER_CACHE_DIR: "$CI_PROJECT_DIR/.composer-cache"
+    BUN_INSTALL_CACHE_DIR: "$CI_PROJECT_DIR/.bun-cache"
+    # NOTE: PLAYWRIGHT_BROWSERS_PATH is deliberately NOT set here. The CI
+    # image bakes Chromium into /opt/ms-playwright, and setting the
+    # variable would override that path and force a re-download. The
+    # tests job scopes it to its fallback-download command only.
   cache:
-    key:
-      files:
-        - composer.lock
-        - bun.lock
-      prefix: "$CI_JOB_NAME"
-    paths:
-      - vendor/
-      - node_modules/
+    # Installed dependencies — the key rotates on every lockfile bump.
+    - key:
+        files:
+          - composer.lock
+          - bun.lock
+        prefix: "$CI_JOB_NAME"
+      paths:
+        - vendor/
+        - node_modules/
+    # Downloaded package archives — static key, survives lockfile bumps.
+    - key: "package-archives-v1"
+      paths:
+        - .composer-cache/
+        - .bun-cache/
   before_script:
-    # System deps: unzip (composer dist zips + bun installer), libicu-dev
-    # (ext-intl), git (required by Pest TIA's change detection).
-    - apt-get update -yqq
-    - apt-get install -yqq unzip libicu-dev git
-    # PHP extensions beyond the php:8.5 image defaults: bcmath + sockets
-    # (composer platform requirements), pcntl (paratest), intl
-    # (Number::currency with fr-CA locale in payment mail).
-    - docker-php-ext-install -j$(nproc) bcmath sockets pcntl intl
-    # Node 24: the vp, tsc and playwright binaries are node scripts.
-    - curl -sL https://deb.nodesource.com/setup_24.x | bash -
-    - apt-get install -yqq nodejs
-    # Composer is not shipped in the official php image.
-    - curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
-    # Bun (package manager; the lockfile is bun.lock).
-    - curl -fsSL https://bun.sh/install | bash
-    - export PATH="$HOME/.bun/bin:$PATH"
-    # Cache dirs pinned by rector.php (FileCacheStorage) and phpstan.neon.
-    - mkdir -p /tmp/rector /tmp/phpstan
-    - echo 'zend.assertions=1' > /usr/local/etc/php/conf.d/zz-ci.ini
-    - composer install --no-interaction --prefer-dist --optimize-autoloader --no-progress
     # App env for artisan + browser tests; phpunit.xml force-pins the test
     # environment (sqlite :memory:, array drivers) on top of this.
     - cp .env.example .env
@@ -78,6 +130,7 @@ variables:
     # for tsc and the vite-plus type-aware linter. --with-form matches the
     # vite plugin's formVariants: true (tsc fails without .form variants).
     - php artisan wayfinder:generate --with-form
+    - composer install --no-interaction --prefer-dist --optimize-autoloader --no-progress
     - bun install --frozen-lockfile
 
 lint:
@@ -110,32 +163,46 @@ phpstan:
 
 tests:
   extends: .base
-  variables:
-    # Keep browser binaries inside the workspace so they ride the job cache.
-    PLAYWRIGHT_BROWSERS_PATH: "$CI_PROJECT_DIR/.playwright-browsers"
   cache:
-    key:
-      files:
-        - composer.lock
-        - bun.lock
-      prefix: "$CI_JOB_NAME"
-    paths:
-      - vendor/
-      - node_modules/
-      - .playwright-browsers/
-      - .pest-tia-home/
+    # Installed dependencies — the key rotates on every lockfile bump.
+    - key:
+        files:
+          - composer.lock
+          - bun.lock
+        prefix: "$CI_JOB_NAME"
+      paths:
+        - vendor/
+        - node_modules/
+    # Downloaded package archives — static key, survives lockfile bumps.
+    - key: "package-archives-v1"
+      paths:
+        - .composer-cache/
+        - .bun-cache/
+    # Chromium binaries, in case the baked PLAYWRIGHT_VERSION pin drifts
+    # from bun.lock (fresh download would otherwise land outside the
+    # workspace and never be cached).
+    - key: "playwright-browsers-$CI_JOB_NAME"
+      paths:
+        - .playwright-browsers/
+    # Pest TIA's dependency graph; the directory is not configurable in
+    # this Pest version, so HOME is pointed inside the workspace to make
+    # it cacheable between pipeline runs.
+    - key: "pest-tia-home"
+      paths:
+        - .pest-tia-home/
   before_script:
     - !reference [.base, before_script]
-    # pcov: coverage driver for the 100% coverage gate and for TIA recording.
-    - pecl install pcov
-    - docker-php-ext-enable pcov
-    # Pest browser tests use chromium only — add firefox/webkit here if a
-    # test ever requests them.
-    - bunx playwright install --with-deps chromium
     # Pest TIA stores its graph under $HOME/.pest/tia/<project-key>/; the
     # directory is not configurable in this Pest version, so HOME is pointed
     # inside the workspace to make it cacheable between pipeline runs.
     - mkdir -p .pest-tia-home
+    # Chromium normally comes baked into the CI image (/opt/ms-playwright).
+    # This fallback only downloads when bun.lock's playwright pin drifted
+    # from the baked one — scoped env var so it does not override the
+    # image's browsers for the actual test run, and the download lands
+    # in the cacheable .playwright-browsers directory.
+    - PLAYWRIGHT_BROWSERS_PATH="$CI_PROJECT_DIR/.playwright-browsers"
+      bunx playwright install chromium || true
   script:
     # Browser tests serve assets from public/build, and the MarketingClaims
     # suite re-enables Inertia SSR — which requires the bootstrap/ssr bundle

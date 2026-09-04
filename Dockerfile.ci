@@ -1,0 +1,55 @@
+# CI image for Frostline OPS (Laravel 13 / Inertia SSR / Pest 5 / Bun).
+#
+# The whole toolchain the pipeline needs above vendor/node_modules — PHP 8.5
+# with its extensions, pcov, Composer, Node 24, Bun, Chromium — so a push
+# only pays for `composer install` + `bun install` from warm caches. Built
+# by the build:ci-image job whenever this file changes; everything else
+# pulls $CI_REGISTRY_IMAGE/ci:latest from the project's container registry.
+#
+# Keep PLAYWRIGHT_VERSION in sync with the playwright pin in bun.lock: the
+# baked Chromium must match the version the tests resolve from node_modules.
+# A mismatched bun.lock still runs — the tests job re-downloads browsers on
+# the fly — but the image should be re-baked to keep that path cold.
+
+FROM php:8.5
+
+# System packages: unzip (composer dist zips), git (Pest TIA change
+# detection), libicu-dev (ext-intl), libstdc++6 (the node binary).
+RUN apt-get update -yqq \
+    && apt-get install -yqq --no-install-recommends \
+        unzip git ca-certificates libicu-dev libstdc++6 \
+    && rm -rf /var/lib/apt/lists/*
+
+# PHP extensions: bcmath + sockets (composer platform requirements), pcntl
+# (paratest), intl (Number::currency with the fr-CA locale in payment
+# mail), pcov (coverage driver for the 100% gate and TIA recording).
+# /tmp/rector and /tmp/phpstan are the cache dirs pinned by rector.php and
+# phpstan.neon.
+RUN docker-php-ext-install -j"$(nproc)" bcmath sockets pcntl intl \
+    && pecl install pcov \
+    && docker-php-ext-enable pcov \
+    && echo 'zend.assertions=1' > /usr/local/etc/php/conf.d/zz-ci.ini \
+    && mkdir -p /tmp/rector /tmp/phpstan
+
+# Composer, from the official image.
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+
+# Node 24 — the vp, tsc and playwright binaries are node scripts — from
+# the official image.
+COPY --from=node:24 /usr/local/bin/node /usr/local/bin/node
+
+# Bun, pinned to the version that produced bun.lock (the frozen lockfile
+# install expects a compatible bun). The oven/bun image ships bunx as a
+# symlink to bun; copying both the binary and the shim keeps `bunx`
+# working, which the Playwright install below needs.
+COPY --from=oven/bun:1.3.1 /usr/local/bin/bun /usr/local/bin/bun
+COPY --from=oven/bun:1.3.1 /usr/local/bin/bunx /usr/local/bin/bunx
+
+# Chromium for the Pest browser tests (chromium only — add firefox/webkit
+# here if a test ever requests them). The version pin matters: browsers
+# are stored per playwright release, so a drift between this pin and
+# bun.lock sends the tests job back to downloading ~170 MB at runtime.
+ARG PLAYWRIGHT_VERSION=1.62.1
+ENV PLAYWRIGHT_BROWSERS_PATH=/opt/ms-playwright
+RUN bunx playwright@${PLAYWRIGHT_VERSION} install --with-deps chromium \
+    && rm -rf /root/.bun/install/cache
