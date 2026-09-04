@@ -1,9 +1,10 @@
 # GitLab CI/CD for Frostline OPS (Laravel 13 / Inertia SSR / Pest 5 / Bun).
 #
 # The toolchain (PHP 8.5 + extensions, pcov, Composer, Node 24, Bun,
-# Chromium) is baked into $CI_REGISTRY_IMAGE/ci:latest by the
-# build:ci-image job (see Dockerfile.ci) — jobs start ready to work and
-# only pay for composer/bun installs from warm caches.
+# Chromium) is baked into $CI_REGISTRY_IMAGE/ci:latest — built and pushed
+# BY HAND, not by a CI job (see the procedure in Dockerfile.ci and the
+# .base template below). Jobs start ready to work and only pay for
+# composer/bun installs from warm caches.
 #
 # Test-stage jobs split the project's `composer test` gate:
 #   lint:    Pint + oxlint/oxfmt                     (strict)
@@ -32,7 +33,6 @@ workflow:
     - if: '$CI_COMMIT_BRANCH'
 
 stages:
-  - build
   - test
   - deploy
 
@@ -42,56 +42,28 @@ variables:
   GIT_DEPTH: "0"
 
 # ---------------------------------------------------------------------------
-# CI image: built only when the recipe changes. The registry pull is
-# authenticated with the job token automatically (same-project registry).
-# Every other job extending .base runs against this image.
-# ---------------------------------------------------------------------------
-
-build:ci-image:
-  stage: build
-  # Buildah builds rootless (no privileged runner needed) — GitLab's
-  # recommended builder since Kaniko was deprecated and its docs removed.
-  # --storage-driver=vfs is required on GitLab.com shared runners:
-  # overlayfs is unavailable in their unprivileged container runtime.
-  image:
-    name: quay.io/buildah/stable:latest
-    entrypoint: [""]
-  interruptible: true
-  timeout: 30 minutes
-  rules:
-    # The default-branch pipeline rebuilds :latest so every MR pipeline
-    # (and later branch pushes) pulls a ready image; MR pipelines use
-    # rules:changes, which would otherwise be missing this ref.
-    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
-      changes: [Dockerfile.ci]
-    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
-      changes: [Dockerfile.ci]
-  script:
-    # Layer caching reuses unchanged Dockerfile.ci stages on rebuilds.
-    - buildah bud
-        --storage-driver=vfs
-        --layers
-        --file "$CI_PROJECT_DIR/Dockerfile.ci"
-        --tag "$CI_REGISTRY_IMAGE/ci:$CI_COMMIT_SHA"
-        --tag "$CI_REGISTRY_IMAGE/ci:latest"
-        "$CI_PROJECT_DIR"
-    # Push both tags: the immutable per-commit tag (auditable) and
-    # :latest (what the test jobs pull). The job token authenticates to
-    # the project's own registry.
-    - echo "$CI_REGISTRY_PASSWORD" | buildah login --username "$CI_REGISTRY_USER" --password-stdin "$CI_REGISTRY"
-    - buildah push --storage-driver=vfs "$CI_REGISTRY_IMAGE/ci:$CI_COMMIT_SHA"
-    - buildah push --storage-driver=vfs "$CI_REGISTRY_IMAGE/ci:latest"
-
-# ---------------------------------------------------------------------------
 # Test jobs
 # ---------------------------------------------------------------------------
 
 .base:
   stage: test
   # Baked toolchain (PHP 8.5 + extensions, pcov, Composer, Node 24, Bun,
-  # Chromium) — see Dockerfile.ci. If this image is missing (first pipeline
-  # after introducing it, or a deleted registry tag), jobs fail with a
-  # registry 404: run the build:ci-image job once or trigger it manually.
+  # Chromium) — see Dockerfile.ci. The image is NOT built by CI: build and
+  # push it by hand after changing Dockerfile.ci (rootless builders like
+  # buildah reject the recipe in several ways, and building in CI would
+  # need the very image it produces):
+  #
+  #   docker login registry.gitlab.com
+  #   docker build --platform linux/amd64 --file Dockerfile.ci \
+  #     --tag registry.gitlab.com/florianpaumier1/snow/ci:latest .
+  #   docker push registry.gitlab.com/florianpaumier1/snow/ci:latest
+  #
+  # --platform linux/amd64 matters: the runners are amd64 and an arm64
+  # image (the default on an Apple Silicon Mac) fails every job.
+  #
+  # If this image is missing (first pipeline after introducing it, or a
+  # deleted registry tag), jobs fail with a registry 404: build and push
+  # it once with the commands above.
   image: $CI_REGISTRY_IMAGE/ci:latest
   interruptible: true
   timeout: 20 minutes

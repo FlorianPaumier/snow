@@ -2,9 +2,21 @@
 #
 # The whole toolchain the pipeline needs above vendor/node_modules — PHP 8.5
 # with its extensions, pcov, Composer, Node 24, Bun, Chromium — so a push
-# only pays for `composer install` + `bun install` from warm caches. Built
-# by the build:ci-image job whenever this file changes; everything else
-# pulls $CI_REGISTRY_IMAGE/ci:latest from the project's container registry.
+# only pays for `composer install` + `bun install` from warm caches.
+# Every CI job runs against this image (image: $CI_REGISTRY_IMAGE/ci:latest
+# in .gitlab-ci.yml). It is NOT built by CI: after changing this file,
+# rebuild and push it by hand —
+#
+#   docker login registry.gitlab.com
+#   docker build --platform linux/amd64 --file Dockerfile.ci \
+#     --tag registry.gitlab.com/florianpaumier1/snow/ci:latest .
+#   docker push registry.gitlab.com/florianpaumier1/snow/ci:latest
+#
+# The tag is lowercase on purpose: Docker requires repository names to be
+# lowercase (the git remote capitalizes the group, but image tags cannot).
+# --platform linux/amd64 matters: GitLab.com shared runners are amd64, and
+# an arm64 image (the default build on an Apple Silicon Mac) fails every
+# job with exec format errors.
 #
 # Keep PLAYWRIGHT_VERSION in sync with the playwright pin in bun.lock: the
 # baked Chromium must match the version the tests resolve from node_modules.
