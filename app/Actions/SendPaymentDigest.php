@@ -98,22 +98,18 @@ final readonly class SendPaymentDigest
             ->sortBy('due_date')
             ->map(fn (Payment $payment): array => [
                 ...$this->row($payment),
-                'duePhrase' => $this->upcomingPhrase($payment->due_date),
+                'duePhrase' => $payment->due_date === null ? 'sans échéance' : $this->upcomingPhrase($payment->due_date),
             ])
             ->values()
             ->all();
     }
 
     /**
-     * Carbon's diffInDays is signed: the due date is always today or later
-     * here, but a null date still needs a phrase.
+     * Carbon's diffInDays is signed: the due date is always today or
+     * later here.
      */
-    private function upcomingPhrase(?CarbonInterface $dueDate): string
+    private function upcomingPhrase(CarbonInterface $dueDate): string
     {
-        if (! $dueDate instanceof CarbonInterface) {
-            return 'sans échéance';
-        }
-
         $days = (int) today()->diffInDays($dueDate->copy()->startOfDay(), false);
 
         return $days === 0 ? 'échoit aujourd’hui' : sprintf('dans %d jour%s', $days, $days > 1 ? 's' : '');

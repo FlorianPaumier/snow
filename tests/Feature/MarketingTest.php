@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Jobs\SendContactInquiry;
 use App\Models\ContactInquiry;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Queue;
 
 it('renders all public marketing pages', function (string $path, string $component): void {
@@ -31,6 +32,22 @@ it('reports live component health on the status page', function (): void {
             ->where('components.1.name', 'Cache store')
             ->where('components.1.status', 'operational')
             ->where('components.2.name', 'Job queue')
+            ->where('components.2.status', 'operational'),
+    );
+});
+
+it('degrades a failing component instead of failing the status page', function (): void {
+    // A cache store that explodes keeps its probe row red while the page
+    // itself stays up — the probes must never take the page down with
+    // them...
+    Cache::shouldReceive('store')->andThrow(new RuntimeException('cache down'));
+
+    $this->get('/status')->assertOk()->assertInertia(
+        fn ($page) => $page
+            ->component('marketing/status')
+            ->where('components.0.status', 'operational')
+            ->where('components.1.name', 'Cache store')
+            ->where('components.1.status', 'degraded')
             ->where('components.2.status', 'operational'),
     );
 });

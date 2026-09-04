@@ -104,6 +104,19 @@ it('ignores installments without a due date, collected ones, and clients without
         ->and($noEmail->fresh()->last_reminder_at)->toBeNull();
 });
 
+it('ignores clients whose email is an empty string', function (): void {
+    $client = Client::factory()->forOrganization($this->user->organization)->create(['email' => '']);
+    $payment = scheduledPayment($client, now()->subDays(2));
+
+    Mail::fake();
+
+    expect(resolve(SendAutomatedPaymentReminders::class)->handle())->toBe(0);
+
+    Mail::assertNothingQueued();
+    expect($payment->fresh()->last_reminder_at)->toBeNull()
+        ->and($payment->fresh()->automated_reminders_sent)->toBe(0);
+});
+
 it('respects the weekly cooldown between automated reminders', function (): void {
     $client = Client::factory()->forOrganization($this->user->organization)->create();
     $cooldown = scheduledPayment($client, now()->subDays(3), [

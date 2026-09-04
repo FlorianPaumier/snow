@@ -155,3 +155,23 @@ it('digests the trial organization while skipping a free-plan one', function ():
 
     Mail::assertQueued(PaymentDigestMail::class, fn (PaymentDigestMail $mail): bool => $mail->hasTo($this->user->email));
 });
+
+it('skips organizations whose installments are due but have no users to notify', function (): void {
+    // The organization matches the digest window, yet carries no user
+    // accounts: there is no inbox to deliver to...
+    $org = Organization::factory()->create();
+    $client = Client::factory()->forOrganization($org)->create();
+    $contract = Contract::factory()->forClient($client)->create(['season' => '2026-2027']);
+    $contract->payments()->create([
+        'slot' => PaymentSlot::SLOT_FIRST_INSTALLMENT,
+        'amount' => 20000,
+        'paid' => false,
+        'due_date' => now()->subDays(5),
+    ]);
+
+    Mail::fake();
+
+    expect(resolve(SendPaymentDigest::class)->handle())->toBe(0);
+
+    Mail::assertNothingQueued();
+});
