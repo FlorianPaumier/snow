@@ -77,13 +77,14 @@ export const homeFeatures: MarketingFeature[] = [
 /* ── Pricing ────────────────────────────────────────────────────── */
 /* Limits mirror config/plans.php exactly: Free 1 user/15 clients,
    Pro unlimited. Prices are CAD, tax-exclusive (Stripe Tax adds
-   GST/QST at checkout). Features must match what ships — verify
-   every item against the app before this site goes live. */
+   GST/QST at checkout). Snow removal only bills for part of the
+   year, so Pro is a single annual payment — like the other
+   pre-season costs. Features must match what ships — verify every
+   item against the app before this site goes live. */
 export interface PricingTier {
     name: string;
     tagline: string;
-    monthly: number | null;
-    annual: number | null; // per year, 2 months free
+    annual: number | null; // per year
     featured?: boolean;
     limits: string;
     cta: string;
@@ -95,7 +96,6 @@ export const pricingTiers: PricingTier[] = [
     {
         name: 'Free',
         tagline: 'For solo operators getting organized',
-        monthly: null,
         annual: null,
         limits: 'Up to 15 clients · 1 user',
         cta: 'Start for free',
@@ -111,7 +111,6 @@ export const pricingTiers: PricingTier[] = [
     {
         name: 'Pro',
         tagline: 'For growing companies with a real client book',
-        monthly: 30,
         annual: 300,
         featured: true,
         limits: 'Unlimited clients · unlimited users',
@@ -152,7 +151,7 @@ export const homeFaqs = [
     },
     {
         q: 'Is there a contract, or can I cancel anytime?',
-        a: 'Monthly plans cancel anytime. Annual plans save you two months. Every plan starts with a 14-day free trial — no card required.',
+        a: 'Pro is billed once a year — one payment covers the whole season, with no monthly charges to track. Every plan starts with a 14-day free trial, no card required, and you can cancel at any time from your billing settings.',
     },
 ];
 
@@ -171,8 +170,8 @@ export const pricingFaqs = [
         a: 'Yes. We help you get your client list into the app, set up your first season\u2019s contracts, and get your payment schedules in place.',
     },
     {
-        q: 'Can I pay annually?',
-        a: 'Yes — annual billing takes two months off the price (CA$300 instead of CA$360). That\u2019s the toggle at the top of the plans.',
+        q: 'Why is Pro billed annually?',
+        a: 'Snow removal is seasonal — your work and your revenue come in one part of the year. Pro is one annual payment (CA$300, tax-exclusive) that covers the full season, so your software is a single predictable line item alongside your other pre-season costs.',
     },
     {
         q: 'Do prices include taxes?',

@@ -536,7 +536,7 @@ export default function Home() {
                 id="pricing"
                 eyebrow="Pricing"
                 title="Priced for the season, not per seat-per-snowflake"
-                description="Simple plans that scale with your client book. Two months free on annual."
+                description="Simple plans that scale with your client book. One payment covers the season."
             >
                 <ul className="grid gap-4 md:grid-cols-3 lg:gap-6">
                     {pricingTiers.map((tier) => (
@@ -560,10 +560,12 @@ export default function Home() {
                             </p>
                             <p className="mt-5 flex items-baseline gap-1.5">
                                 <span className="text-3xl font-semibold tabular-nums">
-                                    ${tier.monthly}
+                                    {tier.annual === null
+                                        ? '$0'
+                                        : `$${tier.annual}`}
                                 </span>
                                 <span className="text-sm text-muted-foreground">
-                                    /month
+                                    {tier.annual === null ? 'forever' : '/year'}
                                 </span>
                             </p>
                             <p className="mt-2 font-mono text-[11px] leading-relaxed text-muted-foreground">

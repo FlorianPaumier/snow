@@ -154,29 +154,10 @@ export default function BillingIndex({
                                         <input
                                             type="hidden"
                                             name="interval"
-                                            value="monthly"
-                                        />
-                                        <Button
-                                            type="submit"
-                                            className="w-full"
-                                        >
-                                            {t.billing.subscribeMonthly}
-                                        </Button>
-                                    </Form>
-                                    <Form {...checkout.form()}>
-                                        <input
-                                            type="hidden"
-                                            name="plan"
-                                            value={plan.key}
-                                        />
-                                        <input
-                                            type="hidden"
-                                            name="interval"
                                             value="annual"
                                         />
                                         <Button
                                             type="submit"
-                                            variant="outline"
                                             className="w-full"
                                         >
                                             {t.billing.subscribeAnnually}

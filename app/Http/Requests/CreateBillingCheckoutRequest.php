@@ -16,7 +16,9 @@ final class CreateBillingCheckoutRequest extends FormRequest
     {
         return [
             'plan' => ['required', 'string', Rule::in($this->paidPlans())],
-            'interval' => ['required', 'string', Rule::in(['monthly', 'annual'])],
+            // Snow removal only bills for part of the year, so Pro is sold
+            // as a single annual payment — there is no monthly interval...
+            'interval' => ['required', 'string', Rule::in(['annual'])],
         ];
     }
 

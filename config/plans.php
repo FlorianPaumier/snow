@@ -12,10 +12,12 @@ return [
     | The SaaS plans sold on the marketing pricing page. Free is the capped
     | default every organization falls back to — with no Stripe price of
     | its own, it is simply the absence of a valid subscription. Pro is
-    | the single paid tier; its monthly and annual Stripe price IDs are
-    | configured below. Amounts on the marketing page are display copy
-    | only — prices live in Stripe (CAD, tax-exclusive: Stripe Tax adds
-    | GST/QST at checkout).
+    | the single paid tier, sold as one annual payment covering the
+    | season (snow removal only generates revenue part of the year, so
+    | there is no monthly option); its Stripe price ID is configured
+    | below. Amounts on the marketing page are display copy only — prices
+    | live in Stripe (CAD, tax-exclusive: Stripe Tax adds GST/QST at
+    | checkout).
     |
     | The "features" flags gate product features behind the paid tier
     | (payment reminders & notifications). The marketing comparison
@@ -37,7 +39,6 @@ return [
     'pro' => [
         'name' => 'Pro',
         'prices' => [
-            'monthly' => env('STRIPE_PRICE_PRO_MONTHLY'),
             'annual' => env('STRIPE_PRICE_PRO_ANNUAL'),
         ],
         'limits' => [

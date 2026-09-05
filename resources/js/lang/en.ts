@@ -370,7 +370,6 @@ const en: Translations = {
         unlimitedClients: 'unlimited clients',
         userCount: ':count users',
         clientCount: ':count clients',
-        subscribeMonthly: 'Subscribe monthly (CA$30)',
         subscribeAnnually: 'Subscribe annually (CA$300)',
         trialTitle: 'Your free trial is running',
         trialBody:

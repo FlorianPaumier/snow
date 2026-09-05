@@ -1,67 +1,62 @@
-- Inertia & React (this project) version: **[github.com/nunomaduro/laravel-starter-kit-inertia-react](https://github.com/nunomaduro/laravel-starter-kit-inertia-react)**
-- Blade version: **[github.com/nunomaduro/laravel-starter-kit](https://github.com/nunomaduro/laravel-starter-kit)**
-- Inertia & Vue version: **[github.com/nunomaduro/laravel-starter-kit-inertia-vue](https://github.com/nunomaduro/laravel-starter-kit-inertia-vue)**
+# Frostline OPS
 
-<p align="center">
-    <a href="https://youtu.be/VhzP0XWGTC4" target="_blank">
-        <img src="https://github.com/nunomaduro/laravel-starter-kit/blob/main/art/banner.png" alt="Overview Laravel Starter Kit" style="width:70%;">
-    </a>
-</p>
+Frostline OPS is the back office for a snow-removal business: a bilingual (English/French) SaaS for managing a client directory, seasonal contracts with itemized service lines, and payment tracking — deposit, installments, balance — with dashboards, receipts, and automated reminders on top. It deliberately does not try to run trucks or crews.
 
-<p>
-    <a href="https://github.com/nunomaduro/laravel-starter-kit-inertia-react/actions"><img src="https://github.com/nunomaduro/laravel-starter-kit-inertia-react/actions/workflows/tests.yml/badge.svg" alt="Build Status"></a>
-    <a href="https://packagist.org/packages/nunomaduro/laravel-starter-kit-inertia-react"><img src="https://img.shields.io/packagist/dt/nunomaduro/laravel-starter-kit-inertia-react" alt="Total Downloads"></a>
-    <a href="https://packagist.org/packages/nunomaduro/laravel-starter-kit-inertia-react"><img src="https://img.shields.io/packagist/v/nunomaduro/laravel-starter-kit-inertia-react" alt="Latest Stable Version"></a>
-    <a href="https://packagist.org/packages/nunomaduro/laravel-starter-kit-inertia-react"><img src="https://img.shields.io/packagist/l/nunomaduro/laravel-starter-kit-inertia-react" alt="License"></a>
-    <a href="https://youtube.com/@nunomaduro?sub_confirmation=1"><img alt="YouTube Channel Subscribers" src="https://img.shields.io/youtube/channel/subscribers/UCO_hYZF2gb_CyG5sA7ArlGg?style=flat&label=youtube&color=brightgreen"></a>
-</p>
+Built on the [Laravel Starter Kit (Inertia & React)](https://github.com/nunomaduro/laravel-starter-kit-inertia-react) — strict, type-safe Laravel with an Actions-oriented architecture and 100% coverage/type gates.
 
-**Laravel Starter Kit (Inertia & React)** is an ultra-strict, type-safe [Laravel](https://laravel.com) skeleton engineered for developers who refuse to compromise on code quality. This opinionated starter kit enforces rigorous development standards through meticulous tooling configuration and architectural decisions that prioritize type safety, immutability, and fail-fast principles.
+## Features
 
-## Why This Starter Kit?
+- **Multi-tenant organizations** — each organization's data is isolated via a global scope; roles are admin, worker, and user, with abilities like `manage-billing`, `manage-users`, `manage-clients`, `manage-contracts`, and `manage-organization`.
+- **Clients & contracts** — individual and company clients; one contract per client per season (seasons run July → June, e.g. `2026-2027`) made of itemized service lines.
+- **Payment tracking** — installments tracked slot by slot (deposit, first and second installments, balance) and marked paid with method (cash, debit, virement, cheque) and date.
+- **Documents** — contract PDFs and payment receipts rendered via [Gotenberg](https://gotenberg.dev) on the queue, printable and downloadable.
+- **CSV export** — hand the season to your accountant in one click: every installment with client, contract, amount, method, and paid date.
+- **Dashboard** — revenue evolution, client growth, and season summary charts.
+- **Automated reminders** — scheduled installment reminders (with anti-spam caps) and a weekly payment digest email.
+- **Subscriptions** — Free plan (1 user, 15 clients) vs. Pro (unlimited, Stripe subscription via Cashier with annual CAD pricing — one payment covers the season).
+- **Privacy** — Quebec Law 25 compliance: nightly anonymization/erasure of clients whose data has passed the retention window (`CLIENT_RETENTION_YEARS`, default 6 years).
+- **Auth** — Fortify with login challenge codes by email, user invitations, password resets, email verification, and organization ownership transfer.
+- **Bilingual** — English and French, switchable per user (interface, validation messages, and emails).
 
-Modern PHP has evolved into a mature, type-safe language, yet many Laravel projects still operate with loose conventions and optional typing. This starter kit changes that paradigm by enforcing:
+## Tech Stack
 
-- **Fully Actions-Oriented Architecture**: Every operation is encapsulated in a single-action class
-- **Cruddy by Design**: Standardized CRUD operations for all controllers, actions, and Inertia & React pages
-- **100% Type Coverage**: Every method, property, and parameter is explicitly typed
-- **Zero Tolerance for Code Smells**: Rector, PHPStan, OxLint, and Oxfmt at maximum strictness catch issues before they become bugs
-- **Immutable-First Architecture**: Data structures favor immutability to prevent unexpected mutations
-- **Fail-Fast Philosophy**: Errors are caught at compile-time, not runtime
-- **Automated Code Quality**: Pre-configured tools ensure consistent, pristine code across your entire team
-- **Just Better Laravel Defaults**: Thanks to **[Essentials](https://github.com/nunomaduro/essentials)** / strict models, auto eager loading, immutable dates, and more...
-- **AI Guidelines**: Integrated AI Guidelines to assist in maintaining code quality and consistency
-- **Full Testing Suite**: More than 150 tests with 100% code coverage using Pest
-- 
-This isn't just another Laravel boilerplate—it's a statement that PHP applications can and should be built with the same rigor as strongly-typed languages like Rust or TypeScript.
+- PHP 8.5 / Laravel 13 / Inertia v3 / React 19 / TypeScript / Tailwind CSS 4
+- Laravel Wayfinder (typed frontend route functions), Fortify (auth), Cashier (Stripe), Essentials
+- Pest 5 (Feature / Browser / Unit tests), Larastan (PHPStan level max), Rector, Pint, oxlint/oxfmt
+- Bun for JS dependencies and the Vite dev pipeline
+
+## Requirements
+
+- PHP 8.5+ with a code coverage driver (e.g. [Xdebug](https://xdebug.org/docs/install)) for the coverage gate
+- [Bun](https://bun.sh)
+- [Composer](https://getcomposer.org)
+- Optional: Docker — Postgres, Redis, and Gotenberg are provided by `docker-compose.yml`
 
 ## Getting Started
 
-> **Requires [PHP 8.5+](https://php.net/releases/) and a code coverage driver like [xdebug](https://xdebug.org/docs/install)**.
-
-Create your type-safe Laravel application using [Composer](https://getcomposer.org):
-
 ```bash
-composer create-project nunomaduro/laravel-starter-kit-inertia-react --prefer-dist example-app
-```
-
-### Initial Setup
-
-Navigate to your project and complete the setup:
-
-```bash
-cd example-app
-
-# Setup the project
+# Install dependencies and set up the project (.env, key, migrations, JS build)
 composer setup
 
-# Start the development server
+# Start the dev server, queue worker, scheduler, log tail, and Vite
 composer dev
 ```
 
+The default configuration uses SQLite with database-backed sessions, cache, and queue — no external services needed to boot. Gotenberg-backed PDF generation requires a reachable `GOTENBERG_URL` (see below).
+
+### Optional: Infrastructure via Docker
+
+`docker-compose.yml` provides infrastructure only — the app itself runs on the host and connects over the published ports:
+
+```bash
+docker compose up -d   # Postgres (127.0.0.1:5432), Redis (127.0.0.1:6379), Gotenberg (127.0.0.1:3000)
+```
+
+Point `.env` at these services (`DB_CONNECTION=pgsql`, `CACHE_STORE=redis`, `GOTENBERG_URL=http://localhost:3000`, …) if you want the full local stack.
+
 ### Optional: Browser Testing Setup
 
-If you plan to use Pest's browser testing capabilities:
+Pest browser tests use Playwright:
 
 ```bash
 bun add playwright
@@ -69,8 +64,6 @@ bunx playwright install
 ```
 
 ### Verify Installation
-
-Run the test suite to ensure everything is configured correctly:
 
 ```bash
 composer test
@@ -81,34 +74,43 @@ You should see 100% test coverage and all quality checks passing.
 ## Available Tooling
 
 ### Development
-- `composer dev` - Starts Laravel server, queue worker, log monitoring, and Vite+ dev server concurrently
+- `composer dev` — Laravel server, queue worker, scheduler, Pail log tail, and Vite dev server concurrently
 
 ### Code Quality
-- `composer lint` - Runs Rector (refactoring), Pint (PHP formatting), and Oxfmt (JS/TS formatting)
-- `composer test:lint` - Dry-run mode for CI/CD pipelines
+- `composer lint` — Rector (refactoring), Pint (PHP formatting), and oxfmt (JS/TS formatting)
+- `composer test:lint` — Dry-run mode for CI/CD pipelines
 
 ### Testing
-- `composer test:type-coverage` - Ensures 100% type coverage with Pest
-- `composer test:types` - Runs PHPStan at level 9 (maximum strictness)
-- `composer test:unit` - Runs Pest tests with 100% code coverage requirement
-- `composer test` - Runs the complete test suite (type coverage, unit tests, linting, static analysis)
+- `composer test:type-coverage` — Ensures 100% type coverage with Pest
+- `composer test:types` — Larastan/PHPStan at maximum strictness, plus `tsc --noEmit`
+- `composer test:unit` — Pest tests with 100% code coverage requirement
+- `composer test` — Complete test suite (lint, type coverage, types, unit)
 
 ### Maintenance
-- `composer update:requirements` - Updates all PHP and Bun dependencies to latest versions
+- `composer update:requirements` — Updates all PHP and Bun dependencies to latest versions
+
+## Scheduled Work
+
+| Command | Schedule | Purpose |
+| --- | --- | --- |
+| `payments:send-reminders` | Weekdays 09:00 | Installment reminders (Pro plan; anti-spam caps: week window, weekly cooldown, max 3 per installment) |
+| `payments:send-digest` | Mondays 08:00 | Weekly payment recap per organization |
+| `clients:anonymize-expired` | Daily 03:00 | Law 25 retention: anonymize (or erase contractless) clients past the retention window |
+
+## Production Checklist
+
+- [ ] **Queue worker** — run `php artisan queue:work` under a process supervisor (e.g. Supervisor). Queued work includes PDF generation, login codes, invitations, payment reminders, and weekly digests.
+- [ ] **Scheduler** — add the cron entry `* * * * * php /path/to/artisan schedule:run` (or run `php artisan schedule:work` under a supervisor) for the scheduled commands above.
+- [ ] **Gotenberg** — a reachable Gotenberg service configured via `GOTENBERG_URL`, used to render contract PDFs and payment receipts.
+- [ ] **Stripe webhook** — an endpoint pointing to `POST /stripe/webhook`, signed with `STRIPE_WEBHOOK_SECRET`.
+- [ ] **Stripe prices** — `STRIPE_PRICE_PRO_ANNUAL` must reference the Pro plan's annual CAD, tax-exclusive price (Stripe Tax adds GST/QST at checkout).
+
+## CI/CD
+
+GitLab CI (`.gitlab-ci.yml`) splits the `composer test` gate across jobs — lint, rector (dry-run), types (Pest type coverage + `tsc`), phpstan, and the full Pest suite including browser tests (TIA, excluding the `visual` group whose PNG baselines are platform-specific). Tests run against in-memory SQLite, so no database service is needed.
+
+The CI toolchain image (`$CI_REGISTRY_IMAGE/ci:latest`) is built and pushed **by hand** — see the procedure in `Dockerfile.ci`. Deploys trigger Laravel Cloud via its deploy hook on the default branch.
 
 ## License
 
-**Laravel Starter Kit Inertia React** was created by **[Nuno Maduro](https://x.com/enunomaduro)** under the **[MIT license](https://opensource.org/licenses/MIT)**.
-
-## Operations
-
-### Local development
-
-`composer dev` starts the app server, queue worker, scheduler (`php artisan schedule:work`), Pail log tailing, and the Vite dev server concurrently.
-
-### Production checklist
-
-- [ ] **Queue worker** — run `php artisan queue:work` under a process supervisor (e.g. Supervisor). Queued mail includes login codes, invitations, payment reminders, and weekly digests.
-- [ ] **Scheduler** — add the cron entry `* * * * * php /path/to/artisan schedule:run` (or run `php artisan schedule:work` under a supervisor). Required for `payments:send-reminders` (weekdays 09:00), `payments:send-digest` (Mondays 08:00), and `clients:anonymize-expired` (daily 03:00).
-- [ ] **Gotenberg** — a reachable Gotenberg service configured via `GOTENBERG_URL`, used to render contract PDFs and payment receipts.
-- [ ] **Stripe webhook** — an endpoint pointing to `POST /stripe/webhook`, signed with `STRIPE_WEBHOOK_SECRET`.
+The underlying Laravel Starter Kit Inertia React was created by [Nuno Maduro](https://x.com/enunomaduro) under the [MIT license](https://opensource.org/licenses/MIT).

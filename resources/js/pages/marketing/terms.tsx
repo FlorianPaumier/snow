@@ -54,15 +54,15 @@ export default function Terms() {
                     lapses.
                 </p>
                 <p>
-                    Paid plans are billed on a recurring monthly or annual basis
-                    through our payment processor, Stripe. Payments are handled
-                    entirely by Stripe; we never see or store your full card
-                    details. Subscriptions renew automatically at the end of
-                    each billing period unless you cancel before then. You can
-                    cancel at any time from your billing settings; Pro features
-                    continue until the end of the period you have already paid
-                    for, after which your organization returns to the Free plan
-                    — your data stays, subject to the Free plan's caps.
+                    Paid plans are billed annually through our payment
+                    processor, Stripe. Payments are handled entirely by Stripe;
+                    we never see or store your full card details. Subscriptions
+                    renew automatically at the end of each billing period unless
+                    you cancel before then. You can cancel at any time from your
+                    billing settings; Pro features continue until the end of the
+                    period you have already paid for, after which your
+                    organization returns to the Free plan — your data stays,
+                    subject to the Free plan's caps.
                 </p>
                 <p>
                     If a payment fails, your organization returns to the Free

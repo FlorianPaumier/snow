@@ -33,77 +33,10 @@ import { cn, toUrl } from '@/lib/utils';
 import { index as billingIndex } from '@/routes/billing';
 import register from '@/routes/register';
 
-/* ── Billing period toggle ──────────────────────────────────────── */
-function BillingToggle({
-    annual,
-    onChange,
-}: {
-    annual: boolean;
-    onChange: (next: boolean) => void;
-}) {
-    return (
-        <div className="flex justify-center">
-            <div className="relative">
-                <Badge className="absolute -top-3 right-0 z-10 rounded-full border-success/40 bg-card text-success shadow-frost-xs">
-                    2 months free
-                </Badge>
-                <div
-                    role="group"
-                    aria-label="Billing period"
-                    className="inline-flex items-center gap-1 rounded-full border border-border bg-card p-1 shadow-frost-xs"
-                >
-                    <button
-                        type="button"
-                        aria-pressed={!annual}
-                        onClick={() => onChange(false)}
-                        className={cn(
-                            'rounded-full px-5 py-1.5 text-sm font-medium transition-colors',
-                            annual
-                                ? 'text-muted-foreground hover:text-foreground'
-                                : 'bg-primary text-primary-foreground shadow-xs',
-                        )}
-                    >
-                        Monthly
-                    </button>
-                    <button
-                        type="button"
-                        aria-pressed={annual}
-                        onClick={() => onChange(true)}
-                        className={cn(
-                            'rounded-full px-5 py-1.5 text-sm font-medium transition-colors',
-                            annual
-                                ? 'bg-primary text-primary-foreground shadow-xs'
-                                : 'text-muted-foreground hover:text-foreground',
-                        )}
-                    >
-                        Annual
-                    </button>
-                </div>
-            </div>
-        </div>
-    );
-}
-
 /* ── Tier cards ─────────────────────────────────────────────────── */
-function formatCad(value: number): string {
-    return `CA$${value.toLocaleString('en-CA')}`;
-}
-
-function TierCard({
-    tier,
-    annual,
-    ctaHref,
-}: {
-    tier: PricingTier;
-    annual: boolean;
-    ctaHref: string;
-}) {
-    const isFree = tier.monthly === null;
-    const price = isFree
-        ? null
-        : annual
-          ? Math.round(tier.annual! / 12)
-          : tier.monthly;
+function TierCard({ tier, ctaHref }: { tier: PricingTier; ctaHref: string }) {
+    const isFree = tier.annual === null;
+    const price = tier.annual;
 
     return (
         <div
@@ -140,17 +73,13 @@ function TierCard({
                             {price}
                         </span>
                         <span className="text-sm text-muted-foreground">
-                            {annual ? '/month, billed annually' : '/month'}
+                            /year
                         </span>
                     </>
                 )}
             </div>
             <p className="mt-1.5 font-mono text-[11px] text-muted-foreground">
-                {isFree
-                    ? 'free forever'
-                    : annual
-                      ? `billed yearly (${formatCad(tier.annual!)})`
-                      : 'billed monthly'}
+                {isFree ? 'free forever' : 'billed once a year'}
             </p>
             <p className="mt-2 font-mono text-[11px] text-muted-foreground">
                 {tier.limits}
@@ -368,7 +297,6 @@ function FaqSection() {
 
 /* ── Page ────────────────────────────────────────────────────────── */
 export default function Pricing() {
-    const [annual, setAnnual] = React.useState(true);
     const { auth } = usePage().props;
 
     // Signed-in admins land on billing; everyone else starts a trial by
@@ -392,13 +320,11 @@ export default function Pricing() {
             <section className="relative py-14 md:py-20">
                 <div className="mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-8">
                     <h2 className="sr-only">Plans</h2>
-                    <BillingToggle annual={annual} onChange={setAnnual} />
                     <div className="mx-auto mt-12 grid max-w-3xl gap-4 md:grid-cols-2">
                         {pricingTiers.map((tier) => (
                             <TierCard
                                 key={tier.name}
                                 tier={tier}
-                                annual={annual}
                                 ctaHref={ctaHref}
                             />
                         ))}

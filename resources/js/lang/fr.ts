@@ -378,7 +378,6 @@ const fr = {
         unlimitedClients: 'clients illimités',
         userCount: ':count utilisateurs',
         clientCount: ':count clients',
-        subscribeMonthly: "S'abonner au mensuel (30 $CA)",
         subscribeAnnually: "S'abonner à l'annuel (300 $CA)",
         trialTitle: 'Votre essai gratuit est en cours',
         trialBody:
