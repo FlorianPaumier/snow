@@ -110,17 +110,21 @@ variables:
 
 lint:
   extends: .base
+  # The type-aware pass is the slowest step on shared runners; headroom
+  # above .base's 20-minute ceiling so a slow run fails loudly instead of
+  # being killed mid-flight with no output.
+  timeout: 30 minutes
   script:
     # Pint + oxlint/oxfmt only — Rector moved to its own allow_failure job.
     - vendor/bin/pint --parallel --test
-    # The type-aware linter spawns the Go tsgolint binary, which grows to
-    # ~500 MB RSS by default and gets OOM-killed (SIGKILL, no output) on
-    # memory-constrained shared runners. Go runtime knobs keep the whole
-    # chain under ~400 MB: GOMEMLIMIT makes the GC keep the heap in check,
-    # GOMAXPROCS caps per-process parallelism (each of the ~3 concurrent
-    # spawns builds its own TypeScript program), and GOGC=50 trades a few
-    # hundred ms of lint time for a tighter heap.
-    - GOMEMLIMIT=256MiB GOMAXPROCS=2 GOGC=50 bun run test:lint
+    # The type-aware linter spawns the Go tsgolint binary, whose live heap
+    # peaks around ~330 MB. GOMEMLIMIT must sit ABOVE that: below it the
+    # GC runs continuously and the pass blew the 20-minute job timeout on
+    # the shared runner, while no limit at all lets the ~500 MB RSS peak
+    # get OOM-killed there. 384MiB threads the needle (RSS ceiling ~450 MB)
+    # and GOMAXPROCS caps per-process parallelism. GOGC stays at its
+    # default — it is inert while the memory limit binds the heap goal.
+    - GOMEMLIMIT=384MiB GOMAXPROCS=2 bun run test:lint
 
 rector:
   # Pre-existing debt: 36 files would change. Tracked for a follow-up
