@@ -48,9 +48,14 @@ final readonly class UserController
 
     public function destroy(DeleteUserRequest $request, #[CurrentUser] User $user, DeleteUser $action): RedirectResponse
     {
-        Auth::logout();
-
+        // The deletion runs first: an owner-protected account must throw
+        // before the session is torn down, or the back-redirect bounces off
+        // the auth middleware and the error never reaches the user...
         $action->handle($user);
+
+        // The row is gone, so the remember token dies with it; cycling it
+        // would write to — and resurrect — the deleted model...
+        Auth::logoutCurrentDevice();
 
         $request->session()->invalidate();
         $request->session()->regenerateToken();

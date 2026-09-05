@@ -310,8 +310,44 @@ it('refuses to delete the account of the organization owner', function (): void 
             'password' => 'password',
         ]);
 
-    $response->assertRedirect()
+    // The refusal happens before the session is torn down, so the owner
+    // stays signed in and lands back on the profile page...
+    $response->assertRedirectToRoute('user-profile.edit')
         ->assertSessionHas('status', __('statuses.organization_owner_delete'));
+
+    $this->assertAuthenticatedAs($user);
+
+    expect($user->fresh())->not->toBeNull();
+});
+
+it('carries the owner protection to the profile page error bag for inertia requests', function (): void {
+    $user = User::factory()->create([
+        'password' => Hash::make('password'),
+    ]);
+    $user->organization->update(['owner_id' => $user->id]);
+
+    $this->actingAs($user)
+        ->fromRoute('user-profile.edit')
+        ->withHeaders(['X-Inertia' => 'true'])
+        ->delete(route('user.destroy'), [
+            'password' => 'password',
+        ])
+        ->assertRedirectToRoute('user-profile.edit')
+        ->assertSessionHasErrors(['ownerProtected' => __('statuses.organization_owner_delete', [], 'fr')]);
+
+    // Still authenticated: the redirect survives the auth middleware and
+    // the profile page re-renders with the alert message in the bag. The
+    // Inertia header is dropped and the session cookie forwarded so the
+    // GET, like a browser following the redirect, reads the flashed bag...
+    $this->assertAuthenticatedAs($user);
+
+    $this->withoutHeader('X-Inertia')
+        ->withCookie(session()->getName(), session()->getId())
+        ->get(route('user-profile.edit'))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->component('user-profile/edit')
+            ->where('errors.ownerProtected', __('statuses.organization_owner_delete', [], 'fr')));
 
     expect($user->fresh())->not->toBeNull();
 });
