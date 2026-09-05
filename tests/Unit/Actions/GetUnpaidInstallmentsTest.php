@@ -104,6 +104,40 @@ it('uses the company name for company clients', function (): void {
     expect($rows->first()['client']['displayName'])->toBe('Déneigement Nordik Inc.');
 });
 
+it('shows the anonymized placeholder for anonymized clients instead of an empty name', function (): void {
+    $season = Season::fromYears(2026);
+
+    // Anonymization wipes the identity but keeps the unpaid skeleton, so
+    // the follow-up list must render the placeholder rather than "  "...
+    $anonymized = unpaidClient()->create(['anonymized_at' => now(), 'firstName' => '', 'lastName' => '']);
+    $contract = Contract::query()->create(['season' => $season->label, 'client_id' => $anonymized->id]);
+    Payment::query()->create(['contract_id' => $contract->id, 'slot' => PaymentSlot::SLOT_SECOND_INSTALLMENT, 'amount' => 20000, 'paid' => false]);
+
+    $rows = resolve(GetUnpaidInstallments::class)->handle($season, PaymentSlot::SLOT_SECOND_INSTALLMENT);
+
+    expect($rows)->toHaveCount(1)
+        ->and($rows->first()['client']['displayName'])->toBe(__('clients.anonymized_name'))
+        ->and($rows->first()['client']['displayName'])->not->toBe(' ');
+});
+
+it('excludes zero-amount installments from the unpaid list', function (): void {
+    $season = Season::fromYears(2026);
+
+    // Contracts always create all four payment slots; a slot left at $0 has
+    // nothing to collect and must not pollute the follow-up list...
+    $client = unpaidClient()->create();
+    $contract = Contract::query()->create(['season' => $season->label, 'client_id' => $client->id]);
+    Payment::query()->create(['contract_id' => $contract->id, 'slot' => PaymentSlot::SLOT_SECOND_INSTALLMENT, 'amount' => 0, 'paid' => false]);
+    Payment::query()->create(['contract_id' => $contract->id, 'slot' => PaymentSlot::SLOT_DEPOSIT, 'amount' => 15000, 'paid' => false]);
+
+    $second = resolve(GetUnpaidInstallments::class)->handle($season, PaymentSlot::SLOT_SECOND_INSTALLMENT);
+    $deposit = resolve(GetUnpaidInstallments::class)->handle($season, PaymentSlot::SLOT_DEPOSIT);
+
+    expect($second)->toBeEmpty()
+        ->and($deposit)->toHaveCount(1)
+        ->and($deposit->first()['amount'])->toBe(15000);
+});
+
 it('can target another slot such as the deposit', function (): void {
     $season = Season::fromYears(2026);
 

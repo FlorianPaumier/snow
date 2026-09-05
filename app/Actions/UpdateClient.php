@@ -6,7 +6,9 @@ namespace App\Actions;
 
 use App\Enums\ClientType;
 use App\Models\Client;
+use App\Models\Contract;
 use App\ValueObjects\Address;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 
 final readonly class UpdateClient
@@ -55,6 +57,18 @@ final readonly class UpdateClient
             'email' => $attributes['email'],
             'remark' => $attributes['remark'] ?? null,
         ]);
+
+        // The client's name and address render on every contract document,
+        // so each stored PDF is now stale: drop them all to have the next
+        // request rebuild them from the updated client.
+        $disk = Storage::disk(config()->string('filesystems.default'));
+
+        $paths = $client->contracts()
+            ->get()
+            ->map(fn (Contract $contract): string => GenerateContractPdf::pdfPath($contract->id))
+            ->all();
+
+        $disk->delete($paths);
 
         $this->flushCache->handle($client->organization_id);
     }

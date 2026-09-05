@@ -11,6 +11,8 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Queue\Attributes\Backoff;
 use Illuminate\Queue\Attributes\Tries;
+use Illuminate\Support\Facades\Log;
+use Throwable;
 
 #[Backoff([10, 30])]
 #[Tries(3)]
@@ -36,5 +38,18 @@ final class GeneratePaymentReceiptDocumentPdf implements ShouldBeUnique, ShouldQ
     public function handle(GeneratePaymentReceiptPdf $generate): void
     {
         $generate->handle(Payment::query()->findOrFail($this->paymentId));
+    }
+
+    /**
+     * Retries exhausted: the contract page links back to the generate
+     * button, so the operator only needs to know the generation died —
+     * nothing else is parked or lost.
+     */
+    public function failed(?Throwable $exception): void
+    {
+        Log::error('Payment receipt PDF generation failed', [
+            'payment_id' => $this->paymentId,
+            'error' => $exception?->getMessage(),
+        ]);
     }
 }

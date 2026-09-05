@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Actions\CreateClient;
+use App\Actions\GenerateClientNumber;
 use App\Enums\ClientType;
 use App\Models\Client;
 use App\Models\User;
@@ -47,6 +48,33 @@ it('may create an individual client with a generated client number', function ()
     $fresh = Client::query()->find($client->id);
     expect($fresh->address->postalCode)->toBe('H3G 1M7')
         ->and($fresh->address->country)->toBe('Canada');
+});
+
+it('retries the next number when a concurrent create claims the same one', function (): void {
+    $action = resolve(CreateClient::class);
+
+    // Simulate the race: another request commits the individual-0001 the
+    // generator would produce right as this create starts, so the first
+    // insert collides on the composite unique and the action must
+    // recompute and succeed with the incremented number...
+    $racer = Client::factory()->forOrganization($this->user->organization)->create([
+        'clientNumber' => resolve(GenerateClientNumber::class)->handle(ClientType::CLIENT_INDIVIDUAL, $this->user->organization->id),
+    ]);
+
+    $client = $action->handle([
+        'type' => ClientType::CLIENT_INDIVIDUAL,
+        'firstName' => 'Jean',
+        'lastName' => 'Tremblay',
+        'email' => 'jean@example.com',
+        'addressStreet' => '1234 Rue Sainte-Catherine',
+        'addressCity' => 'Montréal',
+        'addressPostalCode' => 'H3G 1M7',
+        'addressCountry' => 'Canada',
+    ]);
+
+    expect($client->clientNumber)->not->toBe($racer->clientNumber)
+        ->and($client->clientNumber)->toBe('individual-'.sprintf('%04d', (int) mb_substr($racer->clientNumber, mb_strlen('individual-')) + 1))
+        ->and($client->organization_id)->toBe($racer->organization_id);
 });
 
 it('may create a company client with an ember... in its own sequence', function (): void {

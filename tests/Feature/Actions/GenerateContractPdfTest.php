@@ -12,6 +12,7 @@ use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Http\Client\Request;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 
 /**
@@ -84,4 +85,18 @@ it('resolves the contract from its id and generates the pdf', function (): void 
     new GenerateContractDocumentPdf($contract->id)->handle(resolve(GenerateContractPdf::class));
 
     $disk->assertExists(GenerateContractPdf::pdfPath($contract->id));
+});
+
+it('logs when contract pdf generation fails after exhausting retries', function (): void {
+    $contract = pdfContract(User::factory()->create());
+
+    Log::shouldReceive('error')
+        ->once()
+        ->with('Contract document PDF generation failed', Mockery::on(fn (array $context): bool => $context === [
+            'contract_id' => $contract->id,
+            'error' => 'Gotenberg unavailable',
+        ]));
+
+    new GenerateContractDocumentPdf($contract->id)
+        ->failed(new RuntimeException('Gotenberg unavailable'));
 });

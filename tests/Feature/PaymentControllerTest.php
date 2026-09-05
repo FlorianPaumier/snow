@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Actions\GeneratePaymentReceiptPdf;
 use App\Enums\PaymentMethod;
 use App\Enums\PaymentSlot;
 use App\Mail\InstallmentReminderMail;
@@ -10,6 +11,7 @@ use App\Models\Contract;
 use App\Models\Payment;
 use App\Models\User;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Storage;
 
 function unpaidPayment(User $admin): Payment
 {
@@ -85,6 +87,38 @@ it('unmarks a paid payment', function (): void {
     expect($payment->paid)->toBeFalse()
         ->and($payment->method)->toBeNull()
         ->and($payment->paid_at)->toBeNull();
+});
+
+it('deletes the stored receipt pdf when a payment is unmarked', function (): void {
+    $disk = Storage::fake((string) config('filesystems.default'));
+    $admin = User::factory()->admin()->create();
+    $payment = unpaidPayment($admin);
+    $payment->update([
+        'paid' => true,
+        'method' => PaymentMethod::PAYMENT_CASH,
+        'paid_at' => now(),
+    ]);
+    // Another payment's receipt PDF must survive...
+    $other = unpaidPayment($admin);
+    $other->update([
+        'paid' => true,
+        'method' => PaymentMethod::PAYMENT_CASH,
+        'paid_at' => now(),
+    ]);
+
+    foreach ([$payment, $other] as $paymentWithPdf) {
+        $disk->put(
+            GeneratePaymentReceiptPdf::pdfPath($paymentWithPdf->id),
+            '%PDF-1.4 fake bytes',
+        );
+    }
+
+    $this->actingAs($admin)
+        ->post(route('payments.unmark', $payment))
+        ->assertRedirect();
+
+    $disk->assertMissing(GeneratePaymentReceiptPdf::pdfPath($payment->id));
+    $disk->assertExists(GeneratePaymentReceiptPdf::pdfPath($other->id));
 });
 
 it('refuses to unmark a payment that is not paid', function (): void {

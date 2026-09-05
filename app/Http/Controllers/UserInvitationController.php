@@ -20,7 +20,12 @@ final readonly class UserInvitationController
     {
         $email = $request->string('email')->value();
 
-        $user = $email !== '' ? User::query()->where('email', $email)->first() : null;
+        // Only pending invitations expose the organization name: the accept
+        // page is reachable unauthenticated, and answering for members who
+        // already accepted would let anyone enumerate emails and orgs.
+        $user = $email !== ''
+            ? User::query()->where('email', $email)->whereNull('invitation_accepted_at')->first()
+            : null;
 
         return Inertia::render('user-invitation/create', [
             'token' => $request->route('token'),

@@ -55,7 +55,7 @@ final readonly class ExportSeasonPayments
             ->with('client', 'payments')
             ->when($season !== null, fn (Builder $query): Builder => $query->where('season', $season))
             ->orderByDesc('season')->oldest()
-            ->cursor();
+            ->lazyById();
 
         foreach ($contracts as $contract) {
             foreach ($this->paymentsInSlotOrder($contract) as $payment) {

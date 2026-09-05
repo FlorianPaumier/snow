@@ -2,11 +2,14 @@
 
 declare(strict_types=1);
 
+use App\Actions\GenerateContractPdf;
 use App\Actions\UpdateClient;
 use App\Enums\ClientType;
 use App\Models\Client;
+use App\Models\Contract;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 
 // The organization scope requires an authenticated user to see any data;
 // records must belong to that user's organization to be visible...
@@ -98,4 +101,38 @@ it('accepts the client type as a string value', function (): void {
 
     expect($client->refresh()->companyName)->toBeNull()
         ->and($client->refresh()->type)->toBe(ClientType::CLIENT_INDIVIDUAL);
+});
+
+it('deletes the stored pdfs of every contract when the client changes', function (): void {
+    $disk = Storage::fake((string) config('filesystems.default'));
+    // The client's identity renders on each of their contract documents...
+    $client = Client::factory()->forOrganization($this->user->organization)->create();
+    $current = Contract::factory()->forClient($client)->create(['season' => '2025-2026']);
+    $past = Contract::factory()->forClient($client)->create(['season' => '2024-2025']);
+    // Another organization's contract PDF must survive...
+    $other = Contract::factory()->create();
+
+    foreach ([$current, $past, $other] as $contractWithPdf) {
+        $disk->put(
+            GenerateContractPdf::pdfPath($contractWithPdf->id),
+            '%PDF-1.4 fake bytes',
+        );
+    }
+
+    $action = resolve(UpdateClient::class);
+
+    $action->handle($client, [
+        'type' => ClientType::CLIENT_INDIVIDUAL,
+        'firstName' => $client->firstName,
+        'lastName' => $client->lastName,
+        'email' => $client->email,
+        'addressStreet' => $client->address->street,
+        'addressCity' => $client->address->city,
+        'addressPostalCode' => $client->address->postalCode,
+        'addressCountry' => $client->address->country,
+    ]);
+
+    $disk->assertMissing(GenerateContractPdf::pdfPath($current->id));
+    $disk->assertMissing(GenerateContractPdf::pdfPath($past->id));
+    $disk->assertExists(GenerateContractPdf::pdfPath($other->id));
 });

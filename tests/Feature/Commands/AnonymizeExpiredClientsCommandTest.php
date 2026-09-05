@@ -70,3 +70,31 @@ it('changes nothing in dry-run mode', function (): void {
     expect($expired->fresh()->isAnonymized())->toBeFalse()
         ->and($oldProspect->fresh())->not->toBeNull();
 });
+
+it('keeps sweeping and reports the failure when one client cannot be processed', function (): void {
+    $this->travelTo(now()->setDate(2031, 7, 2));
+    $user = User::factory()->create();
+
+    $doomed = expiredClient($user, '2024-2025');
+    $healthy = expiredClient($user, '2024-2025');
+
+    // Simulate an unexpected per-client failure (e.g. a database trigger
+    // rejecting the identity wipe): the action itself is final and cannot
+    // be mocked, so the failure is raised from the model layer...
+    Client::updating(function (Client $client) use ($doomed): bool {
+        if ($client->is($doomed)) {
+            throw new RuntimeException('anonymization failed unexpectedly');
+        }
+
+        return true;
+    });
+
+    $this->artisan('clients:anonymize-expired')
+        ->expectsOutputToContain('Failed to process client ['.$doomed->clientNumber.']')
+        ->expectsOutputToContain('1 anonymized, 0 erased, 1 failed')
+        ->assertSuccessful();
+
+    expect($healthy->fresh()->isAnonymized())->toBeTrue()
+        ->and($doomed->fresh()->isAnonymized())->toBeFalse()
+        ->and($doomed->fresh()->email)->not->toBeNull();
+});

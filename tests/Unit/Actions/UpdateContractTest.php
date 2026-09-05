@@ -2,12 +2,14 @@
 
 declare(strict_types=1);
 
+use App\Actions\GenerateContractPdf;
 use App\Actions\UpdateContract;
 use App\Enums\PaymentSlot;
 use App\Models\Client;
 use App\Models\Contract;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 
 // The organization scope requires an authenticated user to see any data;
 // records must belong to that user's organization to be visible...
@@ -47,4 +49,31 @@ it('syncs services keeping order as position and updates unpaid amounts only', f
         ->and($removed->fresh())->toBeNull()
         ->and($deposit->fresh()->amount)->toBe(20000)
         ->and($deposit->fresh()->due_date->toDateString())->toBe('2026-12-01');
+});
+
+it('deletes the stored contract pdf when the contract changes', function (): void {
+    $disk = Storage::fake((string) config('filesystems.default'));
+    $client = Client::factory()->forOrganization($this->user->organization)->create();
+    $contract = Contract::factory()->forClient($client)->create();
+    // Another organization's contract PDF must survive...
+    $other = Contract::factory()->create();
+
+    foreach ([$contract, $other] as $contractWithPdf) {
+        $disk->put(
+            GenerateContractPdf::pdfPath($contractWithPdf->id),
+            '%PDF-1.4 fake bytes',
+        );
+    }
+
+    resolve(UpdateContract::class)->handle($contract, [
+        'clientId' => $client->id,
+        'season' => $contract->season,
+        'services' => [
+            ['label' => 'Déneigement entrée', 'amount' => 35000],
+        ],
+        'payments' => [],
+    ]);
+
+    $disk->assertMissing(GenerateContractPdf::pdfPath($contract->id));
+    $disk->assertExists(GenerateContractPdf::pdfPath($other->id));
 });

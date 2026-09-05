@@ -26,6 +26,21 @@ it('shows the invitation page for a pending member', function (): void {
             ->where('token', 'any-token'));
 });
 
+it('reveals no organization name for a member who already accepted', function (): void {
+    // The accept page is unauthenticated: answering for an already-active
+    // member would let anyone enumerate emails and organizations...
+    $organization = Organization::factory()->create();
+    $user = User::factory()->forOrganization($organization)->create();
+
+    $this
+        ->get(route('user-invitation.create', ['token' => 'any-token']).'?email='.$user->email)
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->component('user-invitation/create')
+            ->where('email', $user->email)
+            ->where('organizationName', null));
+});
+
 it('accepts an invitation and lets the member choose their password', function (): void {
     $organization = Organization::factory()->create();
     $user = User::factory()->pendingInvitation()->forOrganization($organization)->create();

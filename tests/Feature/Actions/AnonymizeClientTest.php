@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Actions\AnonymizeClient;
 use App\Actions\GenerateContractPdf;
+use App\Actions\GeneratePaymentReceiptPdf;
 use App\Enums\PaymentSlot;
 use App\Models\Client;
 use App\Models\Contract;
@@ -84,4 +85,35 @@ it('deletes the stored contract pdfs of the anonymized client', function (): voi
 
     $disk->assertMissing(GenerateContractPdf::pdfPath($contract->id));
     $disk->assertExists(GenerateContractPdf::pdfPath($other->id));
+});
+
+it('deletes the stored payment-receipt pdfs of the anonymized client', function (): void {
+    $disk = anonymizePdfDisk();
+    $user = User::factory()->create();
+    $client = Client::factory()->forOrganization($user->organization)->create();
+    $contract = Contract::factory()->forClient($client)->create();
+    $payment = $contract->payments()->create([
+        'slot' => PaymentSlot::SLOT_DEPOSIT,
+        'amount' => 15000,
+        'paid' => true,
+    ]);
+    // Another organization's receipt PDF must survive...
+    $other = Contract::factory()->create();
+    $otherPayment = $other->payments()->create([
+        'slot' => PaymentSlot::SLOT_DEPOSIT,
+        'amount' => 15000,
+        'paid' => true,
+    ]);
+
+    foreach ([$payment, $otherPayment] as $paymentWithPdf) {
+        $disk->put(
+            GeneratePaymentReceiptPdf::pdfPath($paymentWithPdf->id),
+            '%PDF-1.4 fake bytes',
+        );
+    }
+
+    resolve(AnonymizeClient::class)->handle($client, $user);
+
+    $disk->assertMissing(GeneratePaymentReceiptPdf::pdfPath($payment->id));
+    $disk->assertExists(GeneratePaymentReceiptPdf::pdfPath($otherPayment->id));
 });

@@ -14,6 +14,7 @@ use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Http\Client\Request;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 
 /**
@@ -85,4 +86,18 @@ it('resolves the payment from its id and generates the receipt pdf', function ()
     new GeneratePaymentReceiptDocumentPdf($payment->id)->handle(resolve(GeneratePaymentReceiptPdf::class));
 
     $disk->assertExists(GeneratePaymentReceiptPdf::pdfPath($payment->id));
+});
+
+it('logs when receipt pdf generation fails after exhausting retries', function (): void {
+    $payment = receiptPayment(User::factory()->create());
+
+    Log::shouldReceive('error')
+        ->once()
+        ->with('Payment receipt PDF generation failed', Mockery::on(fn (array $context): bool => $context === [
+            'payment_id' => $payment->id,
+            'error' => 'Gotenberg unavailable',
+        ]));
+
+    new GeneratePaymentReceiptDocumentPdf($payment->id)
+        ->failed(new RuntimeException('Gotenberg unavailable'));
 });

@@ -4,9 +4,7 @@ declare(strict_types=1);
 
 namespace App\Actions;
 
-use App\Enums\ClientType;
 use App\Enums\PaymentSlot;
-use App\Models\Client;
 use App\Models\Payment;
 use App\Support\TenantCache;
 use App\ValueObjects\Season;
@@ -45,6 +43,9 @@ final readonly class GetUnpaidInstallments
         $payments = Payment::query()
             ->where('slot', $slot)
             ->where('paid', false)
+            // Contracts always create all four slots; an unset slot has
+            // nothing to collect and is not a follow-up target...
+            ->where('amount', '>', 0)
             ->whereHas('contract', fn (Builder $query): Builder => $query->where('season', $season->label))
             ->with('contract.client')
             ->orderBy('id')
@@ -56,7 +57,7 @@ final readonly class GetUnpaidInstallments
             'contract_id' => $payment->contract_id,
             'client' => [
                 'id' => $payment->contract->client->id,
-                'displayName' => $this->displayName($payment->contract->client),
+                'displayName' => $payment->contract->client->displayName(),
                 'clientNumber' => $payment->contract->client->clientNumber,
                 'address_street' => $payment->contract->client->address_street,
                 'address_city' => $payment->contract->client->address_city,
@@ -66,17 +67,5 @@ final readonly class GetUnpaidInstallments
             'dueDate' => $payment->due_date?->toDateString(),
             'lastReminderAt' => $payment->last_reminder_at?->toDateString(),
         ]);
-    }
-
-    /**
-     * Same convention as the contract and client pages.
-     */
-    private function displayName(Client $client): string
-    {
-        if ($client->type === ClientType::CLIENT_COMPANY && $client->companyName !== null) {
-            return $client->companyName;
-        }
-
-        return sprintf('%s %s', $client->firstName, $client->lastName);
     }
 }
