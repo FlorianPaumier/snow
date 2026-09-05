@@ -20,7 +20,7 @@ final readonly class CreateClient
      * number: the retry recomputes the max-based sequence, so a couple of
      * concurrent writers resolve without failing either one.
      */
-    private const MAX_NUMBER_ATTEMPTS = 3;
+    private const int MAX_NUMBER_ATTEMPTS = 3;
 
     public function __construct(
         private GenerateClientNumber $generateClientNumber,

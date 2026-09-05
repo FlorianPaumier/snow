@@ -93,17 +93,19 @@ it('exports company clients with their company name', function (): void {
 });
 
 it('filters by season and exports every season when none is given', function (): void {
+    // Seed the older season first: its contract gets the smaller id, which
+    // locks the id-ordered stream assertion below...
     $client = exportClient();
-    $current = exportContract($client, '2025-2026');
-    $current->payments()->create([
-        'slot' => PaymentSlot::SLOT_DEPOSIT,
-        'amount' => 15000,
-        'paid' => false,
-    ]);
     $previous = exportContract($client, '2024-2025');
     $previous->payments()->create([
         'slot' => PaymentSlot::SLOT_DEPOSIT,
         'amount' => 12000,
+        'paid' => false,
+    ]);
+    $current = exportContract($client, '2025-2026');
+    $current->payments()->create([
+        'slot' => PaymentSlot::SLOT_DEPOSIT,
+        'amount' => 15000,
         'paid' => false,
     ]);
 
@@ -124,11 +126,9 @@ it('filters by season and exports every season when none is given', function ():
     // Rows stream in id order (lazyById), not season order: adding a
     // season orderBy would silently skip rows once paging crosses a
     // chunk, since forPageAfterId keeps existing orders under its own
-    // `id ASC` and pages by `WHERE id > lastId`. Assert the order so the
-    // interaction can't quietly regress.
-    expect($allSeasons)->toHaveCount(2)
-        ->and($allSeasons)->toContain('2025-2026')
-        ->and($allSeasons)->toContain('2024-2025');
+    // `id ASC` and pages by `WHERE id > lastId`. The exact sequence —
+    // oldest id first, i.e. the older season — pins the decision...
+    expect($allSeasons)->toBe(['2024-2025', '2025-2026']);
 });
 
 it("never exports another organization's payments", function (): void {
