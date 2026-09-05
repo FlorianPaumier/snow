@@ -55,6 +55,29 @@ final class User extends Authenticatable implements MustVerifyEmail
     use TwoFactorAuthenticatable;
 
     /**
+     * Everything the actions, seeders and factories mass-assign. The
+     * hashed login-challenge codes are included because the auth tests
+     * seed them through the factory; runtime writes go through forceFill.
+     *
+     * @var list<string>
+     */
+    protected $fillable = [
+        'organization_id',
+        'name',
+        'email',
+        'email_verified_at',
+        'invitation_accepted_at',
+        'password',
+        'role',
+        'remember_token',
+        'login_challenge_code',
+        'login_challenge_code_expires_at',
+        'two_factor_secret',
+        'two_factor_recovery_codes',
+        'two_factor_confirmed_at',
+    ];
+
+    /**
      * @return array<string, string>
      */
     public function casts(): array

@@ -32,6 +32,19 @@ final class Organization extends Model
     use HasUuids;
 
     /**
+     * The organization's own mass-assignable columns. The Cashier customer
+     * columns (stripe_id, pm_type, pm_last_four) stay out: Cashier writes
+     * them through direct attribute assignment, never through fill().
+     *
+     * @var list<string>
+     */
+    protected $fillable = [
+        'name',
+        'trial_ends_at',
+        'owner_id',
+    ];
+
+    /**
      * @return array<string, string>
      */
     public function casts(): array

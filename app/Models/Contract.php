@@ -45,6 +45,20 @@ final class Contract extends Model
     use Notifiable;
 
     /**
+     * The timestamps are fillable because the retention-window tests
+     * backdate contracts through create().
+     *
+     * @var list<string>
+     */
+    protected $fillable = [
+        'organization_id',
+        'client_id',
+        'season',
+        'created_at',
+        'updated_at',
+    ];
+
+    /**
      * @return BelongsTo<Client, $this>
      */
     public function client(): BelongsTo

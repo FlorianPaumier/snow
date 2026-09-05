@@ -2,8 +2,6 @@
 
 declare(strict_types=1);
 
-use Laravel\Fortify\Features;
-
 return [
 
     /*
@@ -118,7 +116,6 @@ return [
 
     'limiters' => [
         'login' => 'login',
-        'two-factor' => 'two-factor',
     ],
 
     /*
@@ -151,11 +148,11 @@ return [
         // Features::emailVerification(),
         // Features::updateProfileInformation(),
         // Features::updatePasswords(),
-        Features::twoFactorAuthentication([
-            'confirm' => true,
-            'confirmPassword' => true,
-            // 'window' => 0
-        ]),
+        // Features::twoFactorAuthentication() — deliberately disabled: the
+        // app authenticates through its own email login challenge, which
+        // never consults Fortify's TOTP flow. Enabling TOTP here would
+        // register the /user/two-factor-* routes as a dead, unreachable
+        // attack surface without adding any real protection.
     ],
 
 ];

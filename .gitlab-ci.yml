@@ -199,7 +199,9 @@ tests:
 
 deploy:laravel-cloud:
   stage: deploy
-  image: curlimages/curl:latest
+  # Pinned: the deploy hook must not silently change behavior when a new
+  # curl major lands on :latest. Bump deliberately after checking the image.
+  image: curlimages/curl:8.22.0
   interruptible: false
   timeout: 5 minutes
   # Serialize deploy triggers if several pipelines race.

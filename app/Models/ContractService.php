@@ -30,6 +30,17 @@ final class ContractService extends Model
     use HasFactory;
 
     /**
+     * @var list<string>
+     */
+    protected $fillable = [
+        'organization_id',
+        'contract_id',
+        'label',
+        'amount',
+        'position',
+    ];
+
+    /**
      * @return BelongsTo<Organization, $this>
      */
     public function organization(): BelongsTo

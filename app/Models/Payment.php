@@ -38,6 +38,22 @@ final class Payment extends Model
     use HasFactory;
 
     /**
+     * @var list<string>
+     */
+    protected $fillable = [
+        'organization_id',
+        'contract_id',
+        'slot',
+        'amount',
+        'due_date',
+        'paid',
+        'method',
+        'paid_at',
+        'last_reminder_at',
+        'automated_reminders_sent',
+    ];
+
+    /**
      * Mirrors the migration defaults so a freshly built (unsaved) model
      * reports the same reminder state as one loaded from the database...
      *

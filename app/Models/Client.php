@@ -48,6 +48,32 @@ final class Client extends Model
     use Notifiable;
 
     /**
+     * Everything the create/update actions and the factory mass-assign.
+     * The address is stored through the four physical address_* columns
+     * (the AddressCast expands a value object onto them), so those keys
+     * are the fillable ones. Anonymization runs through forceFill.
+     *
+     * @var list<string>
+     */
+    protected $fillable = [
+        'organization_id',
+        'clientNumber',
+        'type',
+        'companyName',
+        'lastName',
+        'firstName',
+        'address',
+        'address_street',
+        'address_city',
+        'address_postal_code',
+        'address_country',
+        'phoneDay',
+        'cellPhone',
+        'email',
+        'remark',
+    ];
+
+    /**
      * @return array<string, string>
      */
     public function casts(): array

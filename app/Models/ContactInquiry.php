@@ -36,6 +36,20 @@ final class ContactInquiry extends Model
     use HasUuids;
 
     /**
+     * @var list<string>
+     */
+    protected $fillable = [
+        'name',
+        'email',
+        'company',
+        'fleetSize',
+        'message',
+        'status',
+        'sent_at',
+        'failed_at',
+    ];
+
+    /**
      * Mirrors the migration default so a freshly built (unsaved) model
      * reports the same delivery state as one loaded from the database.
      *

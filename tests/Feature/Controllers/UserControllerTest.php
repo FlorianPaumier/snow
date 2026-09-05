@@ -213,6 +213,43 @@ it('sets the registering user as the organization owner', function (): void {
         ->and($user->isOwner())->toBeTrue();
 });
 
+it('throttles registration attempts', function (): void {
+    Event::fake([Registered::class]);
+    Mail::fake();
+
+    $payload = [
+        'name' => 'Test User',
+        'organization' => 'Test Company',
+        'password' => 'password1234',
+        'password_confirmation' => 'password1234',
+        'terms' => true,
+    ];
+
+    // The first five registrations within the same minute go through...
+    for ($i = 0; $i < 5; $i++) {
+        $this->fromRoute('register')
+            ->post(route('register.store'), [
+                ...$payload,
+                'email' => sprintf('test%d@example.com', $i),
+            ])
+            ->assertRedirectToRoute('login-challenge.show');
+    }
+
+    // ...and the sixth is rejected with 429 before any organization or
+    // trial is created: bots cannot farm accounts and 14-day trials.
+    $response = $this->fromRoute('register')
+        ->post(route('register.store'), [
+            ...$payload,
+            'email' => 'bot@example.com',
+        ]);
+
+    $response->assertStatus(429);
+
+    expect(User::query()->withoutGlobalScopes()->where('email', 'bot@example.com')->exists())->toBeFalse();
+
+    Event::assertDispatchedTimes(Registered::class, 5);
+});
+
 it('may delete user account', function (): void {
     $user = User::factory()->create([
         'password' => Hash::make('password'),
