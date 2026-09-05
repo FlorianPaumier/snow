@@ -113,7 +113,14 @@ lint:
   script:
     # Pint + oxlint/oxfmt only — Rector moved to its own allow_failure job.
     - vendor/bin/pint --parallel --test
-    - bun run test:lint
+    # The type-aware linter spawns the Go tsgolint binary, which grows to
+    # ~500 MB RSS by default and gets OOM-killed (SIGKILL, no output) on
+    # memory-constrained shared runners. Go runtime knobs keep the whole
+    # chain under ~400 MB: GOMEMLIMIT makes the GC keep the heap in check,
+    # GOMAXPROCS caps per-process parallelism (each of the ~3 concurrent
+    # spawns builds its own TypeScript program), and GOGC=50 trades a few
+    # hundred ms of lint time for a tighter heap.
+    - GOMEMLIMIT=256MiB GOMAXPROCS=2 GOGC=50 bun run test:lint
 
 rector:
   # Pre-existing debt: 36 files would change. Tracked for a follow-up
