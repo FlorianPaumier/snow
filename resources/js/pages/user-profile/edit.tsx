@@ -3,6 +3,7 @@ import UserProfileController from '@/actions/App/Http/Controllers/UserProfileCon
 import DeleteUser from '@/components/delete-user';
 import Heading from '@/components/heading';
 import InputError from '@/components/input-error';
+import PlanCapAlert from '@/components/plan-cap-alert';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -37,6 +38,8 @@ export default function Edit({
             <h1 className="sr-only">{t.settings.profileTitleBreadcrumbs}</h1>
 
             <SettingsLayout>
+                <PlanCapAlert />
+
                 <div className="space-y-6">
                     <Heading
                         variant="small"

@@ -215,6 +215,24 @@ it('refuses to demote the organization owner', function (): void {
     expect($owner->fresh()->role)->toBe(UserRole::ROLE_ADMIN);
 });
 
+it('carries the owner protection to the user edit page error bag for inertia requests', function (): void {
+    $owner = User::factory()->admin()->create();
+    $owner->organization->update(['owner_id' => $owner->id]);
+
+    $this->actingAs($owner)
+        ->fromRoute('users.edit', $owner)
+        ->withHeaders(['X-Inertia' => 'true'])
+        ->put(route('users.update', $owner), [
+            'name' => $owner->name,
+            'email' => $owner->email,
+            'role' => UserRole::ROLE_USER->value,
+        ])
+        ->assertRedirectToRoute('users.edit', $owner)
+        ->assertSessionHasErrors(['ownerProtected' => __('statuses.organization_owner_role')]);
+
+    expect($owner->fresh()->role)->toBe(UserRole::ROLE_ADMIN);
+});
+
 it('deletes a user', function (): void {
     $admin = User::factory()->admin()->create();
     $user = User::factory()->forOrganization($admin->organization)->create();

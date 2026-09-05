@@ -2,6 +2,7 @@ import { Form } from '@inertiajs/react';
 import { useState } from 'react';
 import ClientController from '@/actions/App/Http/Controllers/ClientController';
 import InputError from '@/components/input-error';
+import PlanCapAlert from '@/components/plan-cap-alert';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -39,6 +40,8 @@ export default function Create() {
             backHref={index().url}
             backLabel={t.clients.title}
         >
+            <PlanCapAlert />
+
             <Form
                 {...ClientController.store.form()}
                 resetOnSuccess={[

@@ -1,6 +1,7 @@
 import { Form } from '@inertiajs/react';
 import UserManagementController from '@/actions/App/Http/Controllers/UserManagementController';
 import InputError from '@/components/input-error';
+import PlanCapAlert from '@/components/plan-cap-alert';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -35,6 +36,8 @@ export default function Create() {
             backHref={index().url}
             backLabel={t.users.title}
         >
+            <PlanCapAlert />
+
             <Form
                 {...UserManagementController.store.form()}
                 disableWhileProcessing

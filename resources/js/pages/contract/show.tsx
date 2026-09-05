@@ -18,6 +18,7 @@ import PrintContractDocumentController from '@/actions/App/Http/Controllers/Prin
 import PrintPaymentReceiptController from '@/actions/App/Http/Controllers/PrintPaymentReceiptController';
 import UnmarkPaymentPaidController from '@/actions/App/Http/Controllers/UnmarkPaymentPaidController';
 import Heading from '@/components/heading';
+import PlanCapAlert from '@/components/plan-cap-alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -146,6 +147,8 @@ export default function Show({
                 {typeof status === 'string' && (
                     <p className="text-sm text-success">{status}</p>
                 )}
+
+                <PlanCapAlert />
 
                 {typeof errors.contract === 'string' && (
                     <p

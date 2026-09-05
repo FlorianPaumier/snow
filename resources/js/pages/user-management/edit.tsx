@@ -2,6 +2,7 @@ import { Form } from '@inertiajs/react';
 import SendUserPasswordResetController from '@/actions/App/Http/Controllers/SendUserPasswordResetController';
 import UserManagementController from '@/actions/App/Http/Controllers/UserManagementController';
 import InputError from '@/components/input-error';
+import PlanCapAlert from '@/components/plan-cap-alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -54,6 +55,8 @@ export default function Edit({ user }: { user: EditableUser }) {
             backHref={index().url}
             backLabel={t.users.title}
         >
+            <PlanCapAlert />
+
             <Form
                 {...UserManagementController.update.form({ user: user.id })}
                 disableWhileProcessing

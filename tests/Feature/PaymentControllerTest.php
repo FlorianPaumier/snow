@@ -128,6 +128,26 @@ it('blocks the manual payment reminder on the free plan with an upgrade prompt',
     expect($payment->fresh()->last_reminder_at)->toBeNull();
 });
 
+it('carries the feature lock to the error bag for inertia requests', function (): void {
+    $admin = User::factory()->admin()->create();
+    $admin->organization->forceFill(['trial_ends_at' => now()->subDay()])->save();
+    $payment = unpaidPayment($admin);
+
+    Mail::fake();
+
+    // Inertia requests get the upgrade prompt in the shared error bag
+    // under the `featureLocked` key, which the dashboard alert reads...
+    $this->actingAs($admin)
+        ->fromRoute('dashboard')
+        ->withHeaders(['X-Inertia' => 'true'])
+        ->post(route('payments.send-reminder', $payment))
+        ->assertRedirect(route('dashboard'))
+        ->assertSessionHasErrors(['featureLocked' => __('statuses.feature_locked')]);
+
+    Mail::assertNothingQueued();
+    expect($payment->fresh()->last_reminder_at)->toBeNull();
+});
+
 it('sends the manual payment reminder while on the signup trial', function (): void {
     $admin = User::factory()->admin()->create(); // trial by default...
     $client = Client::factory()->forOrganization($admin->organization)->create([

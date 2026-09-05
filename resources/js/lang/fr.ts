@@ -34,6 +34,8 @@ const fr = {
         language: 'Langue',
         french: 'Français',
         english: 'English',
+        planCapTitle: 'Action bloquée',
+        planCapUpgrade: 'Voir Pro',
     },
     nav: {
         platform: 'Plateforme',

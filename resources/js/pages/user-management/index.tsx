@@ -11,6 +11,7 @@ import {
 import { useEffect, useState } from 'react';
 import UserManagementController from '@/actions/App/Http/Controllers/UserManagementController';
 import Heading from '@/components/heading';
+import PlanCapAlert from '@/components/plan-cap-alert';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -192,6 +193,8 @@ export default function Index({
                 {typeof status === 'string' && (
                     <p className="text-sm text-success">{status}</p>
                 )}
+
+                <PlanCapAlert />
 
                 <div className="overflow-hidden rounded-xl border">
                     {/* Toolbar: live search + mono count (design system data display pattern) */}

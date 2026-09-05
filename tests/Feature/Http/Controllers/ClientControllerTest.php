@@ -33,6 +33,34 @@ it('renders the clients index for regular staff', function (): void {
         ->assertInertia(fn ($page) => $page->component('clients/index'));
 });
 
+it('shares the success flash with the inertia page after creating a client', function (): void {
+    Event::fake();
+    $admin = User::factory()->admin()->create();
+
+    $this->actingAs($admin)
+        ->post(route('clients.store'), [
+            'type' => ClientType::CLIENT_INDIVIDUAL->value,
+            'firstName' => 'Jean',
+            'lastName' => 'Tremblay',
+            'email' => 'jean@example.com',
+            'phoneDay' => '514 555-0100',
+            'addressStreet' => '1234 Rue Sainte-Catherine',
+            'addressCity' => 'Montréal',
+            'addressPostalCode' => 'H3G 1M7',
+            'addressCountry' => 'Canada',
+        ])
+        ->assertRedirect(route('clients.index'));
+
+    // The success message rides along as a shared prop on the landing
+    // page, where the index renders it above the table...
+    $this->actingAs($admin)
+        ->get(route('clients.index'))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->component('clients/index')
+            ->where('status', __('statuses.client_created')));
+});
+
 it('requires authentication', function (): void {
     $this->get(route('clients.index'))->assertRedirect(route('login'));
 });

@@ -95,6 +95,29 @@ it('sets sidebarOpen to false when cookie is false', function (): void {
     expect($shared['sidebarOpen'])->toBeFalse();
 });
 
+it('shares the flash status with every page', function (): void {
+    $middleware = new HandleInertiaRequests(
+        resolve(GetSubscriptionSummary::class),
+    );
+
+    $request = Request::create('/', 'GET');
+    $store = app('session.store');
+    $request->setLaravelSession($store);
+
+    $shared = $middleware->share($request);
+
+    // No flash set: the lazy value resolves to null and pages render
+    // nothing...
+    expect($shared)->toHaveKey('status')
+        ->and(call_user_func($shared['status']))->toBeNull();
+
+    $store->flash('status', 'Client created.');
+
+    // The shared value is a lazy closure evaluated on each render, so
+    // the flash set after sharing still comes through...
+    expect(call_user_func($shared['status']))->toBe('Client created.');
+});
+
 it('includes parent shared data', function (): void {
     $middleware = new HandleInertiaRequests(
         resolve(GetSubscriptionSummary::class),

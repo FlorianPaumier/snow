@@ -17,6 +17,7 @@ import Heading from '@/components/heading';
 import OnboardingChecklistCard, {
     type OnboardingChecklist,
 } from '@/components/onboarding-checklist';
+import PlanCapAlert from '@/components/plan-cap-alert';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -234,6 +235,8 @@ export default function Dashboard({
                         </SelectContent>
                     </Select>
                 </div>
+
+                <PlanCapAlert />
 
                 {onboardingChecklist && (
                     <OnboardingChecklistCard checklist={onboardingChecklist} />

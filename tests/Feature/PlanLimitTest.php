@@ -31,6 +31,33 @@ it('blocks creating a second user on the free plan', function (): void {
     expect(User::query()->withoutGlobalScopes()->where('organization_id', $organization->id)->count())->toBe(1);
 });
 
+it('carries the plan limit to the user create page error bag for inertia requests', function (): void {
+    $organization = Organization::factory()->expired()->create();
+    $admin = User::factory()->admin()->forOrganization($organization)->create();
+
+    $response = $this->actingAs($admin)
+        ->fromRoute('users.create')
+        ->withHeaders(['X-Inertia' => 'true'])
+        ->post(route('users.store'), [
+            'name' => 'Second User',
+            'email' => 'second@example.com',
+            'role' => 'user',
+        ]);
+
+    $message = __('statuses.plan_limit', [
+        'plan' => 'free',
+        'count' => 1,
+        'resource' => __('statuses.resource_users'),
+    ]);
+
+    // Inertia requests come back with the message in the shared error
+    // bag under the `planLimit` key, which the create page alert reads...
+    $response->assertRedirectToRoute('users.create')
+        ->assertSessionHasErrors(['planLimit' => $message]);
+
+    expect(User::query()->withoutGlobalScopes()->where('organization_id', $organization->id)->count())->toBe(1);
+});
+
 it('allows creating users on the pro plan without a limit', function (): void {
     $organization = Organization::factory()->withoutTrial()->create();
     $admin = User::factory()->admin()->forOrganization($organization)->create();
@@ -82,6 +109,38 @@ it('blocks creating clients beyond the free plan limit', function (): void {
                 'resource' => __('statuses.resource_clients'),
             ]),
         );
+
+    expect(Client::query()->withoutGlobalScopes()->where('organization_id', $organization->id)->count())->toBe(15);
+});
+
+it('carries the client plan limit to the client create page error bag for inertia requests', function (): void {
+    $organization = Organization::factory()->expired()->create();
+    $admin = User::factory()->admin()->forOrganization($organization)->create();
+
+    Client::factory()->count(15)->forOrganization($organization)->create();
+
+    $response = $this->actingAs($admin)
+        ->fromRoute('clients.create')
+        ->withHeaders(['X-Inertia' => 'true'])
+        ->post(route('clients.store'), [
+            'type' => 'individual',
+            'firstName' => 'Over',
+            'lastName' => 'Limit',
+            'email' => 'over@example.com',
+            'phoneDay' => '418-555-0123',
+            'addressStreet' => '123 Rue',
+            'addressCity' => 'Québec',
+            'addressPostalCode' => 'G1K 0A1',
+            'addressCountry' => 'Canada',
+        ]);
+
+    // No locale cookie: the French default applies to the message...
+    $response->assertRedirectToRoute('clients.create')
+        ->assertSessionHasErrors(['planLimit' => __('statuses.plan_limit', [
+            'plan' => 'free',
+            'count' => 15,
+            'resource' => __('statuses.resource_clients'),
+        ], 'fr')]);
 
     expect(Client::query()->withoutGlobalScopes()->where('organization_id', $organization->id)->count())->toBe(15);
 });

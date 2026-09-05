@@ -29,6 +29,8 @@ const en: Translations = {
         language: 'Language',
         french: 'Français',
         english: 'English',
+        planCapTitle: 'Action blocked',
+        planCapUpgrade: 'View Pro',
     },
     nav: {
         platform: 'Platform',
