@@ -154,7 +154,7 @@ const comparisonGroups: ComparisonGroup[] = [
                 values: [true, true],
             },
             {
-                feature: 'Email invoices & receipts',
+                feature: 'Invoice & receipt PDF download',
                 values: [true, true],
             },
             { feature: 'Payment reminders', values: [false, true] },

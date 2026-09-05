@@ -5,6 +5,7 @@ import {
     Building2,
     Check,
     CreditCard,
+    Download,
     FileSpreadsheet,
     FileText,
     Mail,
@@ -307,8 +308,8 @@ function InvoiceVisual() {
                             'h-9 px-3 text-xs',
                         )}
                     >
-                        <Mail aria-hidden="true" className="size-3.5" />
-                        Email
+                        <Download aria-hidden="true" className="size-3.5" />
+                        PDF
                     </span>
                 </div>
                 <p className="font-mono text-[11px] text-muted-foreground">
@@ -406,8 +407,8 @@ interface FeatureRowData {
     Visual: React.ComponentType;
 }
 
-/* NOTE: The "print or email" item below is a launch commitment — it must
-   ship before this page goes live. The season CSV export is live on the
+/* NOTE: Invoicing ships as print + PDF download straight from the
+   contract — no email delivery. The season CSV export is live on the
    contracts page of the app. */
 const featureRows: FeatureRowData[] = [
     {
@@ -453,10 +454,10 @@ const featureRows: FeatureRowData[] = [
         icon: Receipt,
         eyebrow: '04 · Invoices & receipts',
         title: 'Invoices and receipts, from the numbers you already have',
-        copy: 'Retyping amounts into a word-processor template is how errors — and arguments — start. Print or email an invoice or payment receipt straight from the contract; the amounts come from the services and payments already recorded, so what the client receives matches what you track.',
+        copy: 'Retyping amounts into a word-processor template is how errors — and arguments — start. Print or download an invoice or payment receipt as a PDF straight from the contract; the amounts come from the services and payments already recorded, so what the client receives matches what you track.',
         bullets: [
             'Printable invoices & payment receipts',
-            'Email directly from the contract',
+            'PDF download directly from the contract',
             'Amounts drawn from recorded services & payments',
         ],
         tint: 'ember',

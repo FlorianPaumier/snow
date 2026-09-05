@@ -86,6 +86,24 @@ function blockedSubstringClaims(): array
         'accounting sync',
         'in-app chat',
 
+        // Invoicing ships as print + PDF download — there is no email
+        // delivery of invoices or receipts
+        'email invoices',
+        'email receipts',
+        'email an invoice',
+        'email a receipt',
+        'receipt emailed',
+        'receipts emailed',
+        'invoice emailed',
+        'invoices emailed',
+        'invoiced by email',
+        'receipts by email',
+
+        // An expired trial keeps the organization writable under the Free
+        // plan caps — it is never a read-only view
+        'read-only view',
+        'read only view',
+
         // Fabricated traction and operations stats
         '4.2m',
         '1,200+ crews',

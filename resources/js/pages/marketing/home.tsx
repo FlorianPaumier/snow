@@ -88,7 +88,7 @@ function DashboardMock() {
             >
                 <span className="flex items-center gap-2 rounded-lg bg-ember px-3.5 py-2.5 text-sm font-medium text-ember-foreground shadow-glow-ember">
                     <Receipt className="size-4" />
-                    Receipt emailed · $300
+                    Receipt printed · $300
                 </span>
             </div>
 
@@ -201,7 +201,7 @@ const SEASON_FEATURES: {
         icon: CreditCard,
         iconClass: 'text-ember-300',
         title: 'Track through the winter',
-        copy: 'Mark payments paid with method and date as they come in — deposit, installments, balance — and email receipts without retyping a number.',
+        copy: 'Mark payments paid with method and date as they come in — deposit, installments, balance — and print receipts without retyping a number.',
     },
     {
         icon: BarChart3,

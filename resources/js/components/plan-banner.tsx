@@ -40,11 +40,19 @@ export default function PlanBanner() {
             <AlertTitle>{title}</AlertTitle>
             <AlertDescription>
                 <p>{body}</p>
-                <div className="mt-2">
-                    <Button asChild size="sm">
-                        <Link href={index()}>{t.billing.bannerUpgrade}</Link>
-                    </Button>
-                </div>
+                {/* The billing page is admin-only (can:manage-billing), so
+                    only offer the upgrade link to users who can reach it —
+                    matching how the settings sidebar gates its Billing
+                    item. */}
+                {auth.can?.manageBilling ? (
+                    <div className="mt-2">
+                        <Button asChild size="sm">
+                            <Link href={index()}>
+                                {t.billing.bannerUpgrade}
+                            </Link>
+                        </Button>
+                    </div>
+                ) : null}
             </AlertDescription>
         </Alert>
     );

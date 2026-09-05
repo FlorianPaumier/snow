@@ -60,7 +60,7 @@ export const homeFeatures: MarketingFeature[] = [
     {
         icon: Mail,
         title: 'Invoices & receipts',
-        copy: 'Print or email an invoice or payment receipt straight from the contract. No word-processor templates, no retyping amounts — the numbers are already in the system.',
+        copy: 'Print or download an invoice or payment receipt as a PDF straight from the contract. No word-processor templates, no retyping amounts — the numbers are already in the system.',
     },
     {
         icon: FileSpreadsheet,
@@ -143,7 +143,7 @@ export const homeFaqs = [
     },
     {
         q: 'Can I send invoices and receipts?',
-        a: 'Yes. Invoices and payment receipts can be printed or emailed directly from the contract — the amounts come straight from the services and payments already recorded, so there is nothing to retype.',
+        a: 'Yes. Invoices and payment receipts can be printed or downloaded as PDFs directly from the contract — the amounts come straight from the services and payments already recorded, so there is nothing to retype.',
     },
     {
         q: 'What languages does the app support?',

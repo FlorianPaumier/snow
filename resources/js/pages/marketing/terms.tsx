@@ -48,10 +48,11 @@ export default function Terms() {
                 <p>
                     The Service starts with a free trial, so you can explore the
                     back office before paying anything — no card required for
-                    the trial. When the trial ends, your organization&rsquo;s
-                    data stays available in a read-only view until you pick up a
-                    plan; nothing is deleted while a trial or subscription
-                    lapses.
+                    the trial. When the trial ends, your organization moves to
+                    the Free plan: everything stays writable, subject to the
+                    Free plan&rsquo;s caps (one user and fifteen clients), until
+                    you pick a paid plan; nothing is deleted while a trial or
+                    subscription lapses.
                 </p>
                 <p>
                     Paid plans are billed annually through our payment
