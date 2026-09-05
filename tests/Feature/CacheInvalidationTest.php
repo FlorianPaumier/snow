@@ -15,6 +15,21 @@ use App\Models\User;
 use App\ValueObjects\Season;
 use Illuminate\Support\Facades\Cache;
 
+// Production sets STRIPE_WEBHOOK_SECRET, which makes Cashier attach its
+// VerifyWebhookSignature middleware (from the controller constructor at
+// dispatch time — not at route definition, so the tests below can set the
+// secret per-test and exercise the real middleware). The helper signs a
+// payload the way Stripe does: t=<unix time>,v1=<HMAC-SHA256 of "{t}.{payload}"
+// with the secret (stripe-php's WebhookSignature scheme)...
+function stripeSignature(string $payload, string $secret, ?int $timestamp = null): string
+{
+    $timestamp ??= time();
+
+    $signature = hash_hmac('sha256', "{$timestamp}.{$payload}", $secret);
+
+    return "t={$timestamp},v1={$signature}";
+}
+
 beforeEach(function (): void {
     $this->admin = User::factory()->admin()->create();
 
@@ -277,6 +292,256 @@ it('restores pro limits when a Stripe subscription becomes active', function ():
     $this->admin->unsetRelation('organization');
 
     // The summary recomputed from the flushed cache: the org is on pro...
+    $this->actingAs($this->admin)
+        ->get(route('dashboard'))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->where('auth.subscription.plan', 'pro'));
+});
+
+it('flushes the organization cache when a signature-verified webhook arrives', function (): void {
+    // Production configuration: the secret is set, so Cashier attaches the
+    // signature middleware and the request must carry a valid Stripe
+    // signature header...
+    config(['cashier.webhook.secret' => 'whsec_test']);
+
+    $this->admin->organization->forceFill(['stripe_id' => 'cus_test_123'])->save();
+
+    // Seed the subscription summary cache...
+    $this->actingAs($this->admin)
+        ->get(route('dashboard', ['season' => Season::current()->label]))
+        ->assertOk();
+
+    $versionKey = sprintf('tenant:cache:version:%s', $this->admin->organization_id);
+
+    expect(Cache::has($versionKey))->toBeTrue();
+
+    // A subscription update webhook for this organization's customer,
+    // signed exactly as Stripe signs it...
+    $payload = json_encode([
+        'id' => 'evt_signed',
+        'type' => 'customer.subscription.updated',
+        'data' => [
+            'object' => [
+                'id' => 'sub_signed',
+                'customer' => 'cus_test_123',
+                'status' => 'active',
+                'items' => [
+                    'data' => [
+                        [
+                            'id' => 'si_signed',
+                            'price' => ['id' => 'price_test', 'product' => 'prod_test'],
+                            'quantity' => 1,
+                        ],
+                    ],
+                ],
+                'metadata' => ['name' => 'pro'],
+            ],
+        ],
+    ]);
+
+    expect($payload)->toBeString();
+
+    // The signature covers the exact request body bytes, so the raw signed
+    // content is posted directly — postJson would re-encode its array
+    // argument and the body would no longer match the signature...
+    $this->call(
+        'POST',
+        route('cashier.webhook'),
+        [],
+        [],
+        [],
+        $this->transformHeadersToServerVars([
+            'CONTENT_TYPE' => 'application/json',
+            'Stripe-Signature' => stripeSignature($payload, 'whsec_test'),
+        ]),
+        $payload,
+    )->assertOk();
+
+    // The version token rotated: every entry of the organization is
+    // orphaned...
+    expect(Cache::has($versionKey))->toBeFalse();
+});
+
+it('rejects a webhook whose signature does not match the secret', function (): void {
+    config(['cashier.webhook.secret' => 'whsec_test']);
+
+    $this->admin->organization->forceFill(['stripe_id' => 'cus_test_123'])->save();
+
+    $this->actingAs($this->admin)
+        ->get(route('dashboard', ['season' => Season::current()->label]))
+        ->assertOk();
+
+    $versionKey = sprintf('tenant:cache:version:%s', $this->admin->organization_id);
+
+    expect(Cache::has($versionKey))->toBeTrue();
+
+    // A subscription update webhook for this organization's customer,
+    // signed with the wrong secret...
+    $payload = json_encode([
+        'id' => 'evt_tampered',
+        'type' => 'customer.subscription.updated',
+        'data' => [
+            'object' => [
+                'id' => 'sub_tampered',
+                'customer' => 'cus_test_123',
+                'status' => 'active',
+                'items' => [
+                    'data' => [
+                        [
+                            'id' => 'si_tampered',
+                            'price' => ['id' => 'price_test', 'product' => 'prod_test'],
+                            'quantity' => 1,
+                        ],
+                    ],
+                ],
+                'metadata' => ['name' => 'pro'],
+            ],
+        ],
+    ]);
+
+    expect($payload)->toBeString();
+
+    // Signed with the wrong secret: the middleware rejects the request
+    // before the controller runs anything (Cashier maps the verification
+    // failure to an access-denied 403)...
+    $this->call(
+        'POST',
+        route('cashier.webhook'),
+        [],
+        [],
+        [],
+        $this->transformHeadersToServerVars([
+            'CONTENT_TYPE' => 'application/json',
+            'Stripe-Signature' => stripeSignature($payload, 'whsec_wrong'),
+        ]),
+        $payload,
+    )->assertForbidden();
+
+    // Nothing processed: the version token never rotated...
+    expect(Cache::has($versionKey))->toBeTrue();
+});
+
+it('rejects a webhook whose signature timestamp is stale', function (): void {
+    config(['cashier.webhook.secret' => 'whsec_test']);
+
+    $this->admin->organization->forceFill(['stripe_id' => 'cus_test_123'])->save();
+
+    $this->actingAs($this->admin)
+        ->get(route('dashboard', ['season' => Season::current()->label]))
+        ->assertOk();
+
+    $versionKey = sprintf('tenant:cache:version:%s', $this->admin->organization_id);
+
+    expect(Cache::has($versionKey))->toBeTrue();
+
+    // Stripe signatures embed the signing time; Cashier's tolerance (300s
+    // by default) rejects replays. The signature itself is valid, but the
+    // timestamp sits an hour in the past (time() is the real wall clock —
+    // the test's frozen Carbon clock does not affect it)...
+    $payload = json_encode([
+        'id' => 'evt_stale',
+        'type' => 'customer.subscription.updated',
+        'data' => [
+            'object' => [
+                'id' => 'sub_stale',
+                'customer' => 'cus_test_123',
+                'status' => 'active',
+                'items' => [
+                    'data' => [
+                        [
+                            'id' => 'si_stale',
+                            'price' => ['id' => 'price_test', 'product' => 'prod_test'],
+                            'quantity' => 1,
+                        ],
+                    ],
+                ],
+                'metadata' => ['name' => 'pro'],
+            ],
+        ],
+    ]);
+
+    expect($payload)->toBeString();
+
+    $this->call(
+        'POST',
+        route('cashier.webhook'),
+        [],
+        [],
+        [],
+        $this->transformHeadersToServerVars([
+            'CONTENT_TYPE' => 'application/json',
+            'Stripe-Signature' => stripeSignature($payload, 'whsec_test', time() - 3600),
+        ]),
+        $payload,
+    )->assertForbidden();
+
+    // Nothing processed: the version token never rotated...
+    expect(Cache::has($versionKey))->toBeTrue();
+});
+
+it('restores pro limits when a signature-verified subscription becomes active', function (): void {
+    config(['cashier.webhook.secret' => 'whsec_test']);
+
+    $this->admin->organization->forceFill([
+        'trial_ends_at' => now()->subDay(),
+        'stripe_id' => 'cus_test_123',
+    ])->save();
+
+    // Seed the free-plan summary (expired trial, no subscription)...
+    $this->actingAs($this->admin)
+        ->get(route('dashboard'))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->where('auth.subscription.plan', 'free'));
+
+    // A subscription update webhook for this organization's customer,
+    // signed exactly as Stripe signs it...
+    $payload = json_encode([
+        'id' => 'evt_signed_access',
+        'type' => 'customer.subscription.updated',
+        'data' => [
+            'object' => [
+                'id' => 'sub_signed_access',
+                'customer' => 'cus_test_123',
+                'status' => 'active',
+                'items' => [
+                    'data' => [
+                        [
+                            'id' => 'si_signed_access',
+                            'price' => ['id' => 'price_test', 'product' => 'prod_test'],
+                            'quantity' => 1,
+                        ],
+                    ],
+                ],
+                'metadata' => ['name' => 'pro'],
+            ],
+        ],
+    ]);
+
+    expect($payload)->toBeString();
+
+    $this->call(
+        'POST',
+        route('cashier.webhook'),
+        [],
+        [],
+        [],
+        $this->transformHeadersToServerVars([
+            'CONTENT_TYPE' => 'application/json',
+            'Stripe-Signature' => stripeSignature($payload, 'whsec_test'),
+        ]),
+        $payload,
+    )->assertOk();
+
+    // The acting user instance persists across test requests, and its
+    // cached organization still carries the pre-webhook subscriptions
+    // relation. Real requests hydrate the user per request, so drop the
+    // stale relation and let the recomputed summary query fresh...
+    $this->admin->unsetRelation('organization');
+
+    // The webhook stored the subscription and flushed the cache: the
+    // recomputed summary reports the pro plan...
     $this->actingAs($this->admin)
         ->get(route('dashboard'))
         ->assertOk()
