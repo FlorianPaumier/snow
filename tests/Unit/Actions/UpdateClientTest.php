@@ -3,8 +3,10 @@
 declare(strict_types=1);
 
 use App\Actions\GenerateContractPdf;
+use App\Actions\GeneratePaymentReceiptPdf;
 use App\Actions\UpdateClient;
 use App\Enums\ClientType;
+use App\Enums\PaymentSlot;
 use App\Models\Client;
 use App\Models\Contract;
 use App\Models\User;
@@ -103,18 +105,36 @@ it('accepts the client type as a string value', function (): void {
         ->and($client->refresh()->type)->toBe(ClientType::CLIENT_INDIVIDUAL);
 });
 
-it('deletes the stored pdfs of every contract when the client changes', function (): void {
+it('deletes the stored pdfs of every contract and receipt when the client changes', function (): void {
     $disk = Storage::fake((string) config('filesystems.default'));
-    // The client's identity renders on each of their contract documents...
+    // The client's identity renders on each of their contract documents
+    // and payment receipts...
     $client = Client::factory()->forOrganization($this->user->organization)->create();
     $current = Contract::factory()->forClient($client)->create(['season' => '2025-2026']);
+    $currentPayment = $current->payments()->create([
+        'slot' => PaymentSlot::SLOT_DEPOSIT,
+        'amount' => 15000,
+        'paid' => true,
+    ]);
     $past = Contract::factory()->forClient($client)->create(['season' => '2024-2025']);
-    // Another organization's contract PDF must survive...
+    // Another organization's documents must survive...
     $other = Contract::factory()->create();
+    $otherPayment = $other->payments()->create([
+        'slot' => PaymentSlot::SLOT_DEPOSIT,
+        'amount' => 15000,
+        'paid' => true,
+    ]);
 
     foreach ([$current, $past, $other] as $contractWithPdf) {
         $disk->put(
             GenerateContractPdf::pdfPath($contractWithPdf->id),
+            '%PDF-1.4 fake bytes',
+        );
+    }
+
+    foreach ([$currentPayment, $otherPayment] as $paymentWithPdf) {
+        $disk->put(
+            GeneratePaymentReceiptPdf::pdfPath($paymentWithPdf->id),
             '%PDF-1.4 fake bytes',
         );
     }
@@ -134,5 +154,7 @@ it('deletes the stored pdfs of every contract when the client changes', function
 
     $disk->assertMissing(GenerateContractPdf::pdfPath($current->id));
     $disk->assertMissing(GenerateContractPdf::pdfPath($past->id));
+    $disk->assertMissing(GeneratePaymentReceiptPdf::pdfPath($currentPayment->id));
     $disk->assertExists(GenerateContractPdf::pdfPath($other->id));
+    $disk->assertExists(GeneratePaymentReceiptPdf::pdfPath($otherPayment->id));
 });

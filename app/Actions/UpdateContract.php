@@ -9,12 +9,14 @@ use App\Models\Client;
 use App\Models\Contract;
 use App\Models\ContractService;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 
 final readonly class UpdateContract
 {
-    public function __construct(private FlushOrganizationCache $flushCache) {}
+    public function __construct(
+        private DeleteStoredDocument $deleteDocument,
+        private FlushOrganizationCache $flushCache,
+    ) {}
 
     /**
      * Syncs the contract's services (kept rows updated, removed rows deleted,
@@ -61,8 +63,8 @@ final readonly class UpdateContract
 
         // The stored PDF mirrors the previous state of the contract; the
         // generate flow short-circuits while it exists, so it must go now
-        // to be rebuilt from the updated data on the next request.
-        Storage::disk(config()->string('filesystems.default'))->delete(GenerateContractPdf::pdfPath($contract->id));
+        // to be rebuilt from the updated data on the next request...
+        $this->deleteDocument->handle(GenerateContractPdf::pdfPath($contract->id));
 
         $this->flushCache->handle($contract->organization_id);
     }

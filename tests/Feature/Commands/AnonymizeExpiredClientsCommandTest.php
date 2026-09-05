@@ -92,7 +92,9 @@ it('keeps sweeping and reports the failure when one client cannot be processed',
     $this->artisan('clients:anonymize-expired')
         ->expectsOutputToContain('Failed to process client ['.$doomed->clientNumber.']')
         ->expectsOutputToContain('1 anonymized, 0 erased, 1 failed')
-        ->assertSuccessful();
+        // The sweep exits red so scheduler alerting sees the failure, even
+        // though it kept processing the healthy clients...
+        ->assertFailed();
 
     expect($healthy->fresh()->isAnonymized())->toBeTrue()
         ->and($doomed->fresh()->isAnonymized())->toBeFalse()

@@ -47,6 +47,16 @@ final readonly class ExportSeasonPayments
      * given — as flat CSV rows carrying the client and contract columns
      * the accountant needs to match payments against contracts.
      *
+     * The stream pages by id (lazyById) instead of cursoring: cursor()
+     * silently drops the client/payments eager loads (2N+1 queries), and
+     * lazy() would buffer rows in memory on large exports. Do NOT add an
+     * orderBy here: forPageAfterId keeps any existing orders and appends
+     * `id ASC` under them, so a `season DESC` order would page by
+     * `WHERE id > last` while sorting by season — every later chunk's
+     * smaller-id rows would be permanently skipped once the export
+     * exceeds one chunk. CSV rows therefore come out in id order, which
+     * spreadsheet consumers are indifferent to.
+     *
      * @return Generator<int, list<string>>
      */
     public function handle(?string $season = null): Generator
@@ -54,7 +64,6 @@ final readonly class ExportSeasonPayments
         $contracts = Contract::query()
             ->with('client', 'payments')
             ->when($season !== null, fn (Builder $query): Builder => $query->where('season', $season))
-            ->orderByDesc('season')->oldest()
             ->lazyById();
 
         foreach ($contracts as $contract) {

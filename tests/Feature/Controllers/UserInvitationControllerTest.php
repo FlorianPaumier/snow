@@ -41,6 +41,16 @@ it('reveals no organization name for a member who already accepted', function ()
             ->where('organizationName', null));
 });
 
+it('shows the page without any organization name when no email is given', function (): void {
+    $this
+        ->get(route('user-invitation.create', ['token' => 'any-token']))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->component('user-invitation/create')
+            ->where('email', '')
+            ->where('organizationName', null));
+});
+
 it('accepts an invitation and lets the member choose their password', function (): void {
     $organization = Organization::factory()->create();
     $user = User::factory()->pendingInvitation()->forOrganization($organization)->create();

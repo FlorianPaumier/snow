@@ -9,11 +9,9 @@ use App\Models\Contract;
 use App\Models\Payment;
 use App\Models\User;
 use App\ValueObjects\Address;
-use Illuminate\Contracts\Filesystem\Filesystem;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 
 /**
@@ -27,7 +25,10 @@ use Illuminate\Validation\ValidationException;
  */
 final readonly class AnonymizeClient
 {
-    public function __construct(private FlushOrganizationCache $flushCache) {}
+    public function __construct(
+        private DeleteStoredDocument $deleteDocument,
+        private FlushOrganizationCache $flushCache,
+    ) {}
 
     public function handle(Client $client, ?User $actor = null): void
     {
@@ -79,32 +80,16 @@ final readonly class AnonymizeClient
      */
     private function deleteStoredPdfs(Client $client): void
     {
-        $disk = Storage::disk(config()->string('filesystems.default'));
-
         /** @var Collection<int, Contract> $contracts eager-loaded with their payments */
         $contracts = $client->contracts()->with('payments')->get();
 
         foreach ($contracts as $contract) {
-            $this->delete($disk, GenerateContractPdf::pdfPath($contract->id));
+            $this->deleteDocument->handle(GenerateContractPdf::pdfPath($contract->id));
 
             foreach ($contract->payments as $payment) {
                 /** @var Payment $payment */
-                $this->delete($disk, GeneratePaymentReceiptPdf::pdfPath($payment->id));
+                $this->deleteDocument->handle(GeneratePaymentReceiptPdf::pdfPath($payment->id));
             }
-        }
-    }
-
-    /**
-     * The erasure must not silently miss a file: a failed delete leaves a
-     * recoverable copy of the identity, so the operator is warned to purge
-     * the orphan manually.
-     */
-    private function delete(Filesystem $disk, string $path): void
-    {
-        if (! $disk->delete($path)) {
-            Log::warning('Anonymization could not delete a stored document PDF.', [
-                'path' => $path,
-            ]);
         }
     }
 }

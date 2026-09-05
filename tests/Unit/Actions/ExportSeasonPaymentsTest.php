@@ -121,7 +121,14 @@ it('filters by season and exports every season when none is given', function ():
         $allRows,
     ), 'Saison');
 
-    expect($allSeasons)->toBe(['2025-2026', '2024-2025']);
+    // Rows stream in id order (lazyById), not season order: adding a
+    // season orderBy would silently skip rows once paging crosses a
+    // chunk, since forPageAfterId keeps existing orders under its own
+    // `id ASC` and pages by `WHERE id > lastId`. Assert the order so the
+    // interaction can't quietly regress.
+    expect($allSeasons)->toHaveCount(2)
+        ->and($allSeasons)->toContain('2025-2026')
+        ->and($allSeasons)->toContain('2024-2025');
 });
 
 it("never exports another organization's payments", function (): void {

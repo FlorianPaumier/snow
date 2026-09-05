@@ -8,7 +8,9 @@ use App\Enums\ClientType;
 use App\Models\Client;
 use App\Models\User;
 use App\ValueObjects\Address;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 // Creating a client stamps the acting user's organization; the action
 // requires an authenticated context...
@@ -75,6 +77,55 @@ it('retries the next number when a concurrent create claims the same one', funct
     expect($client->clientNumber)->not->toBe($racer->clientNumber)
         ->and($client->clientNumber)->toBe('individual-'.sprintf('%04d', (int) mb_substr($racer->clientNumber, mb_strlen('individual-')) + 1))
         ->and($client->organization_id)->toBe($racer->organization_id);
+});
+
+it('gives up and rethrows once every retry collides with a taken number', function (): void {
+    $action = resolve(CreateClient::class);
+
+    $before = Client::query()->count();
+
+    // The generator reads committed rows and failed attempts roll back, so
+    // pre-seeding alone can never burn all three attempts (the generator
+    // would just yield the next free number). Simulate the true race — a
+    // concurrent request claiming the number between the generator's read
+    // and the insert — by claiming it from a creating hook on every attempt.
+    Client::creating(function (Client $client): bool {
+        if ($client->email !== 'exhausted@example.com') {
+            return true;
+        }
+
+        DB::transaction(function () use ($client): void {
+            Client::query()->create([
+                'organization_id' => $client->organization_id,
+                'clientNumber' => $client->clientNumber,
+                'type' => $client->type,
+                'lastName' => 'Racer',
+                'firstName' => 'Concurrent',
+                'address' => $client->address,
+                'email' => 'racer@example.com',
+            ]);
+        });
+
+        return true;
+    });
+
+    expect(fn (): Client => $action->handle([
+        'type' => ClientType::CLIENT_INDIVIDUAL,
+        'firstName' => 'Jean',
+        'lastName' => 'Tremblay',
+        'email' => 'exhausted@example.com',
+        'addressStreet' => '1234 Rue Sainte-Catherine',
+        'addressCity' => 'Montréal',
+        'addressPostalCode' => 'H3G 1M7',
+        'addressCountry' => 'Canada',
+    ]))->toThrow(UniqueConstraintViolationException::class);
+
+    // The failed create leaves no partial row behind: each attempt rolled
+    // back to its savepoint and the final rethrow aborted the transaction,
+    // racer claims included...
+    expect(Client::query()->count())->toBe($before)
+        ->and(Client::query()->where('email', 'exhausted@example.com')->exists())->toBeFalse()
+        ->and(Client::query()->where('email', 'racer@example.com')->exists())->toBeFalse();
 });
 
 it('may create a company client with an ember... in its own sequence', function (): void {

@@ -81,7 +81,9 @@ final class AnonymizeExpiredClientsCommand extends Command
             ? sprintf('Dry run: %d would be anonymized, %d would be erased.', $anonymized, $deleted)
             : sprintf('Retention complete: %d anonymized, %d erased, %d failed.', $anonymized, $deleted, $failed));
 
-        return self::SUCCESS;
+        // Scheduler alerting keys off the exit code: a sweep that failed any
+        // client is a red run even though the others were processed...
+        return $failed === 0 ? self::SUCCESS : self::FAILURE;
     }
 
     /**
