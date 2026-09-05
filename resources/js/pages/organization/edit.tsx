@@ -131,6 +131,7 @@ export default function Edit({
                         (otherMembers.length > 0 ? (
                             <Form
                                 {...TransferOrganizationOwnershipController.form()}
+                                id="transfer-ownership-form"
                                 options={{
                                     preserveScroll: true,
                                 }}
@@ -231,6 +232,7 @@ export default function Edit({
                                                         >
                                                             <button
                                                                 type="submit"
+                                                                form="transfer-ownership-form"
                                                                 data-test="confirm-transfer-ownership"
                                                             >
                                                                 {
