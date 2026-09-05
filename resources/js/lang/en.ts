@@ -30,7 +30,6 @@ const en: Translations = {
         french: 'Français',
         english: 'English',
         planCapTitle: 'Action blocked',
-        planCapUpgrade: 'View Pro',
     },
     nav: {
         platform: 'Platform',

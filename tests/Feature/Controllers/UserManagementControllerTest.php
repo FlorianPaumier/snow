@@ -228,7 +228,7 @@ it('carries the owner protection to the user edit page error bag for inertia req
             'role' => UserRole::ROLE_USER->value,
         ])
         ->assertRedirectToRoute('users.edit', $owner)
-        ->assertSessionHasErrors(['ownerProtected' => __('statuses.organization_owner_role')]);
+        ->assertSessionHasErrors(['ownerProtected' => __('statuses.organization_owner_role', [], 'fr')]);
 
     expect($owner->fresh()->role)->toBe(UserRole::ROLE_ADMIN);
 });

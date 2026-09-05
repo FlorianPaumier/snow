@@ -44,16 +44,13 @@ it('carries the plan limit to the user create page error bag for inertia request
             'role' => 'user',
         ]);
 
-    $message = __('statuses.plan_limit', [
-        'plan' => 'free',
-        'count' => 1,
-        'resource' => __('statuses.resource_users'),
-    ]);
-
-    // Inertia requests come back with the message in the shared error
-    // bag under the `planLimit` key, which the create page alert reads...
+    // No locale cookie: the French default applies to the message...
     $response->assertRedirectToRoute('users.create')
-        ->assertSessionHasErrors(['planLimit' => $message]);
+        ->assertSessionHasErrors(['planLimit' => __('statuses.plan_limit', [
+            'plan' => 'free',
+            'count' => 1,
+            'resource' => __('statuses.resource_users'),
+        ], 'fr')]);
 
     expect(User::query()->withoutGlobalScopes()->where('organization_id', $organization->id)->count())->toBe(1);
 });

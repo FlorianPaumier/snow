@@ -142,7 +142,7 @@ it('carries the feature lock to the error bag for inertia requests', function ()
         ->withHeaders(['X-Inertia' => 'true'])
         ->post(route('payments.send-reminder', $payment))
         ->assertRedirect(route('dashboard'))
-        ->assertSessionHasErrors(['featureLocked' => __('statuses.feature_locked')]);
+        ->assertSessionHasErrors(['featureLocked' => __('statuses.feature_locked', [], 'fr')]);
 
     Mail::assertNothingQueued();
     expect($payment->fresh()->last_reminder_at)->toBeNull();

@@ -9,6 +9,8 @@ declare module '@inertiajs/core' {
         sharedPageProps: {
             name: string;
             locale: 'fr' | 'en';
+            /** Flash success message shared by HandleInertiaRequests. */
+            status?: string;
             auth: Auth;
             sidebarOpen: boolean;
             [key: string]: unknown;
