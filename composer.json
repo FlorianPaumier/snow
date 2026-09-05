@@ -10,11 +10,13 @@
     "license": "MIT",
     "require": {
         "php": "^8.5.0",
+        "aws/aws-sdk-php": "^3.394.9",
         "inertiajs/inertia-laravel": "v3.0.6",
         "laravel/cashier": "^16.7",
         "laravel/fortify": "^1.37.2",
-        "laravel/framework": "^13.18.0",
+        "laravel/framework": "^13.30.1",
         "laravel/wayfinder": "^0.1.20",
+        "league/flysystem-aws-s3-v3": "^3.35.3",
         "nunomaduro/essentials": "^1.2.0"
     },
     "require-dev": {
