@@ -15,6 +15,15 @@ import Heading from '@/components/heading';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import {
+    Dialog,
+    DialogClose,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogTitle,
+    DialogTrigger,
+} from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import {
     Select,
@@ -421,37 +430,96 @@ export default function Index({
                                                                     />
                                                                 </Link>
                                                             </Button>
-                                                            <Form
-                                                                {...ContractController.destroy.form(
-                                                                    {
-                                                                        contract:
-                                                                            contract.id,
-                                                                    },
-                                                                )}
-                                                                className="contents"
-                                                            >
-                                                                <Button
-                                                                    type="submit"
-                                                                    variant="ghost"
-                                                                    size="icon"
-                                                                    className="size-8 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
-                                                                    aria-label={interpolate(
-                                                                        t
-                                                                            .contracts
-                                                                            .deleteContractOf,
-                                                                        {
-                                                                            client: contract
-                                                                                .client
-                                                                                .displayName,
-                                                                        },
-                                                                    )}
+                                                            <Dialog>
+                                                                <DialogTrigger
+                                                                    asChild
                                                                 >
-                                                                    <Trash2
-                                                                        aria-hidden="true"
-                                                                        className="size-4"
-                                                                    />
-                                                                </Button>
-                                                            </Form>
+                                                                    <Button
+                                                                        type="button"
+                                                                        variant="ghost"
+                                                                        size="icon"
+                                                                        className="size-8 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                                                                        aria-label={interpolate(
+                                                                            t
+                                                                                .contracts
+                                                                                .deleteContractOf,
+                                                                            {
+                                                                                client: contract
+                                                                                    .client
+                                                                                    .displayName,
+                                                                            },
+                                                                        )}
+                                                                    >
+                                                                        <Trash2
+                                                                            aria-hidden="true"
+                                                                            className="size-4"
+                                                                        />
+                                                                    </Button>
+                                                                </DialogTrigger>
+                                                                <DialogContent>
+                                                                    <DialogTitle>
+                                                                        {
+                                                                            t
+                                                                                .contracts
+                                                                                .deleteConfirmTitle
+                                                                        }
+                                                                    </DialogTitle>
+                                                                    <DialogDescription>
+                                                                        {
+                                                                            t
+                                                                                .contracts
+                                                                                .deleteConfirmDescription
+                                                                        }
+                                                                    </DialogDescription>
+
+                                                                    <Form
+                                                                        {...ContractController.destroy.form(
+                                                                            {
+                                                                                contract:
+                                                                                    contract.id,
+                                                                            },
+                                                                        )}
+                                                                        className="contents"
+                                                                    >
+                                                                        {({
+                                                                            processing,
+                                                                        }) => (
+                                                                            <DialogFooter className="gap-2">
+                                                                                <DialogClose
+                                                                                    asChild
+                                                                                >
+                                                                                    <Button variant="secondary">
+                                                                                        {
+                                                                                            t
+                                                                                                .common
+                                                                                                .cancel
+                                                                                        }
+                                                                                    </Button>
+                                                                                </DialogClose>
+
+                                                                                <Button
+                                                                                    variant="destructive"
+                                                                                    disabled={
+                                                                                        processing
+                                                                                    }
+                                                                                    asChild
+                                                                                >
+                                                                                    <button
+                                                                                        type="submit"
+                                                                                        data-test="confirm-delete-contract"
+                                                                                    >
+                                                                                        {
+                                                                                            t
+                                                                                                .contracts
+                                                                                                .deleteContractAction
+                                                                                        }
+                                                                                    </button>
+                                                                                </Button>
+                                                                            </DialogFooter>
+                                                                        )}
+                                                                    </Form>
+                                                                </DialogContent>
+                                                            </Dialog>
                                                         </>
                                                     )}
                                                 </div>

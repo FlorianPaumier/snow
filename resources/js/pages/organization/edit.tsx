@@ -5,6 +5,15 @@ import Heading from '@/components/heading';
 import InputError from '@/components/input-error';
 import PlanCapAlert from '@/components/plan-cap-alert';
 import { Button } from '@/components/ui/button';
+import {
+    Dialog,
+    DialogClose,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogTitle,
+    DialogTrigger,
+} from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -176,12 +185,63 @@ export default function Edit({
                                         </p>
 
                                         <div className="flex items-center gap-4">
-                                            <Button
-                                                variant="destructive"
-                                                disabled={processing}
-                                            >
-                                                {t.settings.transferButton}
-                                            </Button>
+                                            <Dialog>
+                                                <DialogTrigger asChild>
+                                                    <Button
+                                                        type="button"
+                                                        variant="destructive"
+                                                        data-test="transfer-ownership"
+                                                    >
+                                                        {
+                                                            t.settings
+                                                                .transferButton
+                                                        }
+                                                    </Button>
+                                                </DialogTrigger>
+                                                <DialogContent>
+                                                    <DialogTitle>
+                                                        {
+                                                            t.settings
+                                                                .transferConfirmTitle
+                                                        }
+                                                    </DialogTitle>
+                                                    <DialogDescription>
+                                                        {
+                                                            t.settings
+                                                                .transferConfirmDescription
+                                                        }
+                                                    </DialogDescription>
+
+                                                    <DialogFooter className="gap-2">
+                                                        <DialogClose asChild>
+                                                            <Button variant="secondary">
+                                                                {
+                                                                    t.common
+                                                                        .cancel
+                                                                }
+                                                            </Button>
+                                                        </DialogClose>
+
+                                                        <Button
+                                                            variant="destructive"
+                                                            disabled={
+                                                                processing
+                                                            }
+                                                            asChild
+                                                        >
+                                                            <button
+                                                                type="submit"
+                                                                data-test="confirm-transfer-ownership"
+                                                            >
+                                                                {
+                                                                    t.settings
+                                                                        .transferButton
+                                                                }
+                                                            </button>
+                                                        </Button>
+                                                    </DialogFooter>
+                                                </DialogContent>
+                                            </Dialog>
                                         </div>
                                     </>
                                 )}

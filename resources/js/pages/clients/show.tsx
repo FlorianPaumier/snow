@@ -410,21 +410,72 @@ export default function Show({ client }: { client: ClientRecord }) {
                                             </DialogContent>
                                         </Dialog>
                                     )}
-                                    <Form
-                                        {...ClientController.destroy.form({
-                                            client: client.id,
-                                        })}
-                                        className="contents"
-                                    >
-                                        <Button
-                                            type="submit"
-                                            variant="destructive"
-                                            data-test="delete-client"
-                                        >
-                                            <Trash2 aria-hidden="true" />{' '}
-                                            {t.clients.buttonDeleteClient}
-                                        </Button>
-                                    </Form>
+                                    <Dialog>
+                                        <DialogTrigger asChild>
+                                            <Button
+                                                variant="destructive"
+                                                data-test="delete-client"
+                                            >
+                                                <Trash2 aria-hidden="true" />{' '}
+                                                {t.clients.buttonDeleteClient}
+                                            </Button>
+                                        </DialogTrigger>
+                                        <DialogContent>
+                                            <DialogTitle>
+                                                {t.clients.deleteConfirmTitle}
+                                            </DialogTitle>
+                                            <DialogDescription>
+                                                {
+                                                    t.clients
+                                                        .deleteConfirmDescription
+                                                }
+                                            </DialogDescription>
+
+                                            <Form
+                                                {...ClientController.destroy.form(
+                                                    {
+                                                        client: client.id,
+                                                    },
+                                                )}
+                                                options={{
+                                                    preserveScroll: true,
+                                                }}
+                                                resetOnSuccess
+                                                className="contents"
+                                            >
+                                                {({ processing }) => (
+                                                    <DialogFooter className="gap-2">
+                                                        <DialogClose asChild>
+                                                            <Button variant="secondary">
+                                                                {
+                                                                    t.common
+                                                                        .cancel
+                                                                }
+                                                            </Button>
+                                                        </DialogClose>
+
+                                                        <Button
+                                                            variant="destructive"
+                                                            disabled={
+                                                                processing
+                                                            }
+                                                            asChild
+                                                        >
+                                                            <button
+                                                                type="submit"
+                                                                data-test="confirm-delete-client"
+                                                            >
+                                                                {
+                                                                    t.clients
+                                                                        .buttonDeleteClient
+                                                                }
+                                                            </button>
+                                                        </Button>
+                                                    </DialogFooter>
+                                                )}
+                                            </Form>
+                                        </DialogContent>
+                                    </Dialog>
                                 </div>
                             </>
                         )}

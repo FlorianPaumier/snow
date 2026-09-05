@@ -272,6 +272,9 @@ const fr = {
         saveChanges: 'Enregistrer les modifications',
         editContractAction: 'Modifier le contrat',
         deleteContractAction: 'Supprimer le contrat',
+        deleteConfirmTitle: 'Supprimer ce contrat?',
+        deleteConfirmDescription:
+            "Cette action est permanente; les services et l'historique des paiements associés seront aussi supprimés.",
         pageHeadTitle: 'Contrat :client :season',
         showTitle: 'Contrat :season',
         signedWith: 'Signé avec :client',
@@ -325,6 +328,9 @@ const fr = {
         transferWarning:
             'Cela ne pourra être annulé que par un transfert ultérieur. Choisissez avec soin.',
         transferButton: 'Transférer la propriété',
+        transferConfirmTitle: 'Transférer la propriété?',
+        transferConfirmDescription:
+            "Le membre choisi deviendra propriétaire de l'organisation. Cela ne pourra être annulé que par un transfert ultérieur.",
         noOtherMembers:
             'Vous êtes le seul membre de cette organisation. Invitez des membres de l’équipe avant de transférer la propriété.',
         profileTitle: 'Renseignements du profil',

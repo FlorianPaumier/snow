@@ -1,4 +1,4 @@
-import { Head, Link, router, usePage } from '@inertiajs/react';
+import { Form, Head, Link, router, usePage } from '@inertiajs/react';
 import {
     CalendarRange,
     Download,
@@ -23,11 +23,13 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
     Dialog,
+    DialogClose,
     DialogContent,
     DialogDescription,
     DialogFooter,
     DialogHeader,
     DialogTitle,
+    DialogTrigger,
 } from '@/components/ui/dialog';
 import {
     Select,
@@ -482,21 +484,75 @@ export default function Show({
                                             {t.contracts.editContractAction}
                                         </Link>
                                     </Button>
-                                    <Button
-                                        type="button"
-                                        variant="destructive"
-                                        onClick={() =>
-                                            router.delete(
-                                                ContractController.destroy.url({
-                                                    contract: contract.id,
-                                                }),
-                                            )
-                                        }
-                                        data-test="delete-contract"
-                                    >
-                                        <Trash2 aria-hidden="true" />{' '}
-                                        {t.contracts.deleteContractAction}
-                                    </Button>
+                                    <Dialog>
+                                        <DialogTrigger asChild>
+                                            <Button
+                                                variant="destructive"
+                                                data-test="delete-contract"
+                                            >
+                                                <Trash2 aria-hidden="true" />{' '}
+                                                {
+                                                    t.contracts
+                                                        .deleteContractAction
+                                                }
+                                            </Button>
+                                        </DialogTrigger>
+                                        <DialogContent>
+                                            <DialogTitle>
+                                                {t.contracts.deleteConfirmTitle}
+                                            </DialogTitle>
+                                            <DialogDescription>
+                                                {
+                                                    t.contracts
+                                                        .deleteConfirmDescription
+                                                }
+                                            </DialogDescription>
+
+                                            <Form
+                                                {...ContractController.destroy.form(
+                                                    {
+                                                        contract: contract.id,
+                                                    },
+                                                )}
+                                                options={{
+                                                    preserveScroll: true,
+                                                }}
+                                                resetOnSuccess
+                                                className="contents"
+                                            >
+                                                {({ processing }) => (
+                                                    <DialogFooter className="gap-2">
+                                                        <DialogClose asChild>
+                                                            <Button variant="secondary">
+                                                                {
+                                                                    t.common
+                                                                        .cancel
+                                                                }
+                                                            </Button>
+                                                        </DialogClose>
+
+                                                        <Button
+                                                            variant="destructive"
+                                                            disabled={
+                                                                processing
+                                                            }
+                                                            asChild
+                                                        >
+                                                            <button
+                                                                type="submit"
+                                                                data-test="confirm-delete-contract"
+                                                            >
+                                                                {
+                                                                    t.contracts
+                                                                        .deleteContractAction
+                                                                }
+                                                            </button>
+                                                        </Button>
+                                                    </DialogFooter>
+                                                )}
+                                            </Form>
+                                        </DialogContent>
+                                    </Dialog>
                                 </div>
                             </>
                         )}

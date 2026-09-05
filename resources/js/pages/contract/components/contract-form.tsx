@@ -245,6 +245,13 @@ export default function ContractForm({
                                                     .serviceLabelPlaceholder
                                             }
                                         />
+                                        <InputError
+                                            message={
+                                                errors[
+                                                    `services.${index}.label`
+                                                ]
+                                            }
+                                        />
                                     </div>
                                     <div className="grid gap-2">
                                         <Label
@@ -269,6 +276,13 @@ export default function ContractForm({
                                             placeholder={
                                                 t.contracts
                                                     .serviceAmountPlaceholder
+                                            }
+                                        />
+                                        <InputError
+                                            message={
+                                                errors[
+                                                    `services.${index}.amount`
+                                                ]
                                             }
                                         />
                                     </div>
@@ -304,7 +318,7 @@ export default function ContractForm({
                                 {t.contracts.addService}
                             </Button>
                         </div>
-                        <InputError message={errors['services.0.label']} />
+                        <InputError message={errors.services} />
                     </FormSection>
 
                     <FormSection

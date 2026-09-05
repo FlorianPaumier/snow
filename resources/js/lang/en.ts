@@ -266,6 +266,9 @@ const en: Translations = {
         saveChanges: 'Save changes',
         editContractAction: 'Edit contract',
         deleteContractAction: 'Delete contract',
+        deleteConfirmTitle: 'Delete this contract?',
+        deleteConfirmDescription:
+            'This action is permanent; the services and payment history associated with it will also be deleted.',
         pageHeadTitle: 'Contract :client :season',
         showTitle: 'Contract :season',
         signedWith: 'Signed with :client',
@@ -318,6 +321,9 @@ const en: Translations = {
         transferWarning:
             'This can only be undone by a later transfer. Choose carefully.',
         transferButton: 'Transfer ownership',
+        transferConfirmTitle: 'Transfer ownership?',
+        transferConfirmDescription:
+            "The chosen member will become the organization's owner. This can only be undone by a later transfer.",
         noOtherMembers:
             'You are the only member of this organization. Invite team members before transferring ownership.',
         profileTitle: 'Profile information',

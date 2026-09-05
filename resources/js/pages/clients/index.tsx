@@ -17,6 +17,15 @@ import Heading from '@/components/heading';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import {
+    Dialog,
+    DialogClose,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogTitle,
+    DialogTrigger,
+} from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import {
     Select,
@@ -496,34 +505,93 @@ export default function Index({
                                                                             />
                                                                         </Link>
                                                                     </Button>
-                                                                    <Form
-                                                                        {...ClientController.destroy.form(
-                                                                            {
-                                                                                client: client.id,
-                                                                            },
-                                                                        )}
-                                                                        className="contents"
-                                                                    >
-                                                                        <Button
-                                                                            type="submit"
-                                                                            variant="ghost"
-                                                                            size="icon"
-                                                                            className="size-8 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
-                                                                            aria-label={interpolate(
-                                                                                t
-                                                                                    .clients
-                                                                                    .deleteClientOf,
-                                                                                {
-                                                                                    client: label,
-                                                                                },
-                                                                            )}
+                                                                    <Dialog>
+                                                                        <DialogTrigger
+                                                                            asChild
                                                                         >
-                                                                            <Trash2
-                                                                                aria-hidden="true"
-                                                                                className="size-4"
-                                                                            />
-                                                                        </Button>
-                                                                    </Form>
+                                                                            <Button
+                                                                                type="button"
+                                                                                variant="ghost"
+                                                                                size="icon"
+                                                                                className="size-8 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                                                                                aria-label={interpolate(
+                                                                                    t
+                                                                                        .clients
+                                                                                        .deleteClientOf,
+                                                                                    {
+                                                                                        client: label,
+                                                                                    },
+                                                                                )}
+                                                                            >
+                                                                                <Trash2
+                                                                                    aria-hidden="true"
+                                                                                    className="size-4"
+                                                                                />
+                                                                            </Button>
+                                                                        </DialogTrigger>
+                                                                        <DialogContent>
+                                                                            <DialogTitle>
+                                                                                {
+                                                                                    t
+                                                                                        .clients
+                                                                                        .deleteConfirmTitle
+                                                                                }
+                                                                            </DialogTitle>
+                                                                            <DialogDescription>
+                                                                                {
+                                                                                    t
+                                                                                        .clients
+                                                                                        .deleteConfirmDescription
+                                                                                }
+                                                                            </DialogDescription>
+
+                                                                            <Form
+                                                                                {...ClientController.destroy.form(
+                                                                                    {
+                                                                                        client: client.id,
+                                                                                    },
+                                                                                )}
+                                                                                className="contents"
+                                                                            >
+                                                                                {({
+                                                                                    processing,
+                                                                                }) => (
+                                                                                    <DialogFooter className="gap-2">
+                                                                                        <DialogClose
+                                                                                            asChild
+                                                                                        >
+                                                                                            <Button variant="secondary">
+                                                                                                {
+                                                                                                    t
+                                                                                                        .common
+                                                                                                        .cancel
+                                                                                                }
+                                                                                            </Button>
+                                                                                        </DialogClose>
+
+                                                                                        <Button
+                                                                                            variant="destructive"
+                                                                                            disabled={
+                                                                                                processing
+                                                                                            }
+                                                                                            asChild
+                                                                                        >
+                                                                                            <button
+                                                                                                type="submit"
+                                                                                                data-test="confirm-delete-client"
+                                                                                            >
+                                                                                                {
+                                                                                                    t
+                                                                                                        .clients
+                                                                                                        .buttonDeleteClient
+                                                                                                }
+                                                                                            </button>
+                                                                                        </Button>
+                                                                                    </DialogFooter>
+                                                                                )}
+                                                                            </Form>
+                                                                        </DialogContent>
+                                                                    </Dialog>
                                                                 </>
                                                             )}
                                                     </div>
