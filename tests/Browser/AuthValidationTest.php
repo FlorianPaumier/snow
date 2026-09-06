@@ -54,6 +54,7 @@ it('shows an error when the register password confirmation does not match', func
         ->fill('#name', 'Jean Tremblay')
         ->fill('#organization', 'Tremblay Déneigement')
         ->fill('#email', 'jean@example.com')
+        ->fill('#invite_code', issueInvite('jean@example.com'))
         ->fill('#password', 'super-secret-password')
         ->fill('#password_confirmation', 'different-password')
         ->click('#terms')
@@ -69,12 +70,31 @@ it('shows an error when registering with an existing email', function (): void {
         ->fill('#name', 'Jean Tremblay')
         ->fill('#organization', 'Tremblay Déneigement')
         ->fill('#email', $user->email)
+        ->fill('#invite_code', issueInvite($user->email))
         ->fill('#password', 'super-secret-password')
         ->fill('#password_confirmation', 'super-secret-password')
         ->click('#terms')
         ->press('Créer le compte')
         ->assertPathIs('/register')
         ->assertSee('La valeur du champ adresse courriel est déjà utilisée.');
+});
+
+// An empty invite code never reaches the server: the browser's native
+// required validation blocks the submit, so the missing-code path is
+// covered by the feature tests instead (OrganizationInviteCodeTest)...
+
+it('shows an error when the invite code is wrong', function (): void {
+    visit('/register')
+        ->fill('#name', 'Jean Tremblay')
+        ->fill('#organization', 'Tremblay Déneigement')
+        ->fill('#email', 'jean@example.com')
+        ->fill('#invite_code', 'WRONGCODE99')
+        ->fill('#password', 'super-secret-password')
+        ->fill('#password_confirmation', 'super-secret-password')
+        ->click('#terms')
+        ->press('Créer le compte')
+        ->assertPathIs('/register')
+        ->assertSee("Ce code d'invitation est invalide, expiré ou déjà utilisé.");
 });
 
 it('blocks a non-email address client-side on forgot password', function (): void {

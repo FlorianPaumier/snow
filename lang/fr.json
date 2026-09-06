@@ -7,5 +7,6 @@
     "Profile updated.": "Profil mis à jour.",
     "A reset link will be sent if the account exists.": "Un lien de réinitialisation sera envoyé si le compte existe.",
     "Your :plan plan allows :count :resource. Upgrade to add more.": "Votre forfait :plan permet :count :resource. Passez à un forfait supérieur pour en ajouter.",
-    "You must accept the Terms of Service and the Privacy Policy to create an account.": "Vous devez accepter les conditions d'utilisation et la politique de confidentialité pour créer un compte."
+    "You must accept the Terms of Service and the Privacy Policy to create an account.": "Vous devez accepter les conditions d'utilisation et la politique de confidentialité pour créer un compte.",
+    "This invitation code is invalid, expired, or already used.": "Ce code d'invitation est invalide, expiré ou déjà utilisé."
 }

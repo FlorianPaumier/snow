@@ -26,6 +26,7 @@ return [
     'exists' => 'La valeur sélectionnée pour :attribute est invalide.',
     'in' => 'La valeur sélectionnée pour :attribute est invalide.',
     'integer' => 'Le champ :attribute doit être un nombre entier.',
+    'invite_code' => "Ce code d'invitation est invalide, expiré ou déjà utilisé.",
     'lowercase' => 'Le champ :attribute doit être en minuscules.',
     'max' => [
         'array' => 'Le champ :attribute ne doit pas avoir plus de :max éléments.',
@@ -71,6 +72,7 @@ return [
         'current_password' => 'mot de passe actuel',
         'role' => 'rôle',
         'code' => 'code',
+        'invite_code' => "code d'invitation",
         'message' => 'message',
     ],
 ];

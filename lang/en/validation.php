@@ -37,6 +37,7 @@ return [
         'current_password' => 'current password',
         'role' => 'role',
         'code' => 'code',
+        'invite_code' => 'invitation code',
         'message' => 'message',
     ],
 ];

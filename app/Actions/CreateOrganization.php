@@ -14,15 +14,24 @@ use SensitiveParameter;
 
 final readonly class CreateOrganization
 {
+    public function __construct(private readonly ClaimOrganizationInvite $claimInvite) {}
+
     /**
      * Create an organization with its owner (admin) user and a 14-day
-     * trial, atomically.
+     * trial, atomically. When an invite code is given, it is claimed in
+     * the same transaction so the code dies with the registration.
      *
      * @param  array{name: string, userName: string, email: string}  $attributes
      */
-    public function handle(array $attributes, #[SensitiveParameter] string $password): Organization
+    public function handle(array $attributes, #[SensitiveParameter] string $password, #[SensitiveParameter] ?string $inviteCode = null): Organization
     {
-        return DB::transaction(function () use ($attributes, $password): Organization {
+        return DB::transaction(function () use ($attributes, $password, $inviteCode): Organization {
+            // Claiming first: on conflict the whole registration rolls
+            // back and no half-created organization survives...
+            if ($inviteCode !== null) {
+                $this->claimInvite?->handle($attributes['email'], $inviteCode);
+            }
+
             $organization = Organization::query()->create([
                 'name' => $attributes['name'],
                 'trial_ends_at' => now()->addDays(14),

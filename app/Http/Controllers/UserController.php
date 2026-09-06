@@ -26,13 +26,17 @@ final readonly class UserController
     public function store(CreateUserRequest $request, CreateOrganization $createOrganization, CreateUserLoginChallengeCode $challengeCode): RedirectResponse
     {
         /** @var array{organization: string, name: string, email: string} $validated */
-        $validated = $request->safe()->except('password');
+        $validated = $request->safe()->except(['password', 'invite_code']);
 
-        $organization = $createOrganization->handle([
-            'name' => $validated['organization'],
-            'userName' => $validated['name'],
-            'email' => $validated['email'],
-        ], $request->string('password')->value());
+        $organization = $createOrganization->handle(
+            [
+                'name' => $validated['organization'],
+                'userName' => $validated['name'],
+                'email' => $validated['email'],
+            ],
+            $request->string('password')->value(),
+            $request->string('invite_code')->value(),
+        );
 
         // The owner is attached to the organization by the action, avoiding
         // the auth-bound global scope on the users table...

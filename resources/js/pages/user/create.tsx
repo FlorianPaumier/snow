@@ -82,6 +82,27 @@ export default function Register() {
                             </div>
 
                             <div className="grid gap-2">
+                                <Label htmlFor="invite_code">
+                                    {t.auth.inviteCodeField}
+                                </Label>
+                                <Input
+                                    id="invite_code"
+                                    type="text"
+                                    required
+                                    name="invite_code"
+                                    autoComplete="off"
+                                    autoCapitalize="characters"
+                                    spellCheck={false}
+                                    className="font-mono uppercase tracking-widest"
+                                    placeholder={t.auth.inviteCodePlaceholder}
+                                />
+                                <p className="text-muted-foreground text-xs">
+                                    {t.auth.inviteCodeHint}
+                                </p>
+                                <InputError message={errors.invite_code} />
+                            </div>
+
+                            <div className="grid gap-2">
                                 <Label htmlFor="password">
                                     {t.auth.passwordLabel}
                                 </Label>

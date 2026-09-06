@@ -6,6 +6,7 @@ namespace App\Http\Requests;
 
 use App\Models\User;
 use App\Rules\ValidEmail;
+use App\Rules\ValidOrganizationInviteCode;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Password;
@@ -29,6 +30,9 @@ final class CreateUserRequest extends FormRequest
                 Rule::unique(User::class),
             ],
             'organization' => ['required', 'string', 'max:255'],
+            // Sign-up is invite-only: a code emailed by the operator must
+            // accompany the registration, bound to this email...
+            'invite_code' => ['required', 'string', new ValidOrganizationInviteCode],
             'password' => [
                 'required',
                 'confirmed',

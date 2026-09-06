@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Actions\GenerateOrganizationInviteCode;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
@@ -27,6 +28,33 @@ pest()->extend(TestCase::class)
     ->in('Browser', 'Feature', 'Unit');
 
 expect()->extend('toBeOne', fn () => $this->toBe(1));
+
+/**
+ * Issue a real organization invite for the email and return its
+ * plaintext code, the way the artisan command delivers it. Shared by
+ * the invite and registration test files.
+ */
+function issueInvite(string $email = 'prospect@example.com'): string
+{
+    return app(GenerateOrganizationInviteCode::class)->handle($email);
+}
+
+/**
+ * A complete, valid registration payload for the given email. When no
+ * invite code is given, one is issued for the email first.
+ */
+function registrationPayload(string $email = 'prospect@example.com', ?string $inviteCode = null): array
+{
+    return [
+        'name' => 'Test User',
+        'email' => $email,
+        'organization' => 'Test Company',
+        'invite_code' => $inviteCode ?? issueInvite($email),
+        'password' => 'password1234',
+        'password_confirmation' => 'password1234',
+        'terms' => true,
+    ];
+}
 
 function something(): void
 {

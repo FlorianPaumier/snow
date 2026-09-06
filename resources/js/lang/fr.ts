@@ -432,6 +432,9 @@ const fr = {
         registerSubtitle: 'Commencez à gérer vos opérations de déneigement',
         registerDescription:
             'Entrez vos renseignements ci-dessous pour créer votre compte',
+        inviteCodeField: "Code d'invitation",
+        inviteCodePlaceholder: 'Le code reçu par courriel',
+        inviteCodeHint: "L'inscription se fait sur invitation — demandez-nous un code.",
         nameField: 'Nom',
         organizationField: 'Compagnie',
         organizationPlaceholder: 'Nom de votre compagnie',

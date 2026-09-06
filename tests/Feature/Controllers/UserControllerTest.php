@@ -26,6 +26,7 @@ it('may register a new user', function (): void {
             'name' => 'Test User',
             'email' => 'test@example.com',
             'organization' => 'Test Company',
+            'invite_code' => issueInvite('test@example.com'),
             'password' => 'password1234',
             'password_confirmation' => 'password1234',
             'terms' => true,
@@ -58,6 +59,7 @@ it('requires name', function (): void {
         ->post(route('register.store'), [
             'email' => 'test@example.com',
             'organization' => 'Test Company',
+            'invite_code' => issueInvite('test@example.com'),
             'password' => 'password',
             'password_confirmation' => 'password',
         ]);
@@ -71,6 +73,7 @@ it('requires email', function (): void {
         ->post(route('register.store'), [
             'name' => 'Test User',
             'organization' => 'Test Company',
+            'invite_code' => 'ANYSOURCE1',
             'password' => 'password',
             'password_confirmation' => 'password',
         ]);
@@ -101,6 +104,7 @@ it('requires unique email', function (): void {
             'name' => 'Test User',
             'email' => 'test@example.com',
             'organization' => 'Test Company',
+            'invite_code' => issueInvite('test@example.com'),
             'password' => 'password',
             'password_confirmation' => 'password',
         ]);
@@ -114,6 +118,7 @@ it('requires an organization', function (): void {
         ->post(route('register.store'), [
             'name' => 'Test User',
             'email' => 'test@example.com',
+            'invite_code' => issueInvite('test@example.com'),
             'password' => 'password',
             'password_confirmation' => 'password',
         ]);
@@ -128,6 +133,7 @@ it('requires password', function (): void {
             'name' => 'Test User',
             'email' => 'test@example.com',
             'organization' => 'Test Company',
+            'invite_code' => issueInvite('test@example.com'),
         ]);
 
     $response->assertRedirectToRoute('register')
@@ -140,6 +146,7 @@ it('requires password confirmation', function (): void {
             'name' => 'Test User',
             'email' => 'test@example.com',
             'organization' => 'Test Company',
+            'invite_code' => issueInvite('test@example.com'),
             'password' => 'password',
         ]);
 
@@ -153,6 +160,7 @@ it('requires matching password confirmation', function (): void {
             'name' => 'Test User',
             'email' => 'test@example.com',
             'organization' => 'Test Company',
+            'invite_code' => issueInvite('test@example.com'),
             'password' => 'password',
             'password_confirmation' => 'different-password',
         ]);
@@ -167,6 +175,7 @@ it('requires accepting the terms to register', function (): void {
             'name' => 'Test User',
             'email' => 'test@example.com',
             'organization' => 'Test Company',
+            'invite_code' => issueInvite('test@example.com'),
             'password' => 'password1234',
             'password_confirmation' => 'password1234',
         ]);
@@ -183,6 +192,7 @@ it('rejects a terms value that is not accepted', function (): void {
             'name' => 'Test User',
             'email' => 'test@example.com',
             'organization' => 'Test Company',
+            'invite_code' => issueInvite('test@example.com'),
             'password' => 'password1234',
             'password_confirmation' => 'password1234',
             'terms' => 'no',
@@ -202,6 +212,7 @@ it('sets the registering user as the organization owner', function (): void {
         'name' => 'Test User',
         'email' => 'owner@example.com',
         'organization' => 'Test Company',
+        'invite_code' => issueInvite('owner@example.com'),
         'password' => 'password1234',
         'password_confirmation' => 'password1234',
         'terms' => true,
@@ -217,9 +228,10 @@ it('throttles registration attempts', function (): void {
     Event::fake([Registered::class]);
     Mail::fake();
 
-    $payload = [
+    $payload = fn (string $email) => [
         'name' => 'Test User',
         'organization' => 'Test Company',
+        'invite_code' => issueInvite($email),
         'password' => 'password1234',
         'password_confirmation' => 'password1234',
         'terms' => true,
@@ -227,10 +239,12 @@ it('throttles registration attempts', function (): void {
 
     // The first five registrations within the same minute go through...
     for ($i = 0; $i < 5; $i++) {
+        $email = sprintf('test%d@example.com', $i);
+
         $this->fromRoute('register')
             ->post(route('register.store'), [
-                ...$payload,
-                'email' => sprintf('test%d@example.com', $i),
+                ...$payload($email),
+                'email' => $email,
             ])
             ->assertRedirectToRoute('login-challenge.show');
     }
@@ -239,7 +253,7 @@ it('throttles registration attempts', function (): void {
     // trial is created: bots cannot farm accounts and 14-day trials.
     $response = $this->fromRoute('register')
         ->post(route('register.store'), [
-            ...$payload,
+            ...$payload('bot@example.com'),
             'email' => 'bot@example.com',
         ]);
 
