@@ -8,6 +8,7 @@ use App\Models\Concerns\BelongsToOrganization;
 use App\ValueObjects\Season;
 use Carbon\CarbonInterface;
 use Database\Factories\ContractFactory;
+use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -34,6 +35,13 @@ use InvalidArgumentException;
  * @property-read int|null $services_sum_amount
  * @property-read int|null $paid_sum
  */
+#[Fillable([
+    'organization_id',
+    'client_id',
+    'season',
+    'created_at',
+    'updated_at',
+])]
 final class Contract extends Model
 {
     use BelongsToOrganization;
@@ -43,20 +51,6 @@ final class Contract extends Model
 
     use HasUuids;
     use Notifiable;
-
-    /**
-     * The timestamps are fillable because the retention-window tests
-     * backdate contracts through create().
-     *
-     * @var list<string>
-     */
-    protected $fillable = [
-        'organization_id',
-        'client_id',
-        'season',
-        'created_at',
-        'updated_at',
-    ];
 
     /**
      * @return BelongsTo<Client, $this>

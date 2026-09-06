@@ -21,11 +21,9 @@ it('emails a single-use invite code to the prospect', function (): void {
     // The mailable is queued (ShouldQueue)...
     Mail::assertQueued(OrganizationInviteCodeMail::class, 1);
 
-    Mail::assertQueued(OrganizationInviteCodeMail::class, function (OrganizationInviteCodeMail $mail): bool {
-        return $mail->hasTo('prospect@example.com')
-            && $mail->code !== ''
-            && mb_strlen($mail->code) === 10;
-    });
+    Mail::assertQueued(OrganizationInviteCodeMail::class, fn (OrganizationInviteCodeMail $mail): bool => $mail->hasTo('prospect@example.com')
+        && $mail->code !== ''
+        && mb_strlen($mail->code) === 10);
 
     // Only the hash is stored, never the plaintext code...
     $invite = OrganizationInvite::query()->sole();

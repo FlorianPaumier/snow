@@ -133,7 +133,7 @@ it('warns when a stored document pdf cannot be deleted', function (): void {
 
     Log::shouldReceive('warning')->once()->with(
         'A stored document PDF could not be deleted.',
-        Mockery::on(fn (array $context): bool => str_starts_with($context['path'], 'documents/contracts/')),
+        Mockery::on(fn (array $context): bool => str_starts_with((string) $context['path'], 'documents/contracts/')),
     );
     Log::shouldReceive('info')->zeroOrMoreTimes()->andReturnNull();
 

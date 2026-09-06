@@ -82,9 +82,7 @@ it('keeps sweeping and reports the failure when one client cannot be processed',
     // rejecting the identity wipe): the action itself is final and cannot
     // be mocked, so the failure is raised from the model layer...
     Client::updating(function (Client $client) use ($doomed): bool {
-        if ($client->is($doomed)) {
-            throw new RuntimeException('anonymization failed unexpectedly');
-        }
+        throw_if($client->is($doomed), RuntimeException::class, 'anonymization failed unexpectedly');
 
         return true;
     });

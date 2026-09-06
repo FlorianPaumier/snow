@@ -228,7 +228,7 @@ it('throttles registration attempts', function (): void {
     Event::fake([Registered::class]);
     Mail::fake();
 
-    $payload = fn (string $email) => [
+    $payload = fn (string $email): array => [
         'name' => 'Test User',
         'organization' => 'Test Company',
         'invite_code' => issueInvite($email),

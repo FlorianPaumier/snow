@@ -7,6 +7,7 @@ namespace App\Models;
 use App\Enums\ContactInquiryStatus;
 use Carbon\CarbonInterface;
 use Database\Factories\ContactInquiryFactory;
+use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -28,26 +29,22 @@ use Illuminate\Database\Eloquent\Model;
  * @property-read CarbonInterface $created_at
  * @property-read CarbonInterface $updated_at
  */
+#[Fillable([
+    'name',
+    'email',
+    'company',
+    'fleetSize',
+    'message',
+    'status',
+    'sent_at',
+    'failed_at',
+])]
 final class ContactInquiry extends Model
 {
     /** @use HasFactory<ContactInquiryFactory> */
     use HasFactory;
 
     use HasUuids;
-
-    /**
-     * @var list<string>
-     */
-    protected $fillable = [
-        'name',
-        'email',
-        'company',
-        'fleetSize',
-        'message',
-        'status',
-        'sent_at',
-        'failed_at',
-    ];
 
     /**
      * Mirrors the migration default so a freshly built (unsaved) model

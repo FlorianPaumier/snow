@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace App\Models;
 
 use Carbon\CarbonInterface;
+use Database\Factories\OrganizationInviteFactory;
+use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 /**
@@ -23,17 +26,16 @@ use Illuminate\Database\Eloquent\Model;
  * @property-read CarbonInterface $created_at
  * @property-read CarbonInterface $updated_at
  */
+#[Fillable([
+    'email',
+    'code',
+    'expires_at',
+    'claimed_at',
+])]
 final class OrganizationInvite extends Model
 {
-    /**
-     * @var list<string>
-     */
-    protected $fillable = [
-        'email',
-        'code',
-        'expires_at',
-        'claimed_at',
-    ];
+    /** @use HasFactory<OrganizationInviteFactory> */
+    use HasFactory;
 
     /**
      * @return array<string, string>

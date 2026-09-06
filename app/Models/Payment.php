@@ -9,6 +9,7 @@ use App\Enums\PaymentSlot;
 use App\Models\Concerns\BelongsToOrganization;
 use Carbon\CarbonInterface;
 use Database\Factories\PaymentFactory;
+use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\WithoutTimestamps;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -30,28 +31,24 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property-read Contract $contract
  */
 #[WithoutTimestamps]
+#[Fillable([
+    'organization_id',
+    'contract_id',
+    'slot',
+    'amount',
+    'due_date',
+    'paid',
+    'method',
+    'paid_at',
+    'last_reminder_at',
+    'automated_reminders_sent',
+])]
 final class Payment extends Model
 {
     use BelongsToOrganization;
 
     /** @use HasFactory<PaymentFactory> */
     use HasFactory;
-
-    /**
-     * @var list<string>
-     */
-    protected $fillable = [
-        'organization_id',
-        'contract_id',
-        'slot',
-        'amount',
-        'due_date',
-        'paid',
-        'method',
-        'paid_at',
-        'last_reminder_at',
-        'automated_reminders_sent',
-    ];
 
     /**
      * Mirrors the migration defaults so a freshly built (unsaved) model

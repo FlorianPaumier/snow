@@ -6,6 +6,7 @@ use App\Actions\GetSubscriptionSummary;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Models\Organization;
 use App\Models\User;
+use Illuminate\Contracts\Session\Session;
 use Illuminate\Http\Request;
 
 it('shares app name from config', function (): void {
@@ -101,7 +102,7 @@ it('shares the flash status with every page', function (): void {
     );
 
     $request = Request::create('/', 'GET');
-    $store = app('session.store');
+    $store = resolve(Session::class);
     $request->setLaravelSession($store);
 
     $shared = $middleware->share($request);

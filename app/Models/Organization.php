@@ -6,6 +6,7 @@ namespace App\Models;
 
 use Carbon\CarbonInterface;
 use Database\Factories\OrganizationFactory;
+use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -22,6 +23,11 @@ use Laravel\Cashier\Billable;
  * @property-read CarbonInterface $created_at
  * @property-read CarbonInterface $updated_at
  */
+#[Fillable([
+    'name',
+    'trial_ends_at',
+    'owner_id',
+])]
 final class Organization extends Model
 {
     use Billable;
@@ -30,19 +36,6 @@ final class Organization extends Model
     use HasFactory;
 
     use HasUuids;
-
-    /**
-     * The organization's own mass-assignable columns. The Cashier customer
-     * columns (stripe_id, pm_type, pm_last_four) stay out: Cashier writes
-     * them through direct attribute assignment, never through fill().
-     *
-     * @var list<string>
-     */
-    protected $fillable = [
-        'name',
-        'trial_ends_at',
-        'owner_id',
-    ];
 
     /**
      * @return array<string, string>

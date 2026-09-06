@@ -87,9 +87,7 @@ final readonly class CreateClient
                     'remark' => $attributes['remark'] ?? null,
                 ]));
             } catch (UniqueConstraintViolationException $exception) {
-                if ($attempt >= self::MAX_NUMBER_ATTEMPTS) {
-                    throw $exception;
-                }
+                throw_if($attempt >= self::MAX_NUMBER_ATTEMPTS, $exception);
             }
         }
     }

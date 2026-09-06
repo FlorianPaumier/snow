@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Mail;
 
 final readonly class SendOrganizationInviteCode
 {
-    public function __construct(private readonly GenerateOrganizationInviteCode $generateCode) {}
+    public function __construct(private GenerateOrganizationInviteCode $generateCode) {}
 
     /**
      * Issue an invite code for the prospect's email and deliver it.

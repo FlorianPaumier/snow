@@ -38,8 +38,7 @@ final class ValidOrganizationInviteCode implements DataAwareRule, ValidationRule
 
         $invite = OrganizationInvite::query()
             ->where('email', mb_strtolower($email))
-            ->whereNull('claimed_at')
-            ->orderByDesc('created_at')
+            ->whereNull('claimed_at')->latest()
             ->first();
 
         if ($invite === null
@@ -52,8 +51,10 @@ final class ValidOrganizationInviteCode implements DataAwareRule, ValidationRule
     /**
      * @param  array<string, mixed>  $data
      */
-    public function setData(array $data): void
+    public function setData(array $data): static
     {
         $this->data = $data;
+
+        return $this;
     }
 }

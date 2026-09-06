@@ -23,16 +23,13 @@ final readonly class ClaimOrganizationInvite
         $claimed = OrganizationInvite::query()
             ->where('email', mb_strtolower($email))
             ->whereNull('claimed_at')
-            ->where('expires_at', '>', now())
-            ->orderByDesc('created_at')
+            ->where('expires_at', '>', now())->latest()
             ->get()
             ->first(fn (OrganizationInvite $invite) => Hash::check($code, $invite->code));
 
-        if ($claimed === null) {
-            // Raced or tampered between validation and claim: aborting
-            // throws out of the surrounding transaction...
-            throw new InviteClaimConflict;
-        }
+        // Raced or tampered between validation and claim: aborting
+        // throws out of the surrounding transaction...
+        throw_if($claimed === null, InviteClaimConflict::class);
 
         $claimed->forceFill(['claimed_at' => now()])->save();
     }

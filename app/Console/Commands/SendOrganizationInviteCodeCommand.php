@@ -20,8 +20,6 @@ final class SendOrganizationInviteCodeCommand extends Command
     {
         $email = $this->argument('email');
 
-        assert(is_string($email));
-
         $action->handle($email);
 
         $this->info(sprintf('Invite code sent to %s.', $email));

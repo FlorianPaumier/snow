@@ -14,7 +14,7 @@ use SensitiveParameter;
 
 final readonly class CreateOrganization
 {
-    public function __construct(private readonly ClaimOrganizationInvite $claimInvite) {}
+    public function __construct(private ClaimOrganizationInvite $claimInvite) {}
 
     /**
      * Create an organization with its owner (admin) user and a 14-day
@@ -29,7 +29,7 @@ final readonly class CreateOrganization
             // Claiming first: on conflict the whole registration rolls
             // back and no half-created organization survives...
             if ($inviteCode !== null) {
-                $this->claimInvite?->handle($attributes['email'], $inviteCode);
+                $this->claimInvite->handle($attributes['email'], $inviteCode);
             }
 
             $organization = Organization::query()->create([

@@ -6,6 +6,7 @@ namespace App\Models;
 
 use App\Models\Concerns\BelongsToOrganization;
 use Database\Factories\ContractServiceFactory;
+use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\WithoutTimestamps;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -22,23 +23,19 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property-read Contract $contract
  */
 #[WithoutTimestamps]
+#[Fillable([
+    'organization_id',
+    'contract_id',
+    'label',
+    'amount',
+    'position',
+])]
 final class ContractService extends Model
 {
     use BelongsToOrganization;
 
     /** @use HasFactory<ContractServiceFactory> */
     use HasFactory;
-
-    /**
-     * @var list<string>
-     */
-    protected $fillable = [
-        'organization_id',
-        'contract_id',
-        'label',
-        'amount',
-        'position',
-    ];
 
     /**
      * @return BelongsTo<Organization, $this>

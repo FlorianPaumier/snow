@@ -25,9 +25,9 @@ function stripeSignature(string $payload, string $secret, ?int $timestamp = null
 {
     $timestamp ??= time();
 
-    $signature = hash_hmac('sha256', "{$timestamp}.{$payload}", $secret);
+    $signature = hash_hmac('sha256', sprintf('%d.%s', $timestamp, $payload), $secret);
 
-    return "t={$timestamp},v1={$signature}";
+    return sprintf('t=%d,v1=%s', $timestamp, $signature);
 }
 
 beforeEach(function (): void {

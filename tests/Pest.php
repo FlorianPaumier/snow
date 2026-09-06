@@ -36,7 +36,7 @@ expect()->extend('toBeOne', fn () => $this->toBe(1));
  */
 function issueInvite(string $email = 'prospect@example.com'): string
 {
-    return app(GenerateOrganizationInviteCode::class)->handle($email);
+    return resolve(GenerateOrganizationInviteCode::class)->handle($email);
 }
 
 /**
