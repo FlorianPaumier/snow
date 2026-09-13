@@ -1,2 +1,14 @@
 User-agent: *
-Disallow:
+Disallow: /dashboard
+Disallow: /clients
+Disallow: /contracts
+Disallow: /payments
+Disallow: /settings
+Disallow: /users
+Disallow: /login
+Disallow: /register
+Disallow: /forgot-password
+Disallow: /reset-password
+Disallow: /accept-invitation
+
+Sitemap: /sitemap.xml

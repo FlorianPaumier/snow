@@ -1,0 +1,30 @@
+# Frostline OPS
+
+> Frostline OPS is back-office software for snow removal businesses.
+
+## What it does
+
+- Manages commercial and residential client records.
+- Organizes seasonal contracts with itemized services.
+- Tracks deposits, installments, balances, payment methods, and payment dates.
+- Produces printable invoices and payment receipts as PDFs.
+- Exports a season of payment records as CSV for accounting.
+- Provides revenue and client-growth dashboards.
+
+## Who it is for
+
+Snow removal contractors and their office teams who need one reliable place for clients, contracts, payments, and receipts. Frostline OPS does not dispatch trucks or manage field crews.
+
+## Plans
+
+Every plan starts with a 14-day free trial and no credit card. The Free plan supports one user and up to 15 clients. Pro supports unlimited users and clients and is billed annually at CA$300, tax-exclusive.
+
+## Public pages
+
+- [Home](/)
+- [Features](/features)
+- [Pricing](/pricing)
+- [About](/about)
+- [Contact](/contact)
+- [Terms](/terms)
+- [Privacy](/privacy)

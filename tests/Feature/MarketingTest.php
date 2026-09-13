@@ -36,6 +36,15 @@ it('reports live component health on the status page', function (): void {
     );
 });
 
+it('publishes a crawlable sitemap for public pages', function (): void {
+    $this->get('/sitemap.xml')
+        ->assertOk()
+        ->assertHeader('Content-Type', 'application/xml')
+        ->assertSee('<loc>http://localhost/</loc>', false)
+        ->assertSee('<loc>http://localhost/features</loc>', false)
+        ->assertDontSee('/dashboard', false);
+});
+
 it('degrades a failing component instead of failing the status page', function (): void {
     // A cache store that explodes keeps its probe row red while the page
     // itself stays up — the probes must never take the page down with

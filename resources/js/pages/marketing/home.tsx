@@ -278,6 +278,31 @@ export default function Home() {
         <MarketingLayout
             title="Frostline OPS — Snow Removal Contract & Payment Software"
             route={ROUTES.home}
+            description="Snow removal business software for client management, seasonal contracts, payment tracking, invoices, receipts, and season reporting. Start a 14-day trial with Frostline OPS."
+            structuredData={{
+                '@context': 'https://schema.org',
+                '@graph': [
+                    {
+                        '@type': 'SoftwareApplication',
+                        name: 'Frostline OPS',
+                        applicationCategory: 'BusinessApplication',
+                        operatingSystem: 'Web',
+                        description: 'Back-office software for snow removal businesses.',
+                        url: new URL(ROUTES.home, window.location.origin).toString(),
+                    },
+                    {
+                        '@type': 'FAQPage',
+                        mainEntity: homeFaqs.map((faq) => ({
+                            '@type': 'Question',
+                            name: faq.q,
+                            acceptedAnswer: {
+                                '@type': 'Answer',
+                                text: faq.a,
+                            },
+                        })),
+                    },
+                ],
+            }}
         >
             {/* 1 · Hero */}
             <section

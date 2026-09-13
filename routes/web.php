@@ -33,6 +33,7 @@ use App\Http\Controllers\UserInvitationController;
 use App\Http\Controllers\UserManagementController;
 use App\Http\Controllers\UserPasswordController;
 use App\Http\Controllers\UserProfileController;
+use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -50,6 +51,16 @@ Route::get('privacy', fn () => Inertia::render('marketing/privacy'))->name('priv
 Route::get('status', fn (GetSystemStatus $systemStatus) => Inertia::render('marketing/status', [
     'components' => $systemStatus->handle(),
 ]))->name('status');
+
+Route::get('sitemap.xml', function () {
+    $urls = collect(['/', '/features', '/pricing', '/about', '/contact', '/terms', '/privacy'])
+        ->map(fn (string $path): string => '<url><loc>'.e(mb_rtrim(config('app.url'), '/').$path).'</loc></url>')
+        ->implode('');
+
+    return Response::make('<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'.$urls.'</urlset>', 200, [
+        'Content-Type' => 'application/xml',
+    ]);
+})->name('sitemap');
 
 Route::middleware(['auth', 'verified:verification.notice'])->group(function (): void {
     Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
