@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Actions\GenerateOrganizationInviteCode;
 use App\Models\User;
+use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
@@ -15,7 +16,6 @@ use Pest\Browser\Api\PendingAwaitablePage;
 use Tests\TestCase;
 
 pest()->extend(TestCase::class)
-    ->use(RefreshDatabase::class)
     ->beforeEach(function (): void {
         Str::createRandomStringsNormally();
         Str::createUuidsNormally();
@@ -26,6 +26,9 @@ pest()->extend(TestCase::class)
         $this->freezeTime();
     })
     ->in('Browser', 'Feature', 'Unit');
+
+pest()->use(LazilyRefreshDatabase::class)->in('Unit');
+pest()->use(RefreshDatabase::class)->in('Browser', 'Feature');
 
 expect()->extend('toBeOne', fn () => $this->toBe(1));
 

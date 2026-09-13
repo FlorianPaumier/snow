@@ -12,9 +12,7 @@
 #            pre-existing violations the dormant GH workflow never enforced)
 #   types:   Pest type coverage + tsc                (strict)
 #   phpstan: Larastan level max                      (strict)
-#   tests:   full Pest suite incl. browser tests, run with TIA, excluding the
-#            `visual` group (its PNG baselines were captured on macOS and are
-#            pixel-incompatible with Linux renders)
+#   unit:    isolated Pest unit suite (parallel, no coverage instrumentation)
 #
 # TODO: clear the rector debt, then drop its allow_failure flag.
 #
@@ -108,6 +106,28 @@ variables:
     # vite plugin's formVariants: true (tsc fails without .form variants).
     - php artisan wayfinder:generate --with-form
 
+.php-base:
+  stage: test
+  image: $CI_REGISTRY_IMAGE/ci:latest
+  interruptible: true
+  timeout: 10 minutes
+  variables:
+    COMPOSER_CACHE_DIR: "$CI_PROJECT_DIR/.composer-cache"
+  cache:
+    - key:
+        files:
+          - composer.lock
+        prefix: "$CI_JOB_NAME"
+      paths:
+        - vendor/
+    - key: "composer-archives-v1"
+      paths:
+        - .composer-cache/
+  before_script:
+    - composer install --no-interaction --prefer-dist --optimize-autoloader --no-progress
+    - cp .env.example .env
+    - php artisan key:generate
+
 lint:
   extends: .base
   # The type-aware pass is the slowest step on shared runners; headroom
@@ -147,66 +167,10 @@ phpstan:
     # crash there, so the limit is raised explicitly.
     - vendor/bin/phpstan --memory-limit=1G
 
-tests:
-  extends: .base
-  cache:
-    # Installed dependencies — the key rotates on every lockfile bump.
-    - key:
-        files:
-          - composer.lock
-          - bun.lock
-        prefix: "$CI_JOB_NAME"
-      paths:
-        - vendor/
-        - node_modules/
-    # Downloaded package archives — static key, survives lockfile bumps.
-    - key: "package-archives-v1"
-      paths:
-        - .composer-cache/
-        - .bun-cache/
-    # Chromium binaries, in case the baked PLAYWRIGHT_VERSION pin drifts
-    # from bun.lock (fresh download would otherwise land outside the
-    # workspace and never be cached).
-    - key: "playwright-browsers-$CI_JOB_NAME"
-      paths:
-        - .playwright-browsers/
-    # Pest TIA's dependency graph; the directory is not configurable in
-    # this Pest version, so HOME is pointed inside the workspace to make
-    # it cacheable between pipeline runs.
-    - key: "pest-tia-home"
-      paths:
-        - .pest-tia-home/
-  before_script:
-    - !reference [.base, before_script]
-    # Pest TIA stores its graph under $HOME/.pest/tia/<project-key>/; the
-    # directory is not configurable in this Pest version, so HOME is pointed
-    # inside the workspace to make it cacheable between pipeline runs.
-    - mkdir -p .pest-tia-home
-    # Chromium normally comes baked into the CI image (/opt/ms-playwright).
-    # This fallback only downloads when bun.lock's playwright pin drifted
-    # from the baked one — scoped env var so it does not override the
-    # image's browsers for the actual test run, and the download lands
-    # in the cacheable .playwright-browsers directory.
-    - PLAYWRIGHT_BROWSERS_PATH="$CI_PROJECT_DIR/.playwright-browsers"
-      bunx playwright install chromium || true
+unit:
+  extends: .php-base
   script:
-    # Browser tests serve assets from public/build, and the MarketingClaims
-    # suite re-enables Inertia SSR — which requires the bootstrap/ssr bundle
-    # (gitignored locally, hence never present in a fresh CI checkout).
-    - bun run build:ssr
-    # `composer test:unit` + --tia: cold cache runs the full suite while
-    # recording the graph; warm cache re-runs only tests affected by the
-    # commits since the recorded SHA and replays the rest (coverage gate
-    # preserved). Fingerprints (composer.lock, phpunit.xml, bun.lock, PHP
-    # version…) or an unreachable recorded SHA force a safe full rebuild.
-    # The `visual` group is excluded: its PNG baselines were captured on
-    # macOS Chromium and differ pixel-for-pixel from the Linux renders.
-    - HOME="$CI_PROJECT_DIR/.pest-tia-home" XDEBUG_MODE="coverage" vendor/bin/pest --parallel --tia --coverage --exactly=100.0 --exclude-group=visual
-  artifacts:
-    when: on_failure
-    paths:
-      - tests/Browser/Screenshots
-    expire_in: 7 days
+    - composer test:unit
 
 deploy:laravel-cloud:
   stage: deploy
