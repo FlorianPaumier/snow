@@ -287,8 +287,12 @@ export default function Home() {
                         name: 'Frostline OPS',
                         applicationCategory: 'BusinessApplication',
                         operatingSystem: 'Web',
-                        description: 'Back-office software for snow removal businesses.',
-                        url: new URL(ROUTES.home, window.location.origin).toString(),
+                        description:
+                            'Back-office software for snow removal businesses.',
+                        url: new URL(
+                            ROUTES.home,
+                            window.location.origin,
+                        ).toString(),
                     },
                     {
                         '@type': 'FAQPage',

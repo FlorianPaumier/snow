@@ -54,7 +54,7 @@ Route::get('status', fn (GetSystemStatus $systemStatus) => Inertia::render('mark
 
 Route::get('sitemap.xml', function () {
     $urls = collect(['/', '/features', '/pricing', '/about', '/contact', '/terms', '/privacy'])
-        ->map(fn (string $path): string => '<url><loc>'.e(mb_rtrim(config('app.url'), '/').$path).'</loc></url>')
+        ->map(fn (string $path): string => '<url><loc>'.e(mb_rtrim((string)config('app.url'), '/').$path).'</loc></url>')
         ->implode('');
 
     return Response::make('<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'.$urls.'</urlset>', 200, [

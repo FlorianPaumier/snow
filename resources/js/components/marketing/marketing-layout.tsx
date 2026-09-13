@@ -20,18 +20,53 @@ export function MarketingLayout({
     return (
         <div className="flex min-h-screen flex-col">
             <Head title={title}>
-                <meta name="description" content={description} head-key="description" />
-                <link rel="canonical" href={canonicalUrl} head-key="canonical" />
+                <meta
+                    name="description"
+                    content={description}
+                    head-key="description"
+                />
+                <link
+                    rel="canonical"
+                    href={canonicalUrl}
+                    head-key="canonical"
+                />
                 <meta property="og:type" content="website" head-key="og:type" />
-                <meta property="og:site_name" content="Frostline OPS" head-key="og:site_name" />
+                <meta
+                    property="og:site_name"
+                    content="Frostline OPS"
+                    head-key="og:site_name"
+                />
                 <meta property="og:title" content={title} head-key="og:title" />
-                <meta property="og:description" content={description} head-key="og:description" />
-                <meta property="og:url" content={canonicalUrl} head-key="og:url" />
-                <meta name="twitter:card" content="summary" head-key="twitter:card" />
-                <meta name="twitter:title" content={title} head-key="twitter:title" />
-                <meta name="twitter:description" content={description} head-key="twitter:description" />
+                <meta
+                    property="og:description"
+                    content={description}
+                    head-key="og:description"
+                />
+                <meta
+                    property="og:url"
+                    content={canonicalUrl}
+                    head-key="og:url"
+                />
+                <meta
+                    name="twitter:card"
+                    content="summary"
+                    head-key="twitter:card"
+                />
+                <meta
+                    name="twitter:title"
+                    content={title}
+                    head-key="twitter:title"
+                />
+                <meta
+                    name="twitter:description"
+                    content={description}
+                    head-key="twitter:description"
+                />
                 {structuredData ? (
-                    <script type="application/ld+json" head-key="structured-data">
+                    <script
+                        type="application/ld+json"
+                        head-key="structured-data"
+                    >
                         {JSON.stringify(structuredData)}
                     </script>
                 ) : null}
