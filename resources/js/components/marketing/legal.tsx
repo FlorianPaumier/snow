@@ -8,18 +8,24 @@ export function LegalPage({
     route,
     description,
     updated,
+    locale,
     children,
 }: {
     title: string;
     route: string;
     description: string;
     updated: string;
+    locale: 'fr' | 'en';
     children: React.ReactNode;
 }) {
     return (
-        <MarketingLayout title={`${title} — Frostline OPS`} route={route}>
+        <MarketingLayout
+            title={`${title} — Frostline OPS`}
+            route={route}
+            description={description}
+        >
             <PageHero
-                eyebrow="Legal"
+                eyebrow={locale === 'fr' ? 'Juridique' : 'Legal'}
                 title={title}
                 description={description}
                 compact
@@ -27,7 +33,9 @@ export function LegalPage({
             <section className="py-12 md:py-16">
                 <div className="mx-auto w-full max-w-3xl px-4 sm:px-6 lg:px-8">
                     <p className="font-mono text-[11px] font-medium tracking-[0.14em] text-muted-foreground uppercase">
-                        Last updated {updated}
+                        {locale === 'fr'
+                            ? `Dernière mise à jour : ${updated}`
+                            : `Last updated ${updated}`}
                     </p>
                     <div className="mt-10 flex flex-col gap-10">{children}</div>
                 </div>

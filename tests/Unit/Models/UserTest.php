@@ -22,6 +22,10 @@ test('to array', function (): void {
             'role',
             'organization_id',
             'invitation_accepted_at',
+            'terms_accepted_at',
+            'terms_version',
+            'privacy_version',
+            'legal_locale',
         ]);
 });
 

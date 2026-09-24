@@ -4,12 +4,11 @@ declare(strict_types=1);
 
 namespace App\Actions;
 
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use RuntimeException;
 
 /**
- * Deletes a stored document PDF from the default disk, warning instead of
- * throwing when the delete fails.
+ * Deletes a stored document PDF from the default disk.
  *
  * The generate flows short-circuit while a stored file exists, so a
  * silently-failed delete keeps serving a stale document (or, after
@@ -23,10 +22,6 @@ final readonly class DeleteStoredDocument
     {
         $disk = Storage::disk(config()->string('filesystems.default'));
 
-        if (! $disk->delete($path)) {
-            Log::warning('A stored document PDF could not be deleted.', [
-                'path' => $path,
-            ]);
-        }
+        throw_unless($disk->delete($path), RuntimeException::class, 'The stored document could not be deleted: '.$path);
     }
 }

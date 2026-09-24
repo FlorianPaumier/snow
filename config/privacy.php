@@ -23,4 +23,6 @@ return [
     // config()->integer() throws on anything else.
     'client_retention_years' => (int) env('CLIENT_RETENTION_YEARS', 6),
 
+    'contact_inquiry_retention_months' => (int) env('CONTACT_INQUIRY_RETENTION_MONTHS', 24),
+
 ];

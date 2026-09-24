@@ -23,6 +23,7 @@ export default function Status({ components }: Props) {
     return (
         <MarketingLayout
             title="System status — Frostline OPS"
+            index={false}
             route={ROUTES.status}
         >
             <PageHero

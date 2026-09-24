@@ -1,8 +1,18 @@
+@php
+    $isLocalizedLegalPage = in_array($page['component'], ['marketing/privacy', 'marketing/terms'], true);
+    $documentLocale = $isLocalizedLegalPage
+        ? data_get($page, 'props.locale', app()->getLocale())
+        : (str_starts_with($page['component'], 'marketing/') ? 'en' : app()->getLocale());
+@endphp
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" @class(['dark' => ($appearance ?? 'system') == 'dark'])>
+<html lang="{{ str_replace('_', '-', $documentLocale) }}" @class(['dark' => ($appearance ?? 'system') == 'dark'])>
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        @unless (str_starts_with($page['component'], 'marketing/'))
+            <meta name="robots" content="noindex, nofollow">
+        @endunless
 
         {{-- Inline script to detect system dark mode preference and apply it immediately --}}
         <script>

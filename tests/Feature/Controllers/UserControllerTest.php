@@ -45,6 +45,10 @@ it('may register a new user', function (): void {
         ->and($user->email)->toBe('test@example.com')
         ->and($user->organization->name)->toBe('Test Company')
         ->and($user->organization->trial_ends_at)->not->toBeNull()
+        ->and($user->terms_accepted_at)->not->toBeNull()
+        ->and($user->terms_version)->toBe(config('legal.terms_version'))
+        ->and($user->privacy_version)->toBe(config('legal.privacy_version'))
+        ->and($user->legal_locale)->toBe(app()->getLocale())
         ->and(Hash::check('password1234', $user->password))->toBeTrue()
         ->and($user->login_challenge_code)->not->toBeNull()
         ->and(session('login.id'))->toBe($user->getKey());

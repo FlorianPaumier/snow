@@ -111,6 +111,27 @@ it('requires guests to authenticate', function (): void {
         ->assertRedirect(route('login'));
 });
 
+it('neutralizes spreadsheet formulas in exported client fields', function (): void {
+    $admin = User::factory()->admin()->create();
+    $client = Client::factory()->forOrganization($admin->organization)->create([
+        'firstName' => '=HYPERLINK("https://evil.test")',
+        'lastName' => '@SUM(1+1)',
+        'email' => '+malicious@example.com',
+    ]);
+    $contract = Contract::factory()->forClient($client)->create(['season' => '2025-2026']);
+    $contract->payments()->create([
+        'slot' => PaymentSlot::SLOT_DEPOSIT,
+        'amount' => 10000,
+        'paid' => false,
+    ]);
+
+    $response = $this->actingAs($admin)->get(route('payments.export', ['season' => '2025-2026']));
+    $row = exportedRows($response->streamedContent())[0];
+
+    expect($row['Client'])->toStartWith("'")
+        ->and($row['Courriel'])->toBe("'+malicious@example.com");
+});
+
 it('validates the season against the seasons that have contracts', function (): void {
     $admin = User::factory()->admin()->create();
 

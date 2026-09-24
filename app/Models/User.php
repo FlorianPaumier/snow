@@ -24,6 +24,10 @@ use Laravel\Fortify\TwoFactorAuthenticatable;
  * @property-read string $name
  * @property-read string $email
  * @property-read CarbonInterface|null $email_verified_at
+ * @property-read CarbonInterface|null $terms_accepted_at
+ * @property-read string|null $terms_version
+ * @property-read string|null $privacy_version
+ * @property-read string|null $legal_locale
  * @property-read CarbonInterface|null $invitation_accepted_at
  * @property-read string $password
  * @property-read UserRole $role
@@ -49,6 +53,10 @@ use Laravel\Fortify\TwoFactorAuthenticatable;
     'name',
     'email',
     'email_verified_at',
+    'terms_accepted_at',
+    'terms_version',
+    'privacy_version',
+    'legal_locale',
     'invitation_accepted_at',
     'password',
     'role',
@@ -81,6 +89,10 @@ final class User extends Authenticatable implements MustVerifyEmail
             'name' => 'string',
             'email' => 'string',
             'email_verified_at' => 'datetime',
+            'terms_accepted_at' => 'datetime',
+            'terms_version' => 'string',
+            'privacy_version' => 'string',
+            'legal_locale' => 'string',
             'invitation_accepted_at' => 'datetime',
             'role' => UserRole::class,
             'password' => 'hashed',

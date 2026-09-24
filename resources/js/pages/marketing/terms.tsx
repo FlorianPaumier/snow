@@ -1,14 +1,51 @@
+import { usePage } from '@inertiajs/react';
 import { LegalPage, LegalSection } from '@/components/marketing/legal';
 import { ROUTES } from '@/components/marketing/routes';
 import TextLink from '@/components/text-link';
 
+function LegalIdentity({ locale }: { locale: 'fr' | 'en' }) {
+    const { legal } = usePage().props;
+
+    return (
+        <>
+            <strong className="text-foreground">
+                {legal.operatorName ?? 'Frostline'}
+            </strong>
+            {legal.mailingAddress ? ` — ${legal.mailingAddress}` : null}
+            {legal.privacyEmail ? (
+                <>
+                    {' — '}
+                    <a href={`mailto:${legal.privacyEmail}`}>
+                        {legal.privacyEmail}
+                    </a>
+                </>
+            ) : null}
+            {!legal.privacyEmail ? (
+                <>
+                    {' — '}
+                    <TextLink href={ROUTES.contact}>
+                        {locale === 'fr' ? 'nous joindre' : 'contact us'}
+                    </TextLink>
+                </>
+            ) : null}
+        </>
+    );
+}
+
 export default function Terms() {
+    const locale = usePage().props.locale === 'en' ? 'en' : 'fr';
+
+    if (locale === 'fr') {
+        return <FrenchTerms />;
+    }
+
     return (
         <LegalPage
             title="Terms of Service"
             route={ROUTES.terms}
             description="The agreement between your business and Frostline for using the Frostline OPS back-office service."
-            updated="September 2, 2026"
+            updated="September 24, 2026"
+            locale="en"
         >
             <LegalSection number="1" title="Accepting these terms">
                 <p>
@@ -61,9 +98,11 @@ export default function Terms() {
                     renew automatically at the end of each billing period unless
                     you cancel before then. You can cancel at any time from your
                     billing settings; Pro features continue until the end of the
-                    period you have already paid for, after which your
-                    organization returns to the Free plan — your data stays,
-                    subject to the Free plan's caps.
+                    period you have already paid for. Payments are
+                    non-refundable except where required by law or expressly
+                    stated in an offer. After the paid period, your organization
+                    returns to the Free plan — your data stays, subject to the
+                    Free plan's caps.
                 </p>
                 <p>
                     If a payment fails, your organization returns to the Free
@@ -89,9 +128,11 @@ export default function Terms() {
                     The clients, contracts, payments, and receipts you record in
                     the Service belong to your business. We treat that content
                     as confidential, use it only to provide and support the
-                    Service for you, and never sell it. You may export or
-                    request the deletion of your organization&rsquo;s data at
-                    any time by contacting us.
+                    Service for you, and never sell it. Self-service export is
+                    currently limited to seasonal payment data. An owner may
+                    request a broader export or organization deletion through
+                    our contact page. We verify authority and identify records
+                    retained for legal, accounting, or security purposes.
                 </p>
                 <p>
                     You are responsible for keeping the personal information
@@ -153,12 +194,145 @@ export default function Terms() {
                 </p>
             </LegalSection>
 
-            <LegalSection number="10" title="Contact">
+            <LegalSection number="10" title="Intellectual property">
                 <p>
-                    Questions about these Terms can be sent through our{' '}
-                    <TextLink href={ROUTES.contact}>contact page</TextLink>. If
-                    a specific provision of these Terms is found unenforceable,
-                    the rest of the agreement still applies.
+                    The Service, its software, brand, and documentation are
+                    owned by us or used under licence. We grant you a limited,
+                    non-exclusive, non-transferable right to use the Service
+                    while your account remains active.
+                </p>
+            </LegalSection>
+
+            <LegalSection number="11" title="Governing law and contact">
+                <p>
+                    These Terms are governed by the laws of Quebec and the
+                    applicable federal laws of Canada, without limiting any
+                    mandatory protections. The competent courts of Quebec have
+                    jurisdiction, subject to mandatory rules.
+                </p>
+                <p>
+                    Operator: <LegalIdentity locale="en" />. If a provision is
+                    found unenforceable, the rest of the agreement continues to
+                    apply.
+                </p>
+            </LegalSection>
+        </LegalPage>
+    );
+}
+
+function FrenchTerms() {
+    return (
+        <LegalPage
+            title="Conditions d’utilisation"
+            route={ROUTES.terms}
+            description="L’entente qui encadre l’utilisation de Frostline OPS par votre entreprise."
+            updated="24 septembre 2026"
+            locale="fr"
+        >
+            <LegalSection number="1" title="Acceptation et langue">
+                <p>
+                    Ces conditions constituent une entente entre l’entreprise
+                    qui crée le compte et l’exploitant de Frostline OPS (« nous
+                    ») relativement au site, au tableau de bord et aux fonctions
+                    connexes (le « Service »). La version française doit être
+                    remise et accessible avant qu’une autre langue soit choisie.
+                </p>
+                <p>
+                    En créant un compte ou en utilisant le Service, vous
+                    acceptez ces conditions et notre{' '}
+                    <TextLink href={ROUTES.privacy}>
+                        politique de confidentialité
+                    </TextLink>
+                    . Une personne agissant pour une entreprise déclare avoir le
+                    pouvoir de la lier. Tout choix d’utiliser une version
+                    anglaise doit être exprès et distinct.
+                </p>
+            </LegalSection>
+            <LegalSection number="2" title="Compte et utilisation acceptable">
+                <p>
+                    Vous devez avoir au moins 18 ans ou l’âge de la majorité
+                    applicable, fournir des renseignements exacts et protéger
+                    les accès de votre équipe. Vous ne tenterez pas d’accéder
+                    aux données d’autrui, de contourner la sécurité, de
+                    surcharger le Service, d’y déposer du contenu illicite ou de
+                    revendre l’accès sans entente écrite.
+                </p>
+            </LegalSection>
+            <LegalSection number="3" title="Essai, forfaits et facturation">
+                <p>
+                    Le Service commence par un essai gratuit sans carte, puis
+                    passe au forfait Gratuit plafonné. Les forfaits payants sont
+                    facturés annuellement par Stripe, taxes applicables en sus
+                    sauf indication contraire au paiement.
+                </p>
+                <p>
+                    Ils se renouvellent automatiquement jusqu’à leur annulation
+                    avant le renouvellement. L’annulation prend effet à la fin
+                    de la période payée. Les paiements ne sont pas
+                    remboursables, sauf lorsque la loi l’exige ou qu’une offre
+                    l’indique. Nous donnerons un préavis raisonnable avant une
+                    modification de prix.
+                </p>
+            </LegalSection>
+            <LegalSection number="4" title="Vos données">
+                <p>
+                    Votre entreprise conserve ses droits sur les dossiers saisis
+                    et nous autorise seulement à les traiter pour fournir le
+                    Service. Vous devez disposer du fondement requis pour
+                    traiter les renseignements de vos clients.
+                </p>
+                <p>
+                    L’export libre-service est limité aux paiements d’une
+                    saison. Pour un export plus large ou la suppression de
+                    l’organisation, le propriétaire doit utiliser la page de
+                    contact. Nous vérifierons son autorité et préciserons les
+                    éléments devant être conservés pour des motifs légaux,
+                    comptables ou de sécurité.
+                </p>
+            </LegalSection>
+            <LegalSection
+                number="5"
+                title="Disponibilité, suspension et résiliation"
+            >
+                <p>
+                    Nous ne garantissons pas un Service ininterrompu ou sans
+                    erreur. Vous pouvez annuler en tout temps. Nous pouvons
+                    suspendre ou résilier un compte en cas de violation
+                    importante, de risque légal ou de paiement non résolu.
+                    Lorsque possible, nous donnerons un avis et l’occasion de
+                    demander les données avant leur suppression selon notre
+                    calendrier.
+                </p>
+            </LegalSection>
+            <LegalSection number="6" title="Propriété intellectuelle">
+                <p>
+                    Le Service, sa marque, son logiciel et sa documentation nous
+                    appartiennent ou sont utilisés sous licence. Nous vous
+                    accordons un droit limité, non exclusif et non transférable
+                    de l’utiliser pendant la durée du compte.
+                </p>
+            </LegalSection>
+            <LegalSection number="7" title="Garanties et responsabilité">
+                <p>
+                    Le Service est fourni « tel quel » et « selon sa
+                    disponibilité », sous réserve des garanties qui ne peuvent
+                    être exclues. Dans la mesure permise par la loi, aucune
+                    partie n’est responsable des dommages indirects et notre
+                    responsabilité totale est limitée aux sommes payées au cours
+                    des douze mois précédant la réclamation.
+                </p>
+            </LegalSection>
+            <LegalSection number="8" title="Droit applicable et contact">
+                <p>
+                    Les lois du Québec et les lois fédérales du Canada
+                    applicables régissent les conditions sans retirer les
+                    protections impératives. Les tribunaux compétents du Québec
+                    ont compétence, sous réserve des règles impératives.
+                </p>
+                <p>
+                    Exploitant : <LegalIdentity locale="fr" />. Si une
+                    disposition est déclarée inapplicable, les autres
+                    dispositions continuent de s’appliquer.
                 </p>
             </LegalSection>
         </LegalPage>

@@ -22,7 +22,7 @@ final readonly class ExportSeasonPayments
      */
     public static function headers(): array
     {
-        return [
+        return array_map(self::escapeSpreadsheetFormula(...), [
             'Saison',
             'Référence contrat',
             'Date du contrat',
@@ -39,7 +39,7 @@ final readonly class ExportSeasonPayments
             'Payé',
             'Date de paiement',
             'Méthode',
-        ];
+        ]);
     }
 
     /**
@@ -73,6 +73,11 @@ final readonly class ExportSeasonPayments
         }
     }
 
+    private static function escapeSpreadsheetFormula(string $value): string
+    {
+        return preg_match('/^[=+\-@]/', $value) === 1 ? "'".$value : $value;
+    }
+
     /**
      * @return list<string>
      */
@@ -80,7 +85,7 @@ final readonly class ExportSeasonPayments
     {
         $client = $contract->client;
 
-        return [
+        return array_map(self::escapeSpreadsheetFormula(...), [
             $contract->season,
             $contract->id,
             $contract->created_at->toDateString(),
@@ -97,7 +102,7 @@ final readonly class ExportSeasonPayments
             $payment->paid ? 'Oui' : 'Non',
             $payment->paid_at?->toDateString() ?? '',
             $payment->method?->label() ?? '',
-        ];
+        ]);
     }
 
     /**

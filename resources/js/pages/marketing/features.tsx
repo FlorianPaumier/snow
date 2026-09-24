@@ -578,13 +578,13 @@ function ScopeNote() {
         >
             <div className="mx-auto max-w-2xl rounded-xl border border-border bg-card px-5 text-center md:px-6">
                 <p className="text-sm leading-relaxed text-muted-foreground">
-                    Frostline OPS is a back office, not a dispatch system.
-                    Weather-triggered dispatch, route optimization, a driver
-                    app, photo proof-of-service, and a client portal are on our
-                    roadmap — but they are not in the product today, and we
-                    would rather you know that now than discover it in January.
-                    If running crews in the field is your priority this season,
-                    we will happily tell you we are not your tool — yet.
+                    Frostline OPS is a back office, not a field operations
+                    system. Crew navigation, mobile field workflows, service
+                    evidence, and customer self-service are not in the product
+                    today, and we would rather you know that now than discover
+                    it in January. If running crews in the field is your
+                    priority this season, we will happily tell you we are not
+                    your tool — yet.
                 </p>
             </div>
         </MarketingSection>

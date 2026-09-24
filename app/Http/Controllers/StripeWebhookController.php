@@ -33,6 +33,13 @@ final class StripeWebhookController extends WebhookController
 
     public function __invoke(Request $request): Response
     {
+        abort_if(
+            in_array(config()->string('app.env'), ['staging', 'production'], true)
+                && blank(config('cashier.webhook.secret')),
+            Response::HTTP_SERVICE_UNAVAILABLE,
+            'Stripe webhook signing is not configured.',
+        );
+
         $response = $this->handleWebhook($request);
 
         // Cashier resolves the billable (an Organization here) from the

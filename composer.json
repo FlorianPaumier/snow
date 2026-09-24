@@ -96,8 +96,8 @@
             "bun run test:lint"
         ],
         "test:unit": "pest --compact --parallel --testsuite=Unit",
-        "test:types": [
-            "phpstan",
+    "test:types": [
+      "phpstan --memory-limit=1G",
             "bun run test:types"
         ],
         "test": [

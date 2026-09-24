@@ -1,4 +1,4 @@
-import { Link } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
 import {
     ArrowRight,
     BarChart3,
@@ -274,6 +274,8 @@ function StepCard({ step, index }: { step: HowItWorksStep; index: number }) {
 
 /* ── Page ────────────────────────────────────────────────────────── */
 export default function Home() {
+    const { appUrl } = usePage().props;
+
     return (
         <MarketingLayout
             title="Frostline OPS — Snow Removal Contract & Payment Software"
@@ -289,10 +291,7 @@ export default function Home() {
                         operatingSystem: 'Web',
                         description:
                             'Back-office software for snow removal businesses.',
-                        url: new URL(
-                            ROUTES.home,
-                            window.location.origin,
-                        ).toString(),
+                        url: new URL(ROUTES.home, `${appUrl}/`).toString(),
                     },
                     {
                         '@type': 'FAQPage',

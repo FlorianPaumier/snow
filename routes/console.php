@@ -25,3 +25,8 @@ Schedule::command('clients:anonymize-expired')
     ->dailyAt('03:00')
     ->withoutOverlapping()
     ->onOneServer();
+
+Schedule::command('contact-inquiries:purge-expired')
+    ->dailyAt('03:30')
+    ->withoutOverlapping()
+    ->onOneServer();

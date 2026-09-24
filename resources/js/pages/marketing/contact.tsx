@@ -1,3 +1,4 @@
+import { usePage } from '@inertiajs/react';
 import type { LucideIcon } from 'lucide-react';
 import {
     ArrowRight,
@@ -11,6 +12,7 @@ import { toast } from 'sonner';
 import { MarketingLayout } from '@/components/marketing/marketing-layout';
 import { PageHero } from '@/components/marketing/page-hero';
 import { ROUTES } from '@/components/marketing/routes';
+import TextLink from '@/components/text-link';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -144,6 +146,7 @@ function ContactInfoCard({
 /* ── Page ────────────────────────────────────────────────────────── */
 
 export default function Contact() {
+    const locale = usePage().props.locale === 'en' ? 'en' : 'fr';
     const [form, setForm] = React.useState<ContactFormValues>(EMPTY_FORM);
     const [errors, setErrors] = React.useState<FieldErrors>({});
     const [touched, setTouched] = React.useState<
@@ -476,6 +479,44 @@ export default function Contact() {
                                         <p className="font-mono text-[11px] leading-relaxed tracking-[0.08em] text-muted-foreground">
                                             14-day trial · no card · we reply in
                                             ~2 business hours
+                                        </p>
+                                        <p className="text-xs leading-relaxed text-muted-foreground">
+                                            {locale === 'fr' ? (
+                                                <>
+                                                    Nous utilisons votre nom,
+                                                    courriel, entreprise et
+                                                    message uniquement pour
+                                                    répondre à votre demande et
+                                                    en assurer le suivi. Ils
+                                                    sont supprimés selon notre
+                                                    calendrier de conservation.
+                                                    Consultez notre{' '}
+                                                    <TextLink
+                                                        href={ROUTES.privacy}
+                                                    >
+                                                        politique de
+                                                        confidentialité
+                                                    </TextLink>{' '}
+                                                    ou écrivez-nous pour exercer
+                                                    vos droits.
+                                                </>
+                                            ) : (
+                                                <>
+                                                    We use your name, email,
+                                                    company, and message only to
+                                                    answer and follow up on your
+                                                    request. They are deleted
+                                                    under our retention
+                                                    schedule. Read our{' '}
+                                                    <TextLink
+                                                        href={ROUTES.privacy}
+                                                    >
+                                                        Privacy Policy
+                                                    </TextLink>{' '}
+                                                    or contact us to exercise
+                                                    your rights.
+                                                </>
+                                            )}
                                         </p>
                                     </div>
                                 </form>

@@ -1,4 +1,4 @@
-import { Head } from '@inertiajs/react';
+import { Head, usePage } from '@inertiajs/react';
 import * as React from 'react';
 import { MarketingFooter } from '@/components/marketing/footer';
 import { MarketingNav } from '@/components/marketing/nav';
@@ -8,15 +8,22 @@ export function MarketingLayout({
     route,
     description = 'Frostline OPS is the calm, reliable back office for snow removal businesses: clients, seasonal contracts, payments, and receipts in one place.',
     structuredData,
+    index = true,
     children,
 }: {
     title: string;
     route: string;
     description?: string;
     structuredData?: Record<string, unknown>;
+    index?: boolean;
     children: React.ReactNode;
 }) {
-    const canonicalUrl = new URL(route, window.location.origin).toString();
+    const { appUrl } = usePage().props;
+    const canonicalUrl = new URL(route, `${appUrl}/`).toString();
+    const socialImageUrl = new URL(
+        '/images/plow-night.jpg',
+        `${appUrl}/`,
+    ).toString();
     return (
         <div className="flex min-h-screen flex-col">
             <Head title={title}>
@@ -49,7 +56,7 @@ export function MarketingLayout({
                 />
                 <meta
                     name="twitter:card"
-                    content="summary"
+                    content="summary_large_image"
                     head-key="twitter:card"
                 />
                 <meta
@@ -62,6 +69,23 @@ export function MarketingLayout({
                     content={description}
                     head-key="twitter:description"
                 />
+                <meta
+                    property="og:image"
+                    content={socialImageUrl}
+                    head-key="og:image"
+                />
+                <meta
+                    name="twitter:image"
+                    content={socialImageUrl}
+                    head-key="twitter:image"
+                />
+                {!index ? (
+                    <meta
+                        name="robots"
+                        content="noindex, nofollow"
+                        head-key="robots"
+                    />
+                ) : null}
                 {structuredData ? (
                     <script
                         type="application/ld+json"

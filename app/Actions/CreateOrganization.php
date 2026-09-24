@@ -7,6 +7,7 @@ namespace App\Actions;
 use App\Enums\UserRole;
 use App\Models\Organization;
 use App\Models\User;
+use DateTimeInterface;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
@@ -21,7 +22,7 @@ final readonly class CreateOrganization
      * trial, atomically. When an invite code is given, it is claimed in
      * the same transaction so the code dies with the registration.
      *
-     * @param  array{name: string, userName: string, email: string}  $attributes
+     * @param  array{name: string, userName: string, email: string, termsAcceptedAt?: DateTimeInterface, termsVersion?: string, privacyVersion?: string, legalLocale?: string}  $attributes
      */
     public function handle(array $attributes, #[SensitiveParameter] string $password, #[SensitiveParameter] ?string $inviteCode = null): Organization
     {
@@ -43,6 +44,10 @@ final readonly class CreateOrganization
                 'email' => $attributes['email'],
                 'password' => $password,
                 'role' => UserRole::ROLE_ADMIN,
+                'terms_accepted_at' => $attributes['termsAcceptedAt'] ?? null,
+                'terms_version' => $attributes['termsVersion'] ?? null,
+                'privacy_version' => $attributes['privacyVersion'] ?? null,
+                'legal_locale' => $attributes['legalLocale'] ?? null,
             ]);
 
             // The sign-up user owns the organization; ownership only moves

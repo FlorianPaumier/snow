@@ -8,6 +8,13 @@ declare module '@inertiajs/core' {
         };
         sharedPageProps: {
             name: string;
+            appUrl: string;
+            legal: {
+                operatorName: string | null;
+                mailingAddress: string | null;
+                privacyOfficerTitle: string | null;
+                privacyEmail: string | null;
+            };
             locale: 'fr' | 'en';
             /** Flash success message shared by HandleInertiaRequests. */
             status?: string;

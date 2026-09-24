@@ -42,6 +42,8 @@ final readonly class AnonymizeClient
         $organizationId = $client->organization_id;
         $contractCount = $client->contracts()->count();
 
+        $this->deleteStoredPdfs($client);
+
         DB::transaction(function () use ($client, $actor): void {
             // Identity fields are wiped, not reworded: nullable columns go
             // null, required string columns go empty so nothing personal
@@ -59,8 +61,6 @@ final readonly class AnonymizeClient
                 'anonymized_by' => $actor?->id,
             ])->save();
         });
-
-        $this->deleteStoredPdfs($client);
 
         Log::info('Client anonymized.', [
             'client_id' => $client->id,

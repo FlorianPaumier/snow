@@ -51,6 +51,13 @@ final class HandleInertiaRequests extends Middleware
         return [
             ...parent::share($request),
             'name' => config('app.name'),
+            'appUrl' => mb_rtrim(config()->string('app.url'), '/'),
+            'legal' => [
+                'operatorName' => config('legal.operator_name'),
+                'mailingAddress' => config('legal.mailing_address'),
+                'privacyOfficerTitle' => config('legal.privacy_officer_title'),
+                'privacyEmail' => config('legal.privacy_email'),
+            ],
             'locale' => app()->getLocale(),
             'status' => fn () => $request->session()->get('status'),
             'auth' => [

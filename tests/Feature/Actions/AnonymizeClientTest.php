@@ -10,7 +10,6 @@ use App\Models\Client;
 use App\Models\Contract;
 use App\Models\User;
 use Illuminate\Filesystem\FilesystemAdapter;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 
@@ -119,7 +118,7 @@ it('deletes the stored payment-receipt pdfs of the anonymized client', function 
     $disk->assertExists(GeneratePaymentReceiptPdf::pdfPath($otherPayment->id));
 });
 
-it('warns when a stored document pdf cannot be deleted', function (): void {
+it('does not claim anonymization succeeded when a stored document cannot be deleted', function (): void {
     $fakeDisk = anonymizePdfDisk();
     $user = User::factory()->create();
     $client = Client::factory()->forOrganization($user->organization)->create();
@@ -131,15 +130,8 @@ it('warns when a stored document pdf cannot be deleted', function (): void {
     $failingDisk->shouldReceive('delete')->andReturn(false);
     Storage::set((string) config('filesystems.default'), $failingDisk);
 
-    Log::shouldReceive('warning')->once()->with(
-        'A stored document PDF could not be deleted.',
-        Mockery::on(fn (array $context): bool => str_starts_with((string) $context['path'], 'documents/contracts/')),
-    );
-    Log::shouldReceive('info')->zeroOrMoreTimes()->andReturnNull();
+    expect(fn () => resolve(AnonymizeClient::class)->handle($client, $user))
+        ->toThrow(RuntimeException::class);
 
-    resolve(AnonymizeClient::class)->handle($client, $user);
-
-    // The identity is still wiped in the database: a storage failure warns
-    // the operator but must not abort the erasure halfway...
-    expect($client->fresh()->isAnonymized())->toBeTrue();
+    expect($client->fresh()->isAnonymized())->toBeFalse();
 });

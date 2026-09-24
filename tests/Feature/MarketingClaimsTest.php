@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use Illuminate\Support\Facades\Http;
+
 /*
  * Marketing claims must match what ships. The application is a
  * client/contract/payment back office — it has no dispatch, routing,
@@ -14,21 +16,33 @@ declare(strict_types=1);
  * re-enables SSR for its own process and verifies the page body really
  * contains rendered copy. Otherwise the scan would silently pass
  * against an empty client-only shell. SSR requires a built bundle:
- * `npm run build:ssr` (and the SSR server, which Inertia starts
- * lazily on first request when a bundle exists).
+ * `bun run build:ssr`, followed by `php artisan inertia:start-ssr`.
  */
 
 beforeEach(function (): void {
     config(['inertia.ssr.enabled' => true]);
+    Http::allowStrayRequests([config()->string('inertia.ssr.url').'/*']);
 });
 
 it('renders marketing copy server-side so claims can be scanned', function (): void {
-    $body = $this->get('/features')->getContent();
+    $body = (string) $this->get('/')->getContent();
 
-    // Sanity anchor: the features hero is present in the rendered HTML.
+    // Sanity anchor: the home hero is present in the rendered HTML.
     // If this fails, SSR is off/broken and every claims scan below is
     // testing an empty shell — fix SSR before trusting these tests.
-    expect(mb_strtolower((string) $body))->toContain('back office your snow business runs on');
+    expect(mb_strtolower($body))->toContain('organized to the last balance');
+    expect($body)
+        ->toContain('Frostline OPS — Snow Removal Contract &amp; Payment Software</title>')
+        ->toContain('<link rel="canonical" href="http://localhost/"')
+        ->toContain('property="og:image" content="http://localhost/images/plow-night.jpg"')
+        ->toContain('name="twitter:image" content="http://localhost/images/plow-night.jpg"')
+        ->toContain('"url":"http://localhost/"');
+});
+
+it('does not index private pages', function (): void {
+    config(['inertia.ssr.enabled' => false]);
+
+    $this->get('/login')->assertSee('name="robots" content="noindex, nofollow"', false);
 });
 
 it('never advertises features that do not exist', function (string $path): void {
