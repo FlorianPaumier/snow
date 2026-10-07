@@ -3,12 +3,14 @@ import {
     ArrowDown,
     ArrowUp,
     ArrowUpDown,
+    FileUp,
     Pencil,
     Plus,
     Search,
     Trash2,
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import ImportUsersController from '@/actions/App/Http/Controllers/ImportUsersController';
 import UserManagementController from '@/actions/App/Http/Controllers/UserManagementController';
 import Heading from '@/components/heading';
 import PlanCapAlert from '@/components/plan-cap-alert';
@@ -192,11 +194,21 @@ export default function Index({
                         description={t.users.descriptionTeam}
                     />
 
-                    <Button asChild>
-                        <Link href={create()} prefetch>
-                            <Plus /> {t.users.newUser}
-                        </Link>
-                    </Button>
+                    <div className="flex gap-2">
+                        <Button asChild variant="outline">
+                            <Link
+                                href={ImportUsersController.index.url()}
+                                prefetch
+                            >
+                                <FileUp /> {t.users.importButton}
+                            </Link>
+                        </Button>
+                        <Button asChild>
+                            <Link href={create()} prefetch>
+                                <Plus /> {t.users.newUser}
+                            </Link>
+                        </Button>
+                    </div>
                 </div>
 
                 {typeof status === 'string' && (

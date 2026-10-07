@@ -35,7 +35,7 @@ export default function PlanBanner() {
         : t.billing.freeBody;
 
     return (
-        <Alert>
+        <Alert className={'mx-auto w-2/3'}>
             <InfoIcon />
             <AlertTitle>{title}</AlertTitle>
             <AlertDescription>

@@ -12,17 +12,24 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DownloadContractPdfController;
 use App\Http\Controllers\DownloadPaymentReceiptController;
 use App\Http\Controllers\ExportSeasonPaymentsController;
+use App\Http\Controllers\FinishTourController;
 use App\Http\Controllers\GenerateContractPdfController;
 use App\Http\Controllers\GeneratePaymentReceiptController;
+use App\Http\Controllers\ImportClientsController;
+use App\Http\Controllers\ImportContractsController;
+use App\Http\Controllers\ImportUsersController;
 use App\Http\Controllers\LoginChallengeController;
 use App\Http\Controllers\MarkPaymentPaidController;
+use App\Http\Controllers\OptimizeTourController;
 use App\Http\Controllers\OrganizationController;
 use App\Http\Controllers\PrintContractDocumentController;
 use App\Http\Controllers\PrintPaymentReceiptController;
 use App\Http\Controllers\SendPaymentReminderController;
 use App\Http\Controllers\SendUserPasswordResetController;
 use App\Http\Controllers\SessionController;
+use App\Http\Controllers\StartTourController;
 use App\Http\Controllers\StripeWebhookController;
+use App\Http\Controllers\TourController;
 use App\Http\Controllers\TransferOrganizationOwnershipController;
 use App\Http\Controllers\UnmarkPaymentPaidController;
 use App\Http\Controllers\UserController;
@@ -33,6 +40,7 @@ use App\Http\Controllers\UserInvitationController;
 use App\Http\Controllers\UserManagementController;
 use App\Http\Controllers\UserPasswordController;
 use App\Http\Controllers\UserProfileController;
+use App\Http\Controllers\WorkerDashboardController;
 use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -65,6 +73,18 @@ Route::get('sitemap.xml', function () {
 Route::middleware(['auth', 'verified:verification.notice'])->group(function (): void {
     Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
+    Route::get('my-tours', [WorkerDashboardController::class, 'index'])->middleware('can:use-worker-dashboard')->name('tours.worker');
+    Route::middleware('can:manage-tours')->group(function (): void {
+        Route::get('tours', [TourController::class, 'index'])->name('tours.index');
+        Route::get('tours/create', [TourController::class, 'create'])->name('tours.create');
+        Route::post('tours', [TourController::class, 'store'])->name('tours.store');
+        Route::put('tours/{tour}', [TourController::class, 'update'])->name('tours.update');
+        Route::post('tours/{tour}/optimize', OptimizeTourController::class)->middleware('throttle:5,1')->name('tours.optimize');
+    });
+    Route::get('tours/{tour}', [TourController::class, 'show'])->name('tours.show');
+    Route::post('tours/{tour}/start', StartTourController::class)->name('tours.start');
+    Route::post('tours/{tour}/finish', FinishTourController::class)->name('tours.finish');
+
     // Billing (admin-only subscription management)...
     Route::middleware('can:manage-billing')->group(function (): void {
         Route::get('settings/billing', [BillingController::class, 'index'])->name('billing.index');
@@ -78,6 +98,9 @@ Route::middleware(['auth', 'verified:verification.notice'])->group(function (): 
 
     // User Management (admin CRUD)...
     Route::middleware('can:manage-users')->group(function (): void {
+        Route::get('users/import', [ImportUsersController::class, 'index'])->name('users.import');
+        Route::get('users/import/template', [ImportUsersController::class, 'show'])->name('users.import.template');
+        Route::post('users/import', [ImportUsersController::class, 'store'])->name('users.import.store');
         Route::resource('users', UserManagementController::class)
             ->only(['index', 'create', 'store', 'edit', 'update', 'destroy'])
             ->names('users');
@@ -94,6 +117,11 @@ Route::middleware(['auth', 'verified:verification.notice'])->group(function (): 
     Route::post('clients', [ClientController::class, 'store'])
         ->middleware('can:manage-clients')
         ->name('clients.store');
+    Route::middleware('can:manage-clients')->group(function (): void {
+        Route::get('clients/import', [ImportClientsController::class, 'index'])->name('clients.import');
+        Route::get('clients/import/template', [ImportClientsController::class, 'show'])->name('clients.import.template');
+        Route::post('clients/import', [ImportClientsController::class, 'store'])->name('clients.import.store');
+    });
     Route::get('clients/{client}', [ClientController::class, 'show'])->name('clients.show');
     Route::get('clients/{client}/edit', [ClientController::class, 'edit'])
         ->middleware('can:manage-clients')
@@ -110,6 +138,11 @@ Route::middleware(['auth', 'verified:verification.notice'])->group(function (): 
 
     // Contracts (staff can browse; admins manage)...
     Route::get('contracts', [ContractController::class, 'index'])->name('contracts.index');
+    Route::middleware('can:manage-contracts')->group(function (): void {
+        Route::get('contracts/import', [ImportContractsController::class, 'index'])->name('contracts.import');
+        Route::get('contracts/import/template', [ImportContractsController::class, 'show'])->name('contracts.import.template');
+        Route::post('contracts/import', [ImportContractsController::class, 'store'])->name('contracts.import.store');
+    });
     Route::get('contracts/create', [ContractController::class, 'create'])
         ->middleware('can:manage-contracts')
         ->name('contracts.create');

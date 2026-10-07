@@ -13,6 +13,19 @@ declare(strict_types=1);
 */
 
 return [
+    'clients_import_success' => ':count client(s) importé(s).',
+    'clients_import_empty' => 'Le fichier CSV ne contient aucune ligne de données.',
+    'clients_import_invalid' => 'Corrigez les lignes en erreur avant de lancer l’importation.',
+    'contracts_import_success' => ':count contrat(s) importé(s).',
+    'contracts_import_invalid' => 'Corrigez les lignes en erreur avant de lancer l’importation.',
+    'users_import_success' => ':count utilisateur(s) importé(s).',
+    'users_import_empty' => 'Le fichier CSV ne contient aucune ligne de données.',
+    'users_import_invalid' => 'Corrigez les lignes en erreur avant de lancer l’importation.',
+    'users_import_fields' => [
+        'name' => 'Nom',
+        'email' => 'Adresse courriel',
+        'role' => 'Rôle (admin/worker/user)',
+    ],
     'contract_created' => 'Contrat créé.',
     'contract_updated' => 'Contrat mis à jour.',
     'contract_deleted' => 'Contrat supprimé.',

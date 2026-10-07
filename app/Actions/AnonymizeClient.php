@@ -28,6 +28,7 @@ final readonly class AnonymizeClient
     public function __construct(
         private DeleteStoredDocument $deleteDocument,
         private FlushOrganizationCache $flushCache,
+        private AnonymizeClientTourStops $anonymizeTourStops,
     ) {}
 
     public function handle(Client $client, ?User $actor = null): void
@@ -60,6 +61,7 @@ final readonly class AnonymizeClient
                 'anonymized_at' => now(),
                 'anonymized_by' => $actor?->id,
             ])->save();
+            $this->anonymizeTourStops->handle($client);
         });
 
         Log::info('Client anonymized.', [

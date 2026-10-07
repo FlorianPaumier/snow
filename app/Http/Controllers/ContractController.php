@@ -32,12 +32,12 @@ final readonly class ContractController
 
     public function index(Request $request): Response
     {
-        /** @var Collection<int, string> $availableSeasons */
+        /** @var list<string> $availableSeasons */
         $availableSeasons = $this->seasons();
 
         /** @var array{season?: string, client?: string, search?: string, sort?: string, direction?: string} $validated */
         $validated = $request->validate([
-            'season' => ['nullable', 'string', Rule::in($availableSeasons->all())],
+            'season' => ['nullable', 'string', Rule::in($availableSeasons)],
             'client' => ['nullable', 'uuid'],
             'search' => ['nullable', 'string', 'max:255'],
             'sort' => ['nullable', 'string', Rule::in($this->sortableColumns())],
@@ -78,7 +78,7 @@ final readonly class ContractController
                 'sort' => $sort,
                 'direction' => $direction,
             ],
-            'seasons' => $availableSeasons->all(),
+            'seasons' => $availableSeasons,
         ]);
     }
 
@@ -305,18 +305,18 @@ final readonly class ContractController
      * Seasons that have contracts, newest first — shared by the index
      * filter list and the dashboard's season picker.
      *
-     * @return Collection<int, string>
+     * @return list<string>
      */
-    private function seasons(): Collection
+    private function seasons(): array
     {
-        /** @var Collection<int, string> */
+        /** @var list<string> */
         return $this->cache->remember(
-            'seasons',
+            'seasons-array',
             [],
-            fn (): Collection => Contract::query()
+            fn (): array => Contract::query()
                 ->distinct()
                 ->orderByDesc('season')
-                ->pluck('season'),
+                ->pluck('season')->all(),
             TenantCache::TTL_SHORT,
         );
     }

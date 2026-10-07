@@ -9,6 +9,19 @@ declare(strict_types=1);
 */
 
 return [
+    'clients_import_success' => ':count client(s) imported.',
+    'clients_import_empty' => 'The CSV file has no data rows.',
+    'clients_import_invalid' => 'Fix the invalid rows before importing.',
+    'contracts_import_success' => ':count contract(s) imported.',
+    'contracts_import_invalid' => 'Fix the invalid rows before importing.',
+    'users_import_success' => ':count user(s) imported.',
+    'users_import_empty' => 'The CSV file has no data rows.',
+    'users_import_invalid' => 'Fix the invalid rows before importing.',
+    'users_import_fields' => [
+        'name' => 'Name',
+        'email' => 'Email address',
+        'role' => 'Role (admin/worker/user)',
+    ],
     'contract_created' => 'Contract created.',
     'contract_updated' => 'Contract updated.',
     'contract_deleted' => 'Contract deleted.',

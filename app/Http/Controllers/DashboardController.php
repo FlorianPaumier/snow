@@ -11,11 +11,12 @@ use App\Actions\GetSeasonRevenueRecap;
 use App\Actions\GetSeasonSummary;
 use App\Actions\GetUnpaidInstallments;
 use App\Enums\PaymentSlot;
+use App\Enums\UserRole;
 use App\Models\Contract;
 use App\Support\TenantCache;
 use App\ValueObjects\Season;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Collection;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -32,21 +33,25 @@ final readonly class DashboardController
         GetRevenueEvolution $revenueEvolution,
         GetClientEvolution $clientEvolution,
         GetOnboardingChecklist $onboardingChecklist,
-    ): Response {
-        /** @var Collection<int, string> $seasons */
+    ): Response|RedirectResponse {
+        if ($request->user()?->role === UserRole::ROLE_WORKER) {
+            return to_route('tours.worker');
+        }
+
+        /** @var list<string> $seasons */
         $seasons = $this->cache->remember(
-            'seasons',
+            'seasons-array',
             [],
-            fn (): Collection => Contract::query()
+            fn (): array => Contract::query()
                 ->distinct()
                 ->orderByDesc('season')
-                ->pluck('season'),
+                ->pluck('season')->all(),
             TenantCache::TTL_SHORT,
         );
 
         /** @var array{season?: string, slot?: string}  $validated */
         $validated = $request->validate([
-            'season' => ['nullable', 'string', Rule::in($seasons->all())],
+            'season' => ['nullable', 'string', Rule::in($seasons)],
             'slot' => ['nullable', 'string', Rule::enum(PaymentSlot::class)],
         ]);
 
@@ -66,7 +71,7 @@ final readonly class DashboardController
 
         return Inertia::render('dashboard', [
             'season' => $season->label,
-            'seasons' => $seasons->all(),
+            'seasons' => $seasons,
             'summary' => $summary->handle($season),
             'unpaidInstallments' => $unpaidInstallments->handle($season, $slot),
             'seasonRecap' => $recap->handle(),

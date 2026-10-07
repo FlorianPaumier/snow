@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Illuminate\Support\Facades\Http;
+use Symfony\Component\Process\Process;
 
 /*
  * Marketing claims must match what ships. The application is a
@@ -16,11 +17,39 @@ use Illuminate\Support\Facades\Http;
  * re-enables SSR for its own process and verifies the page body really
  * contains rendered copy. Otherwise the scan would silently pass
  * against an empty client-only shell. SSR requires a built bundle:
- * `bun run build:ssr`, followed by `php artisan inertia:start-ssr`.
+ * `bun run build:ssr`. The test starts its own SSR server on an isolated port.
  */
 
-beforeEach(function (): void {
-    config(['inertia.ssr.enabled' => true]);
+$ssrProcess = null;
+$ssrUrl = null;
+
+beforeAll(function () use (&$ssrProcess, &$ssrUrl): void {
+    $socket = stream_socket_server('tcp://127.0.0.1:0');
+    throw_if($socket === false, RuntimeException::class, 'Unable to allocate the test SSR port.');
+
+    $address = stream_socket_get_name($socket, false);
+    fclose($socket);
+    throw_if($address === false, RuntimeException::class, 'Unable to resolve the test SSR port.');
+
+    $port = mb_substr($address, mb_strrpos($address, ':') + 1);
+    $root = dirname(__DIR__, 2);
+    $ssrUrl = 'http://127.0.0.1:'.$port;
+    $ssrProcess = new Process(['node', $root.'/bootstrap/ssr/ssr.js'], $root, ['INERTIA_SSR_PORT' => $port]);
+    $ssrProcess->setTimeout(10);
+    $ssrProcess->start();
+    if (! $ssrProcess->waitUntil(fn (string $type, string $output): bool => str_contains($output, 'Inertia SSR server started.'))) {
+        throw new RuntimeException('The test SSR server failed to start: '.$ssrProcess->getErrorOutput());
+    }
+
+    $ssrProcess->setTimeout(null);
+});
+
+afterAll(function () use (&$ssrProcess): void {
+    $ssrProcess?->stop();
+});
+
+beforeEach(function () use (&$ssrUrl): void {
+    config(['inertia.ssr.enabled' => true, 'inertia.ssr.url' => $ssrUrl, 'inertia.ssr.throw_on_error' => true]);
     Http::allowStrayRequests([config()->string('inertia.ssr.url').'/*']);
 });
 

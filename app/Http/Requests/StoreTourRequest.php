@@ -1,0 +1,33 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Http\Requests;
+
+use App\Enums\UserRole;
+use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
+
+final class StoreTourRequest extends FormRequest
+{
+    public function authorize(): bool
+    {
+        return $this->user()?->can('manage-tours') ?? false;
+    }
+
+    /** @return array<string, mixed> */
+    public function rules(): array
+    {
+        $organizationId = $this->user()?->organization_id;
+
+        return [
+            'name' => ['required', 'string', 'max:255'],
+            'worker_id' => ['required', 'uuid', Rule::exists('users', 'id')->where('organization_id', $organizationId)->where('role', UserRole::ROLE_WORKER->value)],
+            'scheduled_date' => ['required', 'date_format:Y-m-d', 'after_or_equal:today'],
+            'departure_address' => ['nullable', 'string', 'max:1000'],
+            'arrival_address' => ['nullable', 'string', 'max:1000'],
+            'client_ids' => ['required', 'array', 'list', 'min:1', 'max:500'],
+            'client_ids.*' => ['required', 'uuid', 'distinct', Rule::exists('clients', 'id')->where('organization_id', $organizationId)->whereNull('anonymized_at')],
+        ];
+    }
+}

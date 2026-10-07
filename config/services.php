@@ -42,4 +42,12 @@ return [
         'url' => env('GOTENBERG_URL', 'http://localhost:3000'),
     ],
 
+    'openrouteservice' => [
+        'key' => env('OPENROUTESERVICE_API_KEY', ''),
+        'url' => env('OPENROUTESERVICE_URL', 'https://api.openrouteservice.org'),
+        'timeout' => 30,
+        'connect_timeout' => 5,
+        'max_stops' => 50,
+    ],
+
 ];

@@ -5,6 +5,7 @@ import {
     ArrowUpDown,
     Building2,
     Eye,
+    FileUp,
     Pencil,
     Plus,
     Search,
@@ -13,6 +14,7 @@ import {
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import ClientController from '@/actions/App/Http/Controllers/ClientController';
+import { store as importClients } from '@/actions/App/Http/Controllers/ImportClientsController';
 import Heading from '@/components/heading';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -252,11 +254,18 @@ export default function Index({
                     />
 
                     {canManageClients && (
-                        <Button asChild data-test="new-client">
-                            <Link href={create()} prefetch>
-                                <Plus /> {t.clients.newClient}
-                            </Link>
-                        </Button>
+                        <div className="flex gap-2">
+                            <Button asChild variant="outline">
+                                <Link href={importClients.url()} prefetch>
+                                    <FileUp /> {t.clients.importButton}
+                                </Link>
+                            </Button>
+                            <Button asChild data-test="new-client">
+                                <Link href={create()} prefetch>
+                                    <Plus /> {t.clients.newClient}
+                                </Link>
+                            </Button>
+                        </div>
                     )}
                 </div>
 

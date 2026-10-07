@@ -21,13 +21,15 @@ final readonly class GetClientEvolution
      */
     public function handle(): Collection
     {
-        /** @var Collection<int, array{season: string, new_clients: int, total_clients: int}> */
-        return $this->cache->remember(
-            'client-evolution',
+        /** @var list<array{season: string, new_clients: int, total_clients: int}> $rows */
+        $rows = $this->cache->remember(
+            'client-evolution-array',
             [],
-            fn (): Collection => $this->compute(),
+            fn (): array => $this->compute()->all(),
             TenantCache::TTL_LONG,
         );
+
+        return collect($rows);
     }
 
     /**

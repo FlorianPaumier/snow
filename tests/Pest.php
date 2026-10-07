@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Actions\GenerateOrganizationInviteCode;
+use App\Enums\UserRole;
 use App\Models\User;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -87,7 +88,7 @@ function loginViaUi(User $user, string $code = '123456'): AwaitableWebpage
         ->assertSee('Entrez le code à 6 chiffres envoyé à '.$user->email)
         ->typeSlowly('#code', $code, 10)
         ->wait(1)
-        ->assertPathIs('/dashboard')
+        ->assertPathIs($user->role === UserRole::ROLE_WORKER ? '/my-tours' : '/dashboard')
         // Waiting for the app shell (and a beat) guarantees the redirect
         // chain settled before the caller navigates on...
         ->assertVisible('main[data-slot="sidebar-inset"]')

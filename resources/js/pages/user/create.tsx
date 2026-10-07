@@ -93,7 +93,7 @@ export default function Register() {
                                     autoComplete="off"
                                     autoCapitalize="characters"
                                     spellCheck={false}
-                                    className="font-mono tracking-widest uppercase"
+                                    className="font-mono text-sm tracking-widest"
                                     placeholder={t.auth.inviteCodePlaceholder}
                                 />
                                 <p className="text-xs text-muted-foreground">

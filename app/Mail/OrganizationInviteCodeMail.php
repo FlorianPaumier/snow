@@ -35,7 +35,7 @@ final class OrganizationInviteCodeMail extends Mailable implements ShouldQueue
             with: [
                 'code' => $this->code,
                 'expiresAt' => $this->expiresAt,
-                'url' => route('register', absolute: false),
+                'url' => route('register', absolute: true),
             ],
         );
     }

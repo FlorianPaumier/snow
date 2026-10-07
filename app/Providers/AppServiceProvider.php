@@ -6,6 +6,7 @@ namespace App\Providers;
 
 use App\Enums\UserRole;
 use App\Models\Organization;
+use App\Models\Tour;
 use App\Models\User;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
@@ -22,6 +23,11 @@ final class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Gate::define('manage-users', fn (User $user): bool => $user->role === UserRole::ROLE_ADMIN);
+        Gate::define('manage-tours', fn (User $user): bool => $user->role === UserRole::ROLE_ADMIN);
+        Gate::define('use-worker-dashboard', fn (User $user): bool => $user->role === UserRole::ROLE_WORKER);
+        Gate::define('manage-tour', fn (User $user, Tour $tour): bool => $user->role === UserRole::ROLE_ADMIN && $user->organization_id === $tour->organization_id);
+        Gate::define('operate-tour', fn (User $user, Tour $tour): bool => $user->role === UserRole::ROLE_WORKER && $user->organization_id === $tour->organization_id && $user->id === $tour->worker_id);
+        Gate::define('view-tour', fn (User $user, Tour $tour): bool => $user->organization_id === $tour->organization_id && ($user->role === UserRole::ROLE_ADMIN || ($user->role === UserRole::ROLE_WORKER && $user->id === $tour->worker_id)));
         Gate::define('manage-clients', fn (User $user): bool => $user->role === UserRole::ROLE_ADMIN);
         Gate::define('manage-contracts', fn (User $user): bool => $user->role === UserRole::ROLE_ADMIN);
         Gate::define('manage-billing', fn (User $user): bool => $user->role === UserRole::ROLE_ADMIN);

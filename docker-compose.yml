@@ -24,6 +24,7 @@ services:
             interval: 5s
             timeout: 5s
             retries: 10
+        platform: linux/arm64
 
     redis:
         image: redis:8-alpine
@@ -34,12 +35,14 @@ services:
             interval: 5s
             timeout: 3s
             retries: 10
+        platform: linux/arm64
 
     # HTML → PDF conversion for contract documents...
     gotenberg:
         image: gotenberg/gotenberg:8
         ports:
             - '3000:3000'
+        platform: linux/arm64
 
 volumes:
     db-data:

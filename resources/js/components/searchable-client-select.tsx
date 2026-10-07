@@ -60,7 +60,7 @@ export default function SearchableClientSelect({
               });
 
     return (
-        <div className={cn('relative', className)}>
+        <div className={cn('relative w-full max-w-full min-w-0', className)}>
             {/* Serializes the client id for the surrounding Inertia form... */}
             <input type="hidden" name={name} value={selectedId} />
             <Combobox
@@ -68,14 +68,14 @@ export default function SearchableClientSelect({
                 value={selected}
                 onChange={(client) => setSelectedId(client?.id ?? '')}
             >
-                <div className="relative">
+                <div className="relative w-full min-w-0">
                     <Search
                         aria-hidden="true"
                         className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground"
                     />
                     <ComboboxInput
                         id={comboboxId}
-                        className="h-9 w-full rounded-md border border-input bg-transparent pr-8 pl-8 text-sm shadow-xs transition-[color,box-shadow] outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-input/30 dark:hover:bg-input/50"
+                        className="h-9 w-full max-w-full min-w-0 rounded-md border border-input bg-transparent pr-8 pl-8 text-sm shadow-xs transition-[color,box-shadow] outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-input/30 dark:hover:bg-input/50"
                         placeholder={placeholder ?? t.clients.chooseClient}
                         autoComplete="off"
                         displayValue={(client: ClientOption) =>
@@ -93,7 +93,7 @@ export default function SearchableClientSelect({
                 </div>
 
                 <ComboboxOptions
-                    className="absolute z-50 mt-1 max-h-60 w-full origin-top overflow-y-auto rounded-md border bg-popover text-popover-foreground shadow-md outline-none"
+                    className="absolute z-50 mt-1 max-h-60 w-(--input-width) origin-top overflow-y-auto rounded-md border bg-popover text-popover-foreground shadow-md outline-none"
                     anchor="bottom"
                 >
                     {filtered.length === 0 ? (

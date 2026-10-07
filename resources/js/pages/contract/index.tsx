@@ -43,7 +43,7 @@ import {
 import { useLocale } from '@/hooks/use-locale';
 import AppLayout from '@/layouts/app-layout';
 import { interpolate, useCurrencyFormatter } from '@/lib/utils';
-import { create, index } from '@/routes/contracts';
+import { create, importMethod, index } from '@/routes/contracts';
 import { exportMethod } from '@/routes/payments';
 import type { BreadcrumbItem } from '@/types';
 
@@ -224,11 +224,18 @@ export default function Index({
                         )}
 
                         {canManageContracts && (
-                            <Button asChild data-test="new-contract">
-                                <Link href={create()} prefetch>
-                                    <Plus /> {t.contracts.newContract}
-                                </Link>
-                            </Button>
+                            <>
+                                <Button asChild variant="outline">
+                                    <Link href={importMethod()}>
+                                        {t.contracts.importButton}
+                                    </Link>
+                                </Button>
+                                <Button asChild data-test="new-contract">
+                                    <Link href={create()} prefetch>
+                                        <Plus /> {t.contracts.newContract}
+                                    </Link>
+                                </Button>
+                            </>
                         )}
                     </div>
                 </div>

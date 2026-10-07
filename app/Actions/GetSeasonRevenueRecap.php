@@ -21,13 +21,15 @@ final readonly class GetSeasonRevenueRecap
      */
     public function handle(): Collection
     {
-        /** @var Collection<int, array{season: string, revenue: int, collected: int, outstanding: int, contracts_count: int}> */
-        return $this->cache->remember(
-            'season-revenue-recap',
+        /** @var list<array{season: string, revenue: int, collected: int, outstanding: int, contracts_count: int}> $rows */
+        $rows = $this->cache->remember(
+            'season-revenue-recap-array',
             [],
-            fn (): Collection => $this->compute(),
+            fn (): array => $this->compute()->all(),
             TenantCache::TTL_LONG,
         );
+
+        return collect($rows);
     }
 
     /**

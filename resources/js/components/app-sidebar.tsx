@@ -1,5 +1,5 @@
 import { Link, usePage } from '@inertiajs/react';
-import { Building2, FileText, LayoutGrid, Users } from 'lucide-react';
+import { Building2, FileText, LayoutGrid, Route, Users } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
@@ -17,6 +17,7 @@ import { useLocale } from '@/hooks/use-locale';
 import { dashboard } from '@/routes';
 import { index as clientsIndex } from '@/routes/clients';
 import { index as contractsIndex } from '@/routes/contracts';
+import { index as toursIndex, worker as workerTours } from '@/routes/tours';
 import { index as usersIndex } from '@/routes/users';
 import type { NavItem } from '@/types';
 
@@ -52,9 +53,16 @@ export function AppSidebar() {
 
     const footerNavItems: NavItem[] = [];
 
-    const items = auth.can?.manageUsers
-        ? [...mainNavItems, ...userManagementNavItems]
-        : mainNavItems;
+    const items =
+        auth.user.role === 'worker'
+            ? [{ title: t.tours.myTours, href: workerTours(), icon: Route }]
+            : auth.can?.manageUsers
+              ? [
+                    ...mainNavItems,
+                    { title: t.tours.title, href: toursIndex(), icon: Route },
+                    ...userManagementNavItems,
+                ]
+              : mainNavItems;
 
     return (
         <Sidebar collapsible="icon" variant="inset">

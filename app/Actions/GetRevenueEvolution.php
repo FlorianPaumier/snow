@@ -20,13 +20,15 @@ final readonly class GetRevenueEvolution
      */
     public function handle(): Collection
     {
-        /** @var Collection<int, array{season: string, revenue: int, collected: int, outstanding: int}> */
-        return $this->cache->remember(
-            'revenue-evolution',
+        /** @var list<array{season: string, revenue: int, collected: int, outstanding: int}> $rows */
+        $rows = $this->cache->remember(
+            'revenue-evolution-array',
             [],
-            fn (): Collection => $this->compute(),
+            fn (): array => $this->compute()->all(),
             TenantCache::TTL_LONG,
         );
+
+        return collect($rows);
     }
 
     /**

@@ -29,7 +29,7 @@ final readonly class CreateClient
     ) {}
 
     /**
-     * @param  array{type: ClientType|string, companyName?: string|null, firstName: string, lastName: string, email: string, phoneDay?: string|null, cellPhone?: string|null, addressStreet: string, addressCity: string, addressPostalCode: string, addressCountry: string, remark?: string|null}  $attributes
+     * @param  array{type: ClientType|string, clientNumber?: string|null, companyName?: string|null, firstName: string, lastName: string, email: string, phoneDay?: string|null, cellPhone?: string|null, addressStreet: string, addressCity: string, addressPostalCode: string, addressCountry: string, remark?: string|null}  $attributes
      */
     public function handle(array $attributes): Client
     {
@@ -60,12 +60,12 @@ final readonly class CreateClient
      * poisons the surrounding transaction unless the statement is isolated,
      * which would make the retry — and the caller's transaction — unusable.
      *
-     * @param  array{type: ClientType|string, companyName?: string|null, firstName: string, lastName: string, email: string, phoneDay?: string|null, cellPhone?: string|null, addressStreet: string, addressCity: string, addressPostalCode: string, addressCountry: string, remark?: string|null}  $attributes
+     * @param  array{type: ClientType|string, clientNumber?: string|null, companyName?: string|null, firstName: string, lastName: string, email: string, phoneDay?: string|null, cellPhone?: string|null, addressStreet: string, addressCity: string, addressPostalCode: string, addressCountry: string, remark?: string|null}  $attributes
      */
     private function createWithNumberRetry(array $attributes, ClientType $type, ?string $organizationId): Client
     {
         for ($attempt = 1; ; $attempt++) {
-            $number = $this->generateClientNumber->handle($type, $organizationId);
+            $number = filled($attributes['clientNumber'] ?? null) ? $attributes['clientNumber'] : $this->generateClientNumber->handle($type, $organizationId);
 
             try {
                 return DB::transaction(fn (): Client => Client::query()->create([
@@ -87,7 +87,7 @@ final readonly class CreateClient
                     'remark' => $attributes['remark'] ?? null,
                 ]));
             } catch (UniqueConstraintViolationException $exception) {
-                throw_if($attempt >= self::MAX_NUMBER_ATTEMPTS, $exception);
+                throw_if(filled($attributes['clientNumber'] ?? null) || $attempt >= self::MAX_NUMBER_ATTEMPTS, $exception);
             }
         }
     }

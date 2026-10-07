@@ -1,0 +1,6 @@
+type;client_number;company_name;first_name;last_name;email;daytime_phone;cell_phone;street;city;postal_code;country;remark
+individual;individual-0001;;Jean;Tremblay;jean.tremblay@example.com;5145550101;;123 Rue Sainte-Catherine;Montreal;H2X1L4;Canada;Client individuel
+individual;individual-0002;;Sophie;Martin;sophie.martin@example.com;;5145550102;45 Avenue du Parc;Montreal;H2W1S8;Canada;
+company;company-0001;Atelier Nord;Contact;Nord;contact@atelier-nord.example.com;5145550103;;800 Boulevard Saint-Laurent;Montreal;H2Z1J2;Canada;Compte entreprise
+individual;individual-0003;;Alex;Roy;alex.roy@example.com;4185550104;;17 Rue Saint-Jean;Quebec;G1R1N2;Canada;
+company;company-0002;Studio Rivage;Contact;Rivage;bonjour@studio-rivage.example.com;;4385550105;220 Rue du Canal;Montreal;H3C1S5;Canada;Préférence courriel

@@ -9,10 +9,27 @@ use App\Models\ContractService;
 use App\Models\Payment;
 use App\Models\User;
 use App\ValueObjects\Season;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Date;
 
 beforeEach(function (): void {
     $this->admin = User::factory()->admin()->create();
+});
+
+it('renders cached dashboard data when cached objects cannot be unserialized', function (): void {
+    config()->set('cache.stores.array.serialize', true);
+    Cache::purge('array');
+
+    try {
+        $this->actingAs($this->admin);
+
+        $this->get(route('dashboard'))->assertOk();
+        $this->get(route('dashboard'))->assertOk();
+        $this->get(route('contracts.index'))->assertOk();
+    } finally {
+        config()->set('cache.stores.array.serialize', false);
+        Cache::purge('array');
+    }
 });
 
 it('renders the dashboard with summary data for admins', function (): void {

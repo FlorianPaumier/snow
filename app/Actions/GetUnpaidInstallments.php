@@ -25,17 +25,23 @@ final readonly class GetUnpaidInstallments
      */
     public function handle(Season $season, PaymentSlot $slot): Collection
     {
-        /** @var Collection<int, array{id: int, amount: int, slot: PaymentSlot, contract_id: string, client: array{id: string, displayName: string, clientNumber: string, address_street: string, address_city: string, phone: string|null, email: string|null}, dueDate: string|null, lastReminderAt: string|null}> */
-        return $this->cache->remember(
-            'unpaid-installments',
+        /** @var list<array{id: int, amount: int, slot: string, contract_id: string, client: array{id: string, displayName: string, clientNumber: string, address_street: string, address_city: string, phone: string|null, email: string|null}, dueDate: string|null, lastReminderAt: string|null}> $rows */
+        $rows = $this->cache->remember(
+            'unpaid-installments-array',
             [$season->label, $slot->value],
-            fn (): Collection => $this->compute($season, $slot),
+            fn (): array => $this->compute($season, $slot)->all(),
             TenantCache::TTL_LONG,
         );
+
+        return collect($rows)->map(function (array $row): array {
+            $row['slot'] = PaymentSlot::from($row['slot']);
+
+            return $row;
+        });
     }
 
     /**
-     * @return Collection<int, array{id: int, amount: int, slot: PaymentSlot, contract_id: string, client: array{id: string, displayName: string, clientNumber: string, address_street: string, address_city: string, phone: string|null, email: string|null}, dueDate: string|null, lastReminderAt: string|null}>
+     * @return Collection<int, array{id: int, amount: int, slot: string, contract_id: string, client: array{id: string, displayName: string, clientNumber: string, address_street: string, address_city: string, phone: string|null, email: string|null}, dueDate: string|null, lastReminderAt: string|null}>
      */
     private function compute(Season $season, PaymentSlot $slot): Collection
     {
@@ -53,7 +59,7 @@ final readonly class GetUnpaidInstallments
 
         return $payments->map(fn (Payment $payment): array => ['id' => $payment->id,
             'amount' => $payment->amount,
-            'slot' => $payment->slot,
+            'slot' => $payment->slot->value,
             'contract_id' => $payment->contract_id,
             'client' => [
                 'id' => $payment->contract->client->id,
