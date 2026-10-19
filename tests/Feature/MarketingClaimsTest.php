@@ -49,6 +49,7 @@ afterAll(function () use (&$ssrProcess): void {
 });
 
 beforeEach(function () use (&$ssrUrl): void {
+    $this->withUnencryptedCookie('locale', 'en');
     config(['inertia.ssr.enabled' => true, 'inertia.ssr.url' => $ssrUrl, 'inertia.ssr.throw_on_error' => true]);
     Http::allowStrayRequests([config()->string('inertia.ssr.url').'/*']);
 });
@@ -59,7 +60,7 @@ it('renders marketing copy server-side so claims can be scanned', function (): v
     // Sanity anchor: the home hero is present in the rendered HTML.
     // If this fails, SSR is off/broken and every claims scan below is
     // testing an empty shell — fix SSR before trusting these tests.
-    expect(mb_strtolower($body))->toContain('organized to the last balance');
+    expect(mb_strtolower($body))->toContain('less paperwork.');
     expect($body)
         ->toContain('Frostline OPS — Snow Removal Contract &amp; Payment Software</title>')
         ->toContain('<link rel="canonical" href="http://localhost/"')
@@ -67,6 +68,19 @@ it('renders marketing copy server-side so claims can be scanned', function (): v
         ->toContain('name="twitter:image" content="http://localhost/images/plow-night.jpg"')
         ->toContain('"url":"http://localhost/"');
 });
+
+it('renders the public site in French by default with matching document metadata', function (string $path, string $anchor): void {
+    $this->withUnencryptedCookie('locale', 'fr');
+    $body = (string) $this->get($path)->assertOk()->getContent();
+    expect($body)->toContain('<html lang="fr"', $anchor);
+})->with([
+    ['/', 'Moins de paperasse.'],
+    ['/features', 'La gestion de votre entreprise de déneigement'],
+    ['/pricing', 'Gratuit pour commencer, pensé pour la saison'],
+    ['/about', 'Pour les gens qui font rouler la saison'],
+    ['/contact', 'Gardez le contrôle de votre saison'],
+    ['/status', 'État du système'],
+]);
 
 it('does not index private pages', function (): void {
     config(['inertia.ssr.enabled' => false]);

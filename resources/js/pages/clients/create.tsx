@@ -2,7 +2,6 @@ import { Form } from '@inertiajs/react';
 import { useState } from 'react';
 import ClientController from '@/actions/App/Http/Controllers/ClientController';
 import InputError from '@/components/input-error';
-import PlanCapAlert from '@/components/plan-cap-alert';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -40,8 +39,6 @@ export default function Create() {
             backHref={index().url}
             backLabel={t.clients.title}
         >
-            <PlanCapAlert />
-
             <Form
                 {...ClientController.store.form()}
                 resetOnSuccess={[
@@ -73,7 +70,16 @@ export default function Create() {
                                     defaultValue="individual"
                                     onValueChange={setType}
                                 >
-                                    <SelectTrigger id="type" className="w-full">
+                                    <SelectTrigger
+                                        aria-invalid={Boolean(errors.type)}
+                                        aria-describedby={
+                                            errors.type
+                                                ? 'type' + '-error'
+                                                : undefined
+                                        }
+                                        id="type"
+                                        className="w-full"
+                                    >
                                         <SelectValue
                                             placeholder={
                                                 t.clients.typePlaceholder
@@ -89,7 +95,10 @@ export default function Create() {
                                         </SelectItem>
                                     </SelectContent>
                                 </Select>
-                                <InputError message={errors.type} />
+                                <InputError
+                                    id={'type' + '-error'}
+                                    message={errors.type}
+                                />
                             </div>
 
                             {type === 'company' && (
@@ -98,6 +107,14 @@ export default function Create() {
                                         {t.clients.fieldCompanyTypeName}
                                     </Label>
                                     <Input
+                                        aria-invalid={Boolean(
+                                            errors.companyName,
+                                        )}
+                                        aria-describedby={
+                                            errors.companyName
+                                                ? 'companyName' + '-error'
+                                                : undefined
+                                        }
                                         id="companyName"
                                         type="text"
                                         name="companyName"
@@ -105,7 +122,10 @@ export default function Create() {
                                             t.clients.fieldCompanyTypeName
                                         }
                                     />
-                                    <InputError message={errors.companyName} />
+                                    <InputError
+                                        id={'companyName' + '-error'}
+                                        message={errors.companyName}
+                                    />
                                 </div>
                             )}
                         </FormSection>
@@ -120,13 +140,22 @@ export default function Create() {
                                         {t.clients.fieldFirstName}
                                     </Label>
                                     <Input
+                                        aria-invalid={Boolean(errors.firstName)}
+                                        aria-describedby={
+                                            errors.firstName
+                                                ? 'firstName' + '-error'
+                                                : undefined
+                                        }
                                         id="firstName"
                                         type="text"
                                         required
                                         name="firstName"
                                         placeholder={t.clients.fieldFirstName}
                                     />
-                                    <InputError message={errors.firstName} />
+                                    <InputError
+                                        id={'firstName' + '-error'}
+                                        message={errors.firstName}
+                                    />
                                 </div>
 
                                 <div className="grid gap-2">
@@ -134,13 +163,22 @@ export default function Create() {
                                         {t.clients.fieldLastName}
                                     </Label>
                                     <Input
+                                        aria-invalid={Boolean(errors.lastName)}
+                                        aria-describedby={
+                                            errors.lastName
+                                                ? 'lastName' + '-error'
+                                                : undefined
+                                        }
                                         id="lastName"
                                         type="text"
                                         required
                                         name="lastName"
                                         placeholder={t.clients.fieldLastName}
                                     />
-                                    <InputError message={errors.lastName} />
+                                    <InputError
+                                        id={'lastName' + '-error'}
+                                        message={errors.lastName}
+                                    />
                                 </div>
                             </div>
 
@@ -149,13 +187,22 @@ export default function Create() {
                                     {t.clients.fieldEmail}
                                 </Label>
                                 <Input
+                                    aria-invalid={Boolean(errors.email)}
+                                    aria-describedby={
+                                        errors.email
+                                            ? 'email' + '-error'
+                                            : undefined
+                                    }
                                     id="email"
                                     type="email"
                                     required
                                     name="email"
                                     placeholder="email@example.com"
                                 />
-                                <InputError message={errors.email} />
+                                <InputError
+                                    id={'email' + '-error'}
+                                    message={errors.email}
+                                />
                             </div>
 
                             <div className="grid gap-6 sm:grid-cols-2">
@@ -164,12 +211,21 @@ export default function Create() {
                                         {t.clients.fieldPhoneDay}
                                     </Label>
                                     <Input
+                                        aria-invalid={Boolean(errors.phoneDay)}
+                                        aria-describedby={
+                                            errors.phoneDay
+                                                ? 'phoneDay' + '-error'
+                                                : undefined
+                                        }
                                         id="phoneDay"
                                         type="tel"
                                         name="phoneDay"
                                         placeholder="514 555-0100"
                                     />
-                                    <InputError message={errors.phoneDay} />
+                                    <InputError
+                                        id={'phoneDay' + '-error'}
+                                        message={errors.phoneDay}
+                                    />
                                 </div>
 
                                 <div className="grid gap-2">
@@ -177,12 +233,21 @@ export default function Create() {
                                         {t.clients.fieldCellPhone}
                                     </Label>
                                     <Input
+                                        aria-invalid={Boolean(errors.cellPhone)}
+                                        aria-describedby={
+                                            errors.cellPhone
+                                                ? 'cellPhone' + '-error'
+                                                : undefined
+                                        }
                                         id="cellPhone"
                                         type="tel"
                                         name="cellPhone"
                                         placeholder="438 555-0100"
                                     />
-                                    <InputError message={errors.cellPhone} />
+                                    <InputError
+                                        id={'cellPhone' + '-error'}
+                                        message={errors.cellPhone}
+                                    />
                                 </div>
                             </div>
                         </FormSection>
@@ -196,13 +261,22 @@ export default function Create() {
                                     {t.clients.fieldStreet}
                                 </Label>
                                 <Input
+                                    aria-invalid={Boolean(errors.addressStreet)}
+                                    aria-describedby={
+                                        errors.addressStreet
+                                            ? 'addressStreet' + '-error'
+                                            : undefined
+                                    }
                                     id="addressStreet"
                                     type="text"
                                     required
                                     name="addressStreet"
                                     placeholder={t.clients.streetPlaceholder}
                                 />
-                                <InputError message={errors.addressStreet} />
+                                <InputError
+                                    id={'addressStreet' + '-error'}
+                                    message={errors.addressStreet}
+                                />
                             </div>
 
                             <div className="grid gap-6 sm:grid-cols-3">
@@ -211,13 +285,24 @@ export default function Create() {
                                         {t.clients.fieldCity}
                                     </Label>
                                     <Input
+                                        aria-invalid={Boolean(
+                                            errors.addressCity,
+                                        )}
+                                        aria-describedby={
+                                            errors.addressCity
+                                                ? 'addressCity' + '-error'
+                                                : undefined
+                                        }
                                         id="addressCity"
                                         type="text"
                                         required
                                         name="addressCity"
                                         placeholder={t.clients.cityPlaceholder}
                                     />
-                                    <InputError message={errors.addressCity} />
+                                    <InputError
+                                        id={'addressCity' + '-error'}
+                                        message={errors.addressCity}
+                                    />
                                 </div>
 
                                 <div className="grid gap-2">
@@ -225,6 +310,14 @@ export default function Create() {
                                         {t.clients.fieldPostalCode}
                                     </Label>
                                     <Input
+                                        aria-invalid={Boolean(
+                                            errors.addressPostalCode,
+                                        )}
+                                        aria-describedby={
+                                            errors.addressPostalCode
+                                                ? 'addressPostalCode' + '-error'
+                                                : undefined
+                                        }
                                         id="addressPostalCode"
                                         type="text"
                                         required
@@ -232,6 +325,7 @@ export default function Create() {
                                         placeholder="H3G 1M7"
                                     />
                                     <InputError
+                                        id={'addressPostalCode' + '-error'}
                                         message={errors.addressPostalCode}
                                     />
                                 </div>
@@ -241,6 +335,14 @@ export default function Create() {
                                         {t.clients.fieldCountry}
                                     </Label>
                                     <Input
+                                        aria-invalid={Boolean(
+                                            errors.addressCountry,
+                                        )}
+                                        aria-describedby={
+                                            errors.addressCountry
+                                                ? 'addressCountry' + '-error'
+                                                : undefined
+                                        }
                                         id="addressCountry"
                                         type="text"
                                         required
@@ -248,6 +350,7 @@ export default function Create() {
                                         placeholder="Canada"
                                     />
                                     <InputError
+                                        id={'addressCountry' + '-error'}
                                         message={errors.addressCountry}
                                     />
                                 </div>
@@ -263,11 +366,20 @@ export default function Create() {
                                     {t.clients.fieldRemark}
                                 </Label>
                                 <Textarea
+                                    aria-invalid={Boolean(errors.remark)}
+                                    aria-describedby={
+                                        errors.remark
+                                            ? 'remark' + '-error'
+                                            : undefined
+                                    }
                                     id="remark"
                                     name="remark"
                                     placeholder={t.clients.remarkPlaceholder}
                                 />
-                                <InputError message={errors.remark} />
+                                <InputError
+                                    id={'remark' + '-error'}
+                                    message={errors.remark}
+                                />
                             </div>
                         </FormSection>
 

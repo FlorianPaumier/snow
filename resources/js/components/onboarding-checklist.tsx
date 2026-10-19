@@ -52,7 +52,10 @@ export default function OnboardingChecklistCard({
                         total: String(total),
                     })}
                 </p>
-                <Progress value={total === 0 ? 100 : (done / total) * 100} />
+                <Progress
+                    aria-label={t.onboarding.title}
+                    value={total === 0 ? 100 : (done / total) * 100}
+                />
             </CardHeader>
             <CardContent>
                 <ul className="flex flex-col gap-2">

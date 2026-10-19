@@ -111,7 +111,7 @@ it('shows the reset link status for an unknown email', function (): void {
     visit('/forgot-password')
         ->fill('#email', 'unknown@example.com')
         ->press('Envoyer le lien de réinitialisation par courriel')
-        ->assertSeeIn('@forgot-password-status', 'Un lien de réinitialisation sera envoyé si le compte existe.');
+        ->assertSeeIn('[data-sonner-toast]', 'Un lien de réinitialisation sera envoyé si le compte existe.');
 });
 
 it('shows an error when the login challenge code is invalid', function (): void {
@@ -185,4 +185,20 @@ it('is accessible on the reset password page', function (): void {
 
     $page->assertNoAccessibilityIssues(3)
         ->assertNoSmoke();
+});
+
+it('logs in through the password form and then the email challenge', function (): void {
+    $user = User::factory()->admin()->create(['email' => 'test@test.fr', 'password' => 'testtest']);
+
+    $page = visit('/login')->fill('#email', $user->email)->fill('#password', 'testtest')
+        ->press('Se connecter')->assertPathIs('/login-challenge')
+        ->assertSee('Entrez le code à 6 chiffres envoyé à '.$user->email);
+
+    $user->refresh();
+    expect($user->login_challenge_code)->not->toBeNull();
+    $user->forceFill(['login_challenge_code' => Hash::make('123456')])->save();
+
+    $page->typeSlowly('#code', '123456', 10)->assertPathIs('/dashboard')
+        ->assertVisible('main[data-slot="sidebar-inset"]')->assertNoJavascriptErrors();
+    expect($user->refresh()->login_challenge_code)->toBeNull();
 });

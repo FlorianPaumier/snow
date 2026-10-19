@@ -44,7 +44,7 @@ it('searches users by name or email', function (): void {
 });
 
 it('sorts users by the requested column and direction', function (): void {
-    $admin = User::factory()->admin()->create();
+    $admin = User::factory()->admin()->create(['name' => 'Marie']);
     User::factory()->forOrganization($admin->organization)->create(['name' => 'Zack', 'email' => 'zack@example.com']);
     User::factory()->forOrganization($admin->organization)->create(['name' => 'Anna', 'email' => 'anna@example.com']);
 

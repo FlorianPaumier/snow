@@ -3,7 +3,6 @@ import UserProfileController from '@/actions/App/Http/Controllers/UserProfileCon
 import DeleteUser from '@/components/delete-user';
 import Heading from '@/components/heading';
 import InputError from '@/components/input-error';
-import PlanCapAlert from '@/components/plan-cap-alert';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -16,7 +15,6 @@ import type { BreadcrumbItem } from '@/types';
 
 export default function Edit({
     mustVerifyEmail,
-    status,
 }: {
     mustVerifyEmail: boolean;
     status?: string;
@@ -38,8 +36,6 @@ export default function Edit({
             <h1 className="sr-only">{t.settings.profileTitleBreadcrumbs}</h1>
 
             <SettingsLayout>
-                <PlanCapAlert />
-
                 <div className="space-y-6">
                     <Heading
                         variant="small"
@@ -62,6 +58,12 @@ export default function Edit({
                                     </Label>
 
                                     <Input
+                                        aria-invalid={Boolean(errors.name)}
+                                        aria-describedby={
+                                            errors.name
+                                                ? 'name' + '-error'
+                                                : undefined
+                                        }
                                         id="name"
                                         className="mt-1 block w-full"
                                         defaultValue={auth.user.name}
@@ -72,6 +74,7 @@ export default function Edit({
                                     />
 
                                     <InputError
+                                        id={'name' + '-error'}
                                         className="mt-2"
                                         message={errors.name}
                                     />
@@ -83,6 +86,12 @@ export default function Edit({
                                     </Label>
 
                                     <Input
+                                        aria-invalid={Boolean(errors.email)}
+                                        aria-describedby={
+                                            errors.email
+                                                ? 'email' + '-error'
+                                                : undefined
+                                        }
                                         id="email"
                                         type="email"
                                         className="mt-1 block w-full"
@@ -94,6 +103,7 @@ export default function Edit({
                                     />
 
                                     <InputError
+                                        id={'email' + '-error'}
                                         className="mt-2"
                                         message={errors.email}
                                     />
@@ -115,16 +125,6 @@ export default function Edit({
                                                     }
                                                 </Link>
                                             </p>
-
-                                            {status ===
-                                                'verification-link-sent' && (
-                                                <div className="mt-2 text-sm font-medium text-success">
-                                                    {
-                                                        t.settings
-                                                            .verificationLinkSent
-                                                    }
-                                                </div>
-                                            )}
                                         </div>
                                     )}
 

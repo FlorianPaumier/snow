@@ -1,14 +1,14 @@
 <x-mail::message>
-# Confirm it's you
+# {{ __('invitations.login_title') }}
 
-Use the 6-digit code below to complete your login. The code expires in 15 minutes.
+{{ __('invitations.login_body') }}
 
 <x-mail::panel>
 # {{ $code }}
 </x-mail::panel>
 
-If you didn't attempt to log in to your account, no further action is required.
+{{ __('invitations.login_unexpected') }}
 
-Thanks,<br>
+{{ __('invitations.thanks') }}<br>
 {{ config('app.name') }}
 </x-mail::message>

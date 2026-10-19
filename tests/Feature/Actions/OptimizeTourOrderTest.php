@@ -99,6 +99,8 @@ it('rejects incomplete or malformed routes', function (array $result): void {
     resolve(OptimizeTourOrder::class)->handle($this->stops, $this->depot, $this->depot);
 })->with([
     'empty response' => [[]],
+    'invalid vehicle' => [['code' => 0, 'unassigned' => [], 'routes' => [['vehicle' => 2, 'steps' => []]]]],
+    'invalid step' => [['code' => 0, 'unassigned' => [], 'routes' => [['vehicle' => 1, 'steps' => ['invalid']]]]],
     'unassigned client' => [['code' => 0, 'unassigned' => [['id' => 2]], 'routes' => []]],
     'duplicate stop' => [['code' => 0, 'unassigned' => [], 'routes' => [['vehicle' => 1, 'steps' => [['type' => 'job', 'id' => 1], ['type' => 'job', 'id' => 1]]]]]],
     'missing stop' => [['code' => 0, 'unassigned' => [], 'routes' => [['vehicle' => 1, 'steps' => [['type' => 'job', 'id' => 1]]]]]],

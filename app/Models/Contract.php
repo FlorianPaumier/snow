@@ -28,6 +28,10 @@ use InvalidArgumentException;
  * @property-read Client $client
  * @property-read Collection<int, ContractService> $services
  * @property-read Collection<int, Payment> $payments
+ * @property-read string|null $document_mail_status
+ * @property-read string|null $document_mail_request_id
+ * @property-read CarbonInterface|null $document_sent_at
+ * @property-read User|null $documentSentBy
  * @property-read CarbonInterface $created_at
  * @property-read CarbonInterface $updated_at
  *
@@ -51,6 +55,12 @@ final class Contract extends Model
 
     use HasUuids;
     use Notifiable;
+
+    /** @return BelongsTo<User, $this> */
+    public function documentSentBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'document_sent_by');
+    }
 
     /**
      * @return BelongsTo<Client, $this>
@@ -95,6 +105,7 @@ final class Contract extends Model
     public function casts(): array
     {
         return [
+            'document_sent_at' => 'datetime',
             'id' => 'string',
             'organization_id' => 'string',
             'season' => 'string',

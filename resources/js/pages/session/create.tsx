@@ -19,11 +19,7 @@ type Props = {
     canRegister: boolean;
 };
 
-export default function Login({
-    status,
-    canResetPassword,
-    canRegister,
-}: Props) {
+export default function Login({ canResetPassword, canRegister }: Props) {
     const { t } = useLocale();
 
     return (
@@ -40,21 +36,18 @@ export default function Login({
             >
                 {({ processing, errors }) => (
                     <>
-                        {status && (
-                            <div
-                                className="rounded-lg border border-success/25 bg-success/10 px-4 py-3 text-center text-sm font-medium text-success"
-                                data-test="login-status"
-                            >
-                                {status}
-                            </div>
-                        )}
-
                         <div className="grid gap-6">
                             <div className="grid gap-2">
                                 <Label htmlFor="email">
                                     {t.auth.emailLabel}
                                 </Label>
                                 <Input
+                                    aria-invalid={Boolean(errors.email)}
+                                    aria-describedby={
+                                        errors.email
+                                            ? 'email' + '-error'
+                                            : undefined
+                                    }
                                     id="email"
                                     type="email"
                                     name="email"
@@ -63,7 +56,10 @@ export default function Login({
                                     autoComplete="email"
                                     placeholder="email@example.com"
                                 />
-                                <InputError message={errors.email} />
+                                <InputError
+                                    id={'email' + '-error'}
+                                    message={errors.email}
+                                />
                             </div>
 
                             <div className="grid gap-2">

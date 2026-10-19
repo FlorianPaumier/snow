@@ -136,6 +136,17 @@ export default function ImportUsers({
                                                 }
                                             >
                                                 <SelectTrigger
+                                                    aria-invalid={Boolean(
+                                                        errors.file ??
+                                                        errors.csv,
+                                                    )}
+                                                    aria-describedby={
+                                                        (errors.file ??
+                                                        errors.csv)
+                                                            ? `mapping-${field}` +
+                                                              '-error'
+                                                            : undefined
+                                                    }
                                                     id={`mapping-${field}`}
                                                 >
                                                     <SelectValue />

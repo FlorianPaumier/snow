@@ -24,6 +24,7 @@ import { ROUTES } from '@/components/marketing/routes';
 import { Badge } from '@/components/ui/badge';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
+import { usePublicCopy } from '@/hooks/use-public-copy';
 import { cn } from '@/lib/utils';
 
 /* ── Literal tint classes (never constructed at runtime) ─────────── */
@@ -57,17 +58,19 @@ const directoryClients = [
 ] as const;
 
 function DirectoryVisual() {
+    const { copy } = usePublicCopy();
+
     return (
-        <div className="rounded-2xl border border-border bg-card p-5 shadow-frost-md">
+        <div className="rounded-2xl border border-border bg-card p-5 shadow-[var(--preview-elevation)]">
             <div className="flex items-center justify-between gap-3">
-                <p className="font-mono text-xs font-medium tracking-[0.16em] text-muted-foreground uppercase">
-                    Clients
+                <p className="text-sm font-medium text-muted-foreground">
+                    {copy('Clients')}
                 </p>
                 <Badge
                     variant="outline"
                     className="border-info/25 bg-info/10 text-info"
                 >
-                    1 season · 3 records
+                    {copy('1 season · 3 records')}
                 </Badge>
             </div>
 
@@ -78,11 +81,11 @@ function DirectoryVisual() {
                         className="flex items-center justify-between gap-3 rounded-lg border border-border bg-muted/30 px-3.5 py-2.5"
                     >
                         <div className="min-w-0">
-                            <p className="truncate font-mono text-xs font-medium">
-                                {client.name}
+                            <p className="truncate text-sm font-medium">
+                                {copy(client.name)}
                             </p>
-                            <p className="mt-0.5 text-[11px] text-muted-foreground">
-                                {client.number} · {client.type}
+                            <p className="mt-0.5 text-sm text-muted-foreground">
+                                {copy(client.number)} · {copy(client.type)}
                             </p>
                         </div>
                         <Badge
@@ -94,7 +97,7 @@ function DirectoryVisual() {
                                     : 'border-border bg-muted text-muted-foreground',
                             )}
                         >
-                            {client.active ? 'Contracted' : 'No contract'}
+                            {copy(client.active ? 'Contracted' : 'No contract')}
                         </Badge>
                     </div>
                 ))}
@@ -106,8 +109,8 @@ function DirectoryVisual() {
                         aria-hidden="true"
                         className="size-4 text-glacier-600 dark:text-glacier-400"
                     />
-                    <p className="font-mono text-xs text-muted-foreground">
-                        Address · phone · email · notes
+                    <p className="text-sm text-muted-foreground">
+                        {copy('Address · phone · email · notes')}
                     </p>
                 </div>
             </div>
@@ -123,22 +126,24 @@ const contractServices = [
 ] as const;
 
 function ContractVisual() {
+    const { copy } = usePublicCopy();
+
     return (
-        <div className="rounded-2xl border border-border bg-card p-5 shadow-frost-md">
+        <div className="rounded-2xl border border-border bg-card p-5 shadow-[var(--preview-elevation)]">
             <div className="flex items-center justify-between gap-3">
                 <div>
                     <p className="text-sm font-semibold">
-                        Seasonal contract · 2026–27
+                        {copy('Seasonal contract · 2026–27')}
                     </p>
-                    <p className="mt-0.5 font-mono text-[11px] text-muted-foreground">
-                        Gestion Summit Inc.
+                    <p className="mt-0.5 text-sm text-muted-foreground">
+                        {copy('Gestion Summit Inc.')}
                     </p>
                 </div>
                 <Badge
                     variant="outline"
                     className="border-ember-500/30 bg-ember-500/10 text-ember-700 dark:text-ember-400"
                 >
-                    3 services
+                    {copy('3 services')}
                 </Badge>
             </div>
 
@@ -148,19 +153,19 @@ function ContractVisual() {
                         key={service.label}
                         className="flex items-baseline justify-between gap-4"
                     >
-                        <p className="font-mono text-xs text-muted-foreground">
-                            {service.label}
+                        <p className="text-sm text-muted-foreground">
+                            {copy(service.label)}
                         </p>
-                        <p className="font-mono text-xs font-medium">
-                            {service.amount}
+                        <p className="text-sm font-medium">
+                            {copy(service.amount)}
                         </p>
                     </div>
                 ))}
             </div>
 
             <div className="mt-4 flex items-center justify-between border-t border-border pt-4">
-                <p className="font-mono text-[11px] text-muted-foreground">
-                    Contract total
+                <p className="text-sm text-muted-foreground">
+                    {copy('Contract total')}
                 </p>
                 <p className="text-lg font-semibold tabular-nums">$850</p>
             </div>
@@ -190,15 +195,19 @@ const slotStatusStyles = {
 } as const;
 
 function PaymentsVisual() {
+    const { copy } = usePublicCopy();
+
     return (
-        <div className="rounded-2xl border border-border bg-card p-5 shadow-frost-md">
+        <div className="rounded-2xl border border-border bg-card p-5 shadow-[var(--preview-elevation)]">
             <div className="flex items-center justify-between gap-3">
-                <p className="text-sm font-semibold">Payments · contract</p>
+                <p className="text-sm font-semibold">
+                    {copy('Payments · contract')}
+                </p>
                 <Badge
                     variant="outline"
                     className="border-glacier-500/30 bg-glacier-500/10 text-glacier-700 dark:text-glacier-400"
                 >
-                    2 of 4 collected
+                    {copy('2 of 4 collected')}
                 </Badge>
             </div>
 
@@ -211,15 +220,15 @@ function PaymentsVisual() {
                             key={slot.slot}
                             className="flex items-center justify-between gap-3 rounded-lg border border-border bg-muted/30 px-3.5 py-2.5"
                         >
-                            <span className="min-w-0 flex-1 truncate font-mono text-xs font-medium">
-                                {slot.slot}
+                            <span className="min-w-0 flex-1 truncate text-sm font-medium">
+                                {copy(slot.slot)}
                                 <span className="ml-2 text-muted-foreground">
-                                    {slot.amount}
+                                    {copy(slot.amount)}
                                 </span>
                             </span>
                             <span
                                 className={cn(
-                                    'flex shrink-0 items-center gap-1.5 text-xs font-medium',
+                                    'flex shrink-0 items-center gap-1.5 text-sm font-medium',
                                     status.text,
                                 )}
                             >
@@ -230,7 +239,7 @@ function PaymentsVisual() {
                                         status.dot,
                                     )}
                                 />
-                                {status.label}
+                                {copy(status.label)}
                             </span>
                         </li>
                     );
@@ -239,14 +248,14 @@ function PaymentsVisual() {
 
             <div className="mt-4 border-t border-border pt-3.5">
                 <div className="flex items-center justify-between">
-                    <p className="font-mono text-xs text-muted-foreground">
-                        $500 collected of $850
+                    <p className="text-sm text-muted-foreground">
+                        {copy('$500 collected of $850')}
                     </p>
-                    <p className="font-mono text-xs font-medium">59%</p>
+                    <p className="text-sm font-medium">59%</p>
                 </div>
                 <Progress
                     value={59}
-                    aria-label="Payments collected: 500 of 850 dollars"
+                    aria-label={copy('Payments collected: 500 of 850 dollars')}
                     className="mt-2.5 h-1.5"
                 />
             </div>
@@ -261,16 +270,20 @@ const receiptLines = [
 ] as const;
 
 function InvoiceVisual() {
+    const { copy } = usePublicCopy();
+
     return (
-        <div className="rounded-2xl border border-border bg-card p-5 shadow-frost-md">
+        <div className="rounded-2xl border border-border bg-card p-5 shadow-[var(--preview-elevation)]">
             <div className="flex items-center gap-3">
                 <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-ember-500/10 text-ember-600 dark:text-ember-400">
                     <Receipt aria-hidden="true" className="size-4" />
                 </span>
                 <div className="min-w-0">
-                    <p className="text-sm font-medium">Receipt · contract</p>
-                    <p className="mt-0.5 font-mono text-[11px] text-muted-foreground">
-                        Gestion Summit Inc. · 2 payments
+                    <p className="text-sm font-medium">
+                        {copy('Receipt · contract')}
+                    </p>
+                    <p className="mt-0.5 text-sm text-muted-foreground">
+                        {copy('Gestion Summit Inc. · 2 payments')}
                     </p>
                 </div>
             </div>
@@ -281,11 +294,11 @@ function InvoiceVisual() {
                         key={line.label}
                         className="flex items-baseline justify-between gap-4"
                     >
-                        <p className="font-mono text-xs text-muted-foreground">
-                            {line.label}
+                        <p className="text-sm text-muted-foreground">
+                            {copy(line.label)}
                         </p>
-                        <p className="font-mono text-xs font-medium">
-                            {line.amount}
+                        <p className="text-sm font-medium">
+                            {copy(line.amount)}
                         </p>
                     </div>
                 ))}
@@ -296,24 +309,24 @@ function InvoiceVisual() {
                     <span
                         className={cn(
                             buttonVariants({ variant: 'outline' }),
-                            'h-9 px-3 text-xs',
+                            'h-9 px-3 text-sm',
                         )}
                     >
                         <FileText aria-hidden="true" className="size-3.5" />
-                        Print
+                        {copy('Print')}
                     </span>
                     <span
                         className={cn(
                             buttonVariants({ variant: 'outline' }),
-                            'h-9 px-3 text-xs',
+                            'h-9 px-3 text-sm',
                         )}
                     >
                         <Download aria-hidden="true" className="size-3.5" />
-                        PDF
+                        {copy('PDF')}
                     </span>
                 </div>
-                <p className="font-mono text-[11px] text-muted-foreground">
-                    Amounts from the contract
+                <p className="text-sm text-muted-foreground">
+                    {copy('Amounts from the contract')}
                 </p>
             </div>
         </div>
@@ -322,39 +335,43 @@ function InvoiceVisual() {
 
 /* ── Visual 5 · Dashboard ───────────────────────────────────────── */
 function DashboardVisual() {
+    const { copy } = usePublicCopy();
+
     return (
-        <div className="rounded-2xl border border-border bg-card p-5 shadow-frost-md">
+        <div className="rounded-2xl border border-border bg-card p-5 shadow-[var(--preview-elevation)]">
             <div className="flex items-center justify-between gap-3">
-                <p className="text-sm font-semibold">Season dashboard</p>
+                <p className="text-sm font-semibold">
+                    {copy('Season dashboard')}
+                </p>
                 <Badge
                     variant="outline"
                     className="border-success/25 bg-success/10 text-success"
                 >
-                    Live totals
+                    {copy('Live totals')}
                 </Badge>
             </div>
 
             {/* KPI row */}
             <div className="mt-4 grid grid-cols-3 gap-3">
                 <div className="rounded-lg border border-border bg-muted/40 p-3">
-                    <p className="font-mono text-[10px] tracking-wider text-muted-foreground uppercase">
-                        Collected
+                    <p className="text-sm tracking-wider text-muted-foreground">
+                        {copy('Collected')}
                     </p>
                     <p className="mt-1.5 text-lg font-semibold tabular-nums">
-                        $41.2k
+                        {copy('$41.2k')}
                     </p>
                 </div>
                 <div className="rounded-lg border border-border bg-muted/40 p-3">
-                    <p className="font-mono text-[10px] tracking-wider text-muted-foreground uppercase">
-                        Outstanding
+                    <p className="text-sm tracking-wider text-muted-foreground">
+                        {copy('Outstanding')}
                     </p>
                     <p className="mt-1.5 text-lg font-semibold tabular-nums">
-                        $12.8k
+                        {copy('$12.8k')}
                     </p>
                 </div>
                 <div className="rounded-lg border border-border bg-muted/40 p-3">
-                    <p className="font-mono text-[10px] tracking-wider text-muted-foreground uppercase">
-                        Clients
+                    <p className="text-sm tracking-wider text-muted-foreground">
+                        {copy('Clients')}
                     </p>
                     <p className="mt-1.5 text-lg font-semibold tabular-nums">
                         118
@@ -367,8 +384,8 @@ function DashboardVisual() {
                 aria-hidden="true"
                 className="mt-4 rounded-lg border border-border bg-muted/30 p-3"
             >
-                <p className="font-mono text-[10px] tracking-wider text-muted-foreground uppercase">
-                    Revenue by month
+                <p className="text-sm tracking-wider text-muted-foreground">
+                    {copy('Revenue by month')}
                 </p>
                 <div className="mt-3 flex h-24 items-end gap-1.5">
                     {[35, 55, 45, 70, 62, 82, 95].map((height, index) => (
@@ -387,8 +404,8 @@ function DashboardVisual() {
                         aria-hidden="true"
                         className="size-4 text-glacier-600 dark:text-glacier-400"
                     />
-                    <p className="font-mono text-xs text-muted-foreground">
-                        Revenue & client growth
+                    <p className="text-sm text-muted-foreground">
+                        {copy('Revenue & client growth')}
                     </p>
                 </div>
             </div>
@@ -479,6 +496,8 @@ const featureRows: FeatureRowData[] = [
 ];
 
 function FeatureRow({ row, index }: { row: FeatureRowData; index: number }) {
+    const { copy } = usePublicCopy();
+
     const { icon: Icon, Visual, tint } = row;
     const reversed = index % 2 === 1;
 
@@ -496,14 +515,14 @@ function FeatureRow({ row, index }: { row: FeatureRowData; index: number }) {
                     >
                         <Icon aria-hidden="true" className="size-5" />
                     </span>
-                    <p className="mt-5 font-mono text-xs font-medium tracking-[0.18em] text-glacier-700 uppercase dark:text-glacier-400">
-                        {row.eyebrow}
+                    <p className="mt-5 text-sm font-medium text-glacier-700 dark:text-glacier-400">
+                        {copy(row.eyebrow)}
                     </p>
                     <h3 className="mt-3 text-2xl font-semibold tracking-tight text-balance md:text-3xl">
-                        {row.title}
+                        {copy(row.title)}
                     </h3>
                     <p className="mt-4 leading-relaxed text-muted-foreground">
-                        {row.copy}
+                        {copy(row.copy)}
                     </p>
                     <ul className="mt-6 flex flex-col gap-3">
                         {row.bullets.map((bullet) => (
@@ -515,7 +534,7 @@ function FeatureRow({ row, index }: { row: FeatureRowData; index: number }) {
                                     aria-hidden="true"
                                     className="size-4 shrink-0 text-success"
                                 />
-                                <span className="text-sm">{bullet}</span>
+                                <span className="text-sm">{copy(bullet)}</span>
                             </li>
                         ))}
                     </ul>
@@ -538,10 +557,12 @@ const alsoIncluded: { name: string; icon: LucideIcon }[] = [
 ];
 
 function AlsoIncludedStrip() {
+    const { copy } = usePublicCopy();
+
     return (
         <MarketingSection
-            eyebrow="Also included"
-            title="The rest of the back office"
+            eyebrow={copy('Also included')}
+            title={copy('The rest of the back office')}
             className="py-12 md:py-16"
         >
             <div className="flex flex-wrap items-center justify-center gap-2.5">
@@ -556,13 +577,13 @@ function AlsoIncludedStrip() {
                                 aria-hidden="true"
                                 className="size-4 text-glacier-600 dark:text-glacier-400"
                             />
-                            {item.name}
+                            {copy(item.name)}
                         </span>
                     );
                 })}
             </div>
-            <p className="mt-6 text-center font-mono text-xs tracking-[0.14em] text-muted-foreground uppercase">
-                On every plan — no feature gates on the basics
+            <p className="mt-6 text-center text-sm tracking-[0.14em] text-muted-foreground">
+                {copy('On every plan — no feature gates on the basics')}
             </p>
         </MarketingSection>
     );
@@ -570,21 +591,19 @@ function AlsoIncludedStrip() {
 
 /* ── Scope note ─────────────────────────────────────────────────── */
 function ScopeNote() {
+    const { copy } = usePublicCopy();
+
     return (
         <MarketingSection
-            eyebrow="Honest scope"
-            title="What we deliberately don't do (yet)"
+            eyebrow={copy('Honest scope')}
+            title={copy("What we deliberately don't do (yet)")}
             className="py-12 md:py-16"
         >
             <div className="mx-auto max-w-2xl rounded-xl border border-border bg-card px-5 text-center md:px-6">
                 <p className="text-sm leading-relaxed text-muted-foreground">
-                    Frostline OPS is a back office, not a field operations
-                    system. Crew navigation, mobile field workflows, service
-                    evidence, and customer self-service are not in the product
-                    today, and we would rather you know that now than discover
-                    it in January. If running crews in the field is your
-                    priority this season, we will happily tell you we are not
-                    your tool — yet.
+                    {copy(
+                        'Frostline OPS is a back office, not a field operations system. Crew navigation, mobile field workflows, service evidence, and customer self-service are not in the product today, and we would rather you know that now than discover it in January. If running crews in the field is your priority this season, we will happily tell you we are not your tool — yet.',
+                    )}
                 </p>
             </div>
         </MarketingSection>
@@ -593,29 +612,33 @@ function ScopeNote() {
 
 /* ── Page ────────────────────────────────────────────────────────── */
 export default function Features() {
+    const { copy } = usePublicCopy();
+
     return (
         <MarketingLayout
-            title="Features — Frostline OPS"
+            title={copy('Features — Frostline OPS')}
             route={ROUTES.features}
         >
             <PageHero
-                eyebrow="The product"
-                title="The back office your snow business runs on"
-                description="Clients, contracts, payments, invoices — the five systems that replace the binder, the spreadsheet, and the shoebox of receipts. Built for the season, from first contract to final balance."
+                eyebrow={copy('The product')}
+                title={copy('The back office your snow business runs on')}
+                description={copy(
+                    'Clients, contracts, payments, invoices — the five systems that replace the binder, the spreadsheet, and the shoebox of receipts. Built for the season, from first contract to final balance.',
+                )}
             >
                 <Button asChild size="lg">
                     <Link href={ROUTES.contact}>
-                        Start free trial
+                        {copy('Start free trial')}
                         <ArrowRight aria-hidden="true" />
                     </Link>
                 </Button>
                 <Button asChild size="lg" variant="outline">
-                    <Link href={ROUTES.pricing}>See pricing</Link>
+                    <Link href={ROUTES.pricing}>{copy('See pricing')}</Link>
                 </Button>
             </PageHero>
 
             <div>
-                <h2 className="sr-only">Product deep dives</h2>
+                <h2 className="sr-only">{copy('Product deep dives')}</h2>
                 {featureRows.map((row, index) => (
                     <FeatureRow key={row.eyebrow} row={row} index={index} />
                 ))}
@@ -626,8 +649,10 @@ export default function Features() {
             <ScopeNote />
 
             <CTABand
-                title="Set up before the snow flies"
-                description="Bring your client list — we'll import it and set up your first season's contracts and payment schedules with you."
+                title={copy('Set up before the snow flies')}
+                description={copy(
+                    "Bring your client list — we'll import it and set up your first season's contracts and payment schedules with you.",
+                )}
             />
         </MarketingLayout>
     );

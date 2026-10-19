@@ -38,7 +38,7 @@ final readonly class GetSeasonRevenueRecap
     private function compute(): Collection
     {
         $revenuePerContract = '(select coalesce(sum(amount), 0) from contract_services where contract_services.contract_id = contracts.id)';
-        $collectedPerContract = '(select coalesce(sum(amount), 0) from payments where payments.contract_id = contracts.id and payments.paid = true)';
+        $collectedPerContract = '(select coalesce(sum(amount - stripe_reversed_amount), 0) from payments where payments.contract_id = contracts.id and payments.paid = true)';
 
         /** @var Collection<int, object{season: string, revenue: int, collected: int, contracts_count: int}> $rows */
         $rows = Contract::query()

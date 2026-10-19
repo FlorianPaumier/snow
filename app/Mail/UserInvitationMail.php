@@ -21,12 +21,14 @@ final class UserInvitationMail extends Mailable implements ShouldQueue
         public readonly string $organizationName,
         public readonly string $token,
         public readonly ?string $inviterName = null,
-    ) {}
+    ) {
+        $this->locale(app()->getLocale());
+    }
 
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: sprintf('Join %s on %s', $this->organizationName, config()->string('app.name')),
+            subject: __('invitations.user_subject', ['organization' => $this->organizationName, 'app' => config('app.name')]),
         );
     }
 

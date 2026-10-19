@@ -9,6 +9,10 @@ Saison {{ $reminder['season'] }}<br>
 Échéance : {{ $reminder['dueDate'] }} ({{ $reminder['duePhrase'] }})
 </x-mail::panel>
 
+@if ($reminder['paymentUrl'] ?? null)
+<x-mail::button :url="$reminder['paymentUrl']">Payer avec Stripe</x-mail::button>
+@endif
+
 Merci de nous faire parvenir le règlement dès que possible, ou de nous contacter si un arrangement est nécessaire.
 
 Merci,<br>

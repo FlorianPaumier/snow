@@ -103,7 +103,7 @@ it('resolves an organization relations', function (): void {
 it('renders the login challenge mailable', function (): void {
     $mail = new LoginChallengeCodeMail('654321');
 
-    expect($mail->envelope()->subject)->toBe('Your login code')
+    expect($mail->envelope()->subject)->toBe(__('invitations.login_subject'))
         ->and($mail->content()->markdown)->toBe('mail.login-challenge-code')
         ->and($mail->content()->with)->toBe(['code' => '654321'])
         ->and($mail->render())->toContain('654321');
@@ -119,7 +119,7 @@ it('renders the user invitation mailable', function (): void {
 
     $rendered = $mail->render();
 
-    expect($mail->envelope()->subject)->toBe('Join Frostline OPS on '.config()->string('app.name'))
+    expect($mail->envelope()->subject)->toBe(__('invitations.user_subject', ['organization' => 'Frostline OPS', 'app' => config('app.name')]))
         ->and($mail->content()->markdown)->toBe('mail.user-invitation')
         ->and($mail->content()->with['email'])->toBe('invitee@example.com')
         ->and($mail->content()->with['url'])->toBe(route('user-invitation.create', ['token' => 'invitation-token'], absolute: false).'?email='.urlencode('invitee@example.com'))
@@ -129,7 +129,8 @@ it('renders the user invitation mailable', function (): void {
 });
 
 it('renders the installment reminder mailable', function (): void {
-    $mail = new InstallmentReminderMail([
+    $mail = new InstallmentReminderMail(1, 'test');
+    $mail->reminder = [
         'clientName' => 'Marc Tremblay',
         'slotLabel' => '1er versement',
         'season' => '2026-2027',
@@ -138,7 +139,7 @@ it('renders the installment reminder mailable', function (): void {
         'duePhrase' => 'échoit aujourd’hui',
         'organizationName' => 'Frostline OPS',
         'replyTo' => ['ops@frostline.example'],
-    ]);
+    ];
 
     $rendered = $mail->render();
 

@@ -19,6 +19,7 @@ import AnonymizeClientController from '@/actions/App/Http/Controllers/AnonymizeC
 import ClientController from '@/actions/App/Http/Controllers/ClientController';
 import ContractController from '@/actions/App/Http/Controllers/ContractController';
 import Heading from '@/components/heading';
+import InputError from '@/components/input-error';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -42,6 +43,7 @@ import {
 import { useLocale } from '@/hooks/use-locale';
 import AppLayout from '@/layouts/app-layout';
 import { interpolate, useCurrencyFormatter } from '@/lib/utils';
+import { update as updateServiceEmails } from '@/routes/client-route-notifications';
 import { index, show } from '@/routes/clients';
 import { index as contractsIndex } from '@/routes/contracts';
 import type { BreadcrumbItem } from '@/types';
@@ -66,6 +68,7 @@ type ClientRecord = {
     contracts: ContractSummary[];
     contractsCount: number;
     anonymizedAt: string | null;
+    routeNotificationsEnabled: boolean;
     created_at: string;
 };
 
@@ -128,7 +131,7 @@ function InfoRow({
 export default function Show({ client }: { client: ClientRecord }) {
     const { t } = useLocale();
     const formatCurrency = useCurrencyFormatter();
-    const { status, errors, auth } = usePage().props;
+    const { auth } = usePage().props;
     const canManageClients = auth.can?.manageClients ?? false;
     const typeMeta = TYPE_META[client.type] ?? TYPE_META.individual;
     const isAnonymized = client.anonymizedAt !== null;
@@ -148,10 +151,6 @@ export default function Show({ client }: { client: ClientRecord }) {
             <Head title={displayName} />
 
             <div className="flex h-full flex-1 flex-col gap-6 p-4">
-                {typeof status === 'string' && (
-                    <p className="text-sm text-success">{status}</p>
-                )}
-
                 {isAnonymized && (
                     <div
                         className="mx-auto flex w-full max-w-3xl items-start gap-3 rounded-lg border border-border bg-muted/40 p-4"
@@ -254,6 +253,47 @@ export default function Show({ client }: { client: ClientRecord }) {
                             </div>
                         </div>
                     </div>
+
+                    {auth.can?.manageClients && !client.anonymizedAt && (
+                        <Form
+                            {...updateServiceEmails.form(client.id)}
+                            className="space-y-3 rounded-xl border p-5"
+                        >
+                            {({ processing, errors }) => (
+                                <>
+                                    <input
+                                        type="hidden"
+                                        name="enabled"
+                                        value="0"
+                                    />
+                                    <label className="flex items-center gap-3">
+                                        <input
+                                            type="checkbox"
+                                            name="enabled"
+                                            value="1"
+                                            defaultChecked={
+                                                client.routeNotificationsEnabled
+                                            }
+                                            className="size-4"
+                                        />
+                                        <span>
+                                            {t.serviceUpdates.preference}
+                                        </span>
+                                    </label>
+                                    <p className="text-sm text-muted-foreground">
+                                        {t.serviceUpdates.consent}
+                                    </p>
+                                    <InputError message={errors.enabled} />
+                                    <Button
+                                        variant="outline"
+                                        disabled={processing}
+                                    >
+                                        {t.serviceUpdates.save}
+                                    </Button>
+                                </>
+                            )}
+                        </Form>
+                    )}
 
                     <div className="rounded-xl border">
                         {/* Contact section */}
@@ -480,16 +520,6 @@ export default function Show({ client }: { client: ClientRecord }) {
                             </>
                         )}
                     </div>
-
-                    {typeof errors.client === 'string' && (
-                        <p
-                            role="alert"
-                            className="text-sm font-medium text-destructive"
-                            data-test="client-error"
-                        >
-                            {errors.client}
-                        </p>
-                    )}
 
                     {/* Contracts section: one row per season, mirroring the contracts index */}
                     <section

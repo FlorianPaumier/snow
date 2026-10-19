@@ -146,6 +146,9 @@ export default function ImportClients({
                                                 }
                                             >
                                                 <SelectTrigger
+                                                    aria-invalid={Boolean(
+                                                        errors.file,
+                                                    )}
                                                     id={`mapping-${field}`}
                                                 >
                                                     <SelectValue />

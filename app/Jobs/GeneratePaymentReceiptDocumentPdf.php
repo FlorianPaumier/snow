@@ -37,7 +37,10 @@ final class GeneratePaymentReceiptDocumentPdf implements ShouldBeUnique, ShouldQ
      */
     public function handle(GeneratePaymentReceiptPdf $generate): void
     {
-        $generate->handle(Payment::query()->findOrFail($this->paymentId));
+        $payment = Payment::query()->findOrFail($this->paymentId);
+        if ($payment->receiptAvailable()) {
+            $generate->handle($payment);
+        }
     }
 
     /**

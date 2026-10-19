@@ -7,6 +7,8 @@ namespace App\Actions;
 use App\Models\Client;
 use App\Models\Contract;
 use App\Models\Payment;
+use App\Models\Quote;
+use App\Models\TourNotification;
 use App\Models\User;
 use App\ValueObjects\Address;
 use Illuminate\Support\Collection;
@@ -33,19 +35,16 @@ final readonly class AnonymizeClient
 
     public function handle(Client $client, ?User $actor = null): void
     {
-        throw_if(
-            $client->isAnonymized(),
-            ValidationException::withMessages([
-                'client' => __('clients.already_anonymized'),
-            ]),
-        );
-
         $organizationId = $client->organization_id;
         $contractCount = $client->contracts()->count();
 
-        $this->deleteStoredPdfs($client);
-
         DB::transaction(function () use ($client, $actor): void {
+            $client->refreshForUpdate();
+            throw_if($client->isAnonymized(), ValidationException::withMessages([
+                'client' => __('clients.already_anonymized'),
+            ]));
+            $this->deleteStoredPdfs($client);
+
             // Identity fields are wiped, not reworded: nullable columns go
             // null, required string columns go empty so nothing personal
             // remains anywhere in the row.
@@ -57,10 +56,13 @@ final readonly class AnonymizeClient
                 'phoneDay' => null,
                 'cellPhone' => null,
                 'email' => null,
+                'route_notifications_enabled' => false,
                 'remark' => null,
                 'anonymized_at' => now(),
                 'anonymized_by' => $actor?->id,
             ])->save();
+            TourNotification::query()->withoutGlobalScopes()->where('organization_id', $client->organization_id)->where('client_id', $client->id)->update(['recipient_key' => null]);
+            Quote::query()->withoutGlobalScopes()->where('organization_id', $client->organization_id)->where('client_id', $client->id)->delete();
             $this->anonymizeTourStops->handle($client);
         });
 

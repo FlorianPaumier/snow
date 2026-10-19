@@ -1,9 +1,4 @@
-@php
-    $isLocalizedLegalPage = in_array($page['component'], ['marketing/privacy', 'marketing/terms'], true);
-    $documentLocale = $isLocalizedLegalPage
-        ? data_get($page, 'props.locale', app()->getLocale())
-        : (str_starts_with($page['component'], 'marketing/') ? 'en' : app()->getLocale());
-@endphp
+@php($documentLocale = data_get($page, 'props.locale', app()->getLocale()))
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', $documentLocale) }}" @class(['dark' => ($appearance ?? 'system') == 'dark'])>
     <head>

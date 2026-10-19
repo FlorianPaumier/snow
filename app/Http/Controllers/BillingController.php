@@ -4,12 +4,13 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Actions\StartBillingCheckout;
 use App\Http\Requests\CreateBillingCheckoutRequest;
 use App\Models\User;
 use Illuminate\Container\Attributes\CurrentUser;
-use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
 use Inertia\Response;
+use Symfony\Component\HttpFoundation\Response as HttpResponse;
 
 final readonly class BillingController
 {
@@ -25,7 +26,7 @@ final readonly class BillingController
         ]);
     }
 
-    public function store(CreateBillingCheckoutRequest $request, #[CurrentUser] User $user): RedirectResponse
+    public function store(CreateBillingCheckoutRequest $request, #[CurrentUser] User $user, StartBillingCheckout $action): HttpResponse
     {
         /** @var array{plan: string, interval: string}  $validated */
         $validated = $request->validated();
@@ -34,45 +35,17 @@ final readonly class BillingController
         $priceId = config(sprintf('plans.%s.prices.%s', $validated['plan'], $validated['interval']));
 
         if ($priceId === null || $priceId === '') {
-            return to_route('billing.index')->with('status', 'This plan is not configured yet. Please contact support.');
+            return to_route('billing.index')->withErrors(['plan' => __('billing.not_configured')]);
         }
 
-        $organization = $user->organization;
-
-        $subscription = $organization->newSubscription($validated['plan'], $priceId);
-
-        // While the organization is still on its signup trial and has no
-        // subscription yet, the checkout-created subscription picks up the
-        // remaining trial instead of billing immediately...
-        $trialEndsAt = $organization->trial_ends_at;
-
-        if ($trialEndsAt !== null && $trialEndsAt->isFuture() && $organization->subscriptions()->doesntExist()) {
-            $subscription->trialUntil($trialEndsAt);
-        }
-
-        $checkout = $subscription->checkout([
-            'success_url' => route('billing.index'),
-            'cancel_url' => route('billing.index'),
-            // Stripe Tax computes GST/QST (or the customer's local tax) at
-            // checkout: prices are tax-exclusive and the billing address
-            // is required to resolve the rate...
-            'automatic_tax' => [
-                'enabled' => true,
-            ],
-            'billing_address_collection' => 'required',
-            'customer_update' => [
-                'address' => 'auto',
-            ],
-        ]);
-
-        return $checkout->redirect();
+        return Inertia::location($action->handle($user->organization, $validated['plan'], $priceId)->redirect());
     }
 
-    public function update(#[CurrentUser] User $user): RedirectResponse
+    public function update(#[CurrentUser] User $user): HttpResponse
     {
-        return $user->organization->redirectToBillingPortal(
+        return Inertia::location($user->organization->redirectToBillingPortal(
             route('billing.index'),
-        );
+        ));
     }
 
     /**

@@ -1,7 +1,7 @@
 /**
  * Traductions françaises de l'application authentifiée.
  *
- * Le site marketing reste anglophone; ces clés couvrent la coque de
+ * Les pages publiques utilisent également la langue choisie. Ces clés couvrent la coque de
  * l'app (barre latérale, tableaux de bord, clients, contrats, réglages,
  * authentification et gestion des utilisateurs). `DeepString` transforme
  * les valeurs en `string` (et non en littéraux) pour que `en.ts` puisse
@@ -12,6 +12,203 @@ type DeepString<T> = {
 };
 
 const fr = {
+    contractMail: {
+        send: 'Envoyer le contrat par courriel',
+        batch: 'Envoyer les contrats sélectionnés',
+        confirmTitle: 'Confirmer l’envoi des contrats',
+        confirmDescription:
+            'Un PDF sera généré et joint à un courriel distinct pour chaque client. Vérifiez les destinataires avant de confirmer.',
+        confirm: 'Confirmer l’envoi',
+        noEmail: 'Adresse courriel manquante',
+        blocked:
+            'Retirez les contrats sans adresse courriel ou dont l’envoi est déjà en cours.',
+        select: 'Sélectionner le contrat de :client',
+        selectAll: 'Sélectionner les contrats de cette page',
+        column: 'Envoi par courriel',
+        lastSent: 'Dernier envoi : :date par :sender',
+        statuses: {
+            queued: 'En file d’envoi',
+            sending: 'Envoi en cours',
+            sent: 'Courriel envoyé',
+            failed: 'Échec de l’envoi. Vous pouvez réessayer.',
+            uncertain:
+                'Envoi non confirmé. Un nouvel envoi pourrait créer un doublon.',
+            skipped: 'Envoi annulé : destinataire modifié ou indisponible.',
+        },
+    },
+    catalog: {
+        title: 'Catalogue des services',
+        description:
+            'Définissez des noms et prix par défaut. Ils restent modifiables dans chaque contrat, sans changer les contrats existants.',
+        name: 'Nom par défaut',
+        price: 'Prix par défaut ($CA)',
+        newService: 'Nouveau service',
+        add: 'Ajouter le service',
+        available: 'Services disponibles',
+        empty: 'Aucun service dans le catalogue. Ajoutez votre premier service ci-dessus.',
+        archive: 'Archiver le service',
+        choose: 'Ajouter depuis le catalogue',
+    },
+    serviceUpdates: {
+        title: 'Avis de service aux clients',
+        privacy:
+            'Les tournées, employés, arrêts et horaires restent dans l’entreprise. Seul le message général ci-dessous est envoyé.',
+        preference: 'Recevoir les avis de service par courriel',
+        consent:
+            'Activez uniquement si le client a accepté ces avis. Cela ne modifie pas les courriels de paiement ou de contrat.',
+        save: 'Enregistrer la préférence',
+        started: 'Opération commencée',
+        finished: 'Opération terminée',
+        startedText: 'Notre équipe de service a commencé une opération.',
+        finishedText: 'Notre équipe de service a terminé une opération.',
+        disclaimer:
+            'Cet avis général ne confirme pas une intervention à votre propriété et ne précise aucune heure d’arrivée. Contactez notre entreprise si vous avez besoin d’assistance.',
+        confirm:
+            'J’ai vérifié ce message général et je souhaite l’envoyer aux clients inscrits de cette tournée interne.',
+        send: 'Envoyer l’avis aux clients',
+        event: 'Message',
+        pending: 'En file',
+        sending: 'Envoi / non confirmé',
+        sent: 'Accepté par le transport de courriel',
+        skipped: 'Ignoré',
+        uncertain: 'À vérifier',
+        failureHint:
+            'Les envois non confirmés ne sont jamais renvoyés automatiquement. Vérifiez auprès du fournisseur de courriel avant de recontacter le client.',
+        unsubscribe: 'Ne plus recevoir les avis de service',
+        unsubscribeConfirm:
+            'Confirmez que vous souhaitez arrêter ces avis généraux de service.',
+        unsubscribed: 'Les avis de service par courriel sont désactivés.',
+        missing_client: 'Client absent ou d’une autre entreprise',
+        anonymized: 'Client anonymisé',
+        opted_out: 'Non inscrit',
+        missing_email: 'Courriel absent',
+        duplicate_email: 'Courriel en double',
+        email_changed: 'Courriel modifié',
+        outdated: 'Avis périmé',
+    },
+    connect: {
+        failed: 'Le paiement a échoué. Vous pouvez réessayer ou contacter votre prestataire.',
+        title: 'Paiements clients',
+        description:
+            'Connectez votre compte marchand canadien pour recevoir directement les versements en CAD avec Stripe.',
+        responsibilities:
+            'Les paiements appartiennent à votre compte Stripe. Gérez les remboursements, litiges, obligations fiscales et virements dans votre tableau de bord Stripe. Stripe prélève ses frais directement; Frostline ne prend aucune commission. Votre contrat Stripe et les conditions de la plateforme continuent de s’appliquer.',
+        connect: 'Configurer ou continuer avec Stripe',
+        dashboard: 'Ouvrir le tableau de bord Stripe',
+        refresh: 'Actualiser le statut',
+        ready: 'Prêt à recevoir des paiements',
+        pending:
+            'Terminez la configuration ou résolvez les exigences en attente dans Stripe.',
+        unconfigured:
+            'Les paiements en ligne ne sont pas configurés. Demandez à l’administrateur de la plateforme de configurer les identifiants Stripe Connect et son webhook signé.',
+        pay: 'Payer avec Stripe',
+        link: 'Lien de paiement client',
+        unavailable:
+            'Le paiement en ligne est indisponible. Contactez votre prestataire.',
+        processing:
+            'La confirmation du paiement peut prendre du temps. N’envoyez pas un autre paiement pendant le traitement par Stripe.',
+        paid: 'Paiement reçu',
+        open: 'En attente de paiement',
+        expired: 'Session de paiement expirée',
+        partially_refunded: 'Partiellement remboursé',
+        refunded: 'Remboursé',
+        disputed: 'Litige ou montant annulé',
+        merchant: 'Paiement à',
+        private:
+            'Ce lien privé expire après 30 jours. Stripe traite les informations de paiement.',
+        reversed: 'Montant remboursé ou contesté',
+        cancel: 'Fermer la session Stripe impayée',
+        sync: 'Actualiser le statut Stripe',
+        locked: 'Ce versement est géré avec Stripe. Fermez une session impayée avant de percevoir hors ligne. Gérez les paiements reçus dans Stripe.',
+        not_ready:
+            'Le compte marchand n’est pas prêt à recevoir des paiements.',
+        mismatch:
+            'Les informations Stripe ne correspondent pas à ce versement.',
+    },
+
+    renewals: {
+        title: 'Renouvellements',
+        source: 'Saison source',
+        target: 'Saison renouvelée',
+        description:
+            'Sélectionnez les contrats pour préparer les soumissions de la prochaine saison. Aucun envoi automatique.',
+        prepare: 'Préparer les brouillons',
+        selectAll: 'Sélectionner les contrats admissibles',
+        review: 'Vérifier la soumission',
+        blocked: 'Un contrat ou une offre existe déjà pour cette saison.',
+        anonymized: 'Client anonymisé — ignoré',
+        empty: 'Aucun contrat pour cette saison source.',
+        reviewTitle: 'Vérification du renouvellement',
+        reviewHint:
+            'Vérifiez chaque prix et les nouvelles dates de paiement, ou laissez-les vides volontairement. Les paiements précédents ne sont pas reportés.',
+        reviewConfirm: 'Prix et dates vérifiés',
+        reviewRequired:
+            'Modifiez ce renouvellement et vérifiez les prix et les dates avant l’envoi.',
+        decline: 'Marquer le renouvellement refusé',
+        draft: 'Brouillon',
+        sent: 'Envoyé',
+        accepted: 'Accepté',
+        declined: 'Refusé',
+        expired: 'Expiré',
+        created: 'Brouillons créés',
+        existing: 'Contrats ou soumissions existants ignorés',
+        skipped: 'Clients anonymisés ignorés',
+    },
+    quotes: {
+        declined: 'Refusée',
+        title: 'Soumissions',
+        newQuote: 'Nouvelle soumission',
+        description:
+            'Préparez une offre, envoyez-la et suivez son acceptation.',
+        save: 'Enregistrer la soumission',
+        edit: 'Modifier',
+        send: 'Envoyer par courriel',
+        replace: 'Remplacer par un brouillon',
+        replaceHint:
+            'Le remplacement révoque l’ancien lien. Modifiez et envoyez le nouveau brouillon.',
+        open: 'Ouvrir la soumission',
+        empty: 'Aucune soumission.',
+        draft: 'Brouillon',
+        sent: 'Envoyée',
+        accepted: 'Acceptée',
+        replaced: 'Remplacée',
+        review: 'Consulter la soumission',
+        confirm:
+            'J’accepte les services, les prix et l’échéancier de paiement ci-dessus.',
+        accept: 'Accepter la soumission',
+        acceptedTitle: 'Soumission acceptée',
+        acceptedText:
+            'Votre contrat a été créé. Contactez l’entreprise pour toute question.',
+        expires: 'Expiration de l’offre',
+        total: 'Total',
+        schedule: 'Échéancier de paiement',
+        private: 'Offre privée — ne partagez pas ce lien.',
+        viewContract: 'Consulter le contrat',
+        previous: 'Précédent',
+        next: 'Suivant',
+    },
+    tourTemplates: {
+        title: 'Modèles et déploiement',
+        newTemplate: 'Nouveau modèle',
+        editTemplate: 'Modifier le modèle',
+        save: 'Enregistrer le modèle',
+        description:
+            'Enregistrez l’ordre et les employés par défaut, puis vérifiez et déployez les tournées pour une tempête.',
+        dispatch: 'Déployer les tournées',
+        date: 'Date du déploiement',
+        selectAll: 'Sélectionner les modèles valides',
+        preview: 'Aperçu de la tournée',
+        edit: 'Modifier',
+        delete: 'Supprimer le modèle',
+        missingWorker: 'Choisissez un employé disponible avant le déploiement.',
+        missingClients:
+            'Ce modèle contient des clients indisponibles. Modifiez la tournée avant le déploiement.',
+        unavailableClient: 'Client indisponible',
+        empty: 'Aucun modèle de tournée.',
+        assigned: 'Assignées',
+        filter: 'Filtrer la date',
+        clear: 'Toutes les dates',
+    },
     tours: {
         title: 'Tournées',
         myTours: 'Ma tournée',
@@ -64,6 +261,12 @@ const fr = {
         minutes: 'min',
     },
     common: {
+        skipToContent: 'Aller au contenu principal',
+        tableLabel: 'Tableau de données, défilement horizontal disponible',
+        mainNavigation: 'Navigation principale',
+        toggleSidebar: 'Afficher ou masquer le menu',
+        unexpectedError: 'Une erreur est survenue.',
+
         back: 'Retour',
         cancel: 'Annuler',
         create: 'Créer',
@@ -404,6 +607,9 @@ const fr = {
         viewClientRecord: 'Voir la fiche du client',
         printDocument: 'Imprimer le document',
         downloadPdf: 'Télécharger le PDF',
+        pdfGenerating: 'Génération du PDF…',
+        pdfDownloaded: 'Le téléchargement du PDF a commencé.',
+        pdfFailed: 'Impossible de générer le PDF pour le moment. Réessayez.',
         receipt: 'Reçu',
         receiptAria: 'Ouvrir le reçu du :slot',
         totalServices: 'Total des services',

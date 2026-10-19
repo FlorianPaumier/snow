@@ -16,7 +16,7 @@ final readonly class DownloadPaymentReceiptController
      */
     public function __invoke(Payment $payment): StreamedResponse
     {
-        abort_unless($payment->paid, 404);
+        abort_unless($payment->receiptAvailable(), 404);
 
         $disk = Storage::disk(config()->string('filesystems.default'));
         $path = GeneratePaymentReceiptPdf::pdfPath($payment->id);

@@ -16,7 +16,7 @@ final readonly class PrintPaymentReceiptController
      */
     public function __invoke(Payment $payment, GetPaymentReceipt $receipt): Response
     {
-        abort_unless($payment->paid, 404);
+        abort_unless($payment->receiptAvailable(), 404);
 
         return response()->view('documents.payment-receipt', [
             ...$receipt->handle($payment),

@@ -32,7 +32,7 @@ export function LegalPage({
             />
             <section className="py-12 md:py-16">
                 <div className="mx-auto w-full max-w-3xl px-4 sm:px-6 lg:px-8">
-                    <p className="font-mono text-[11px] font-medium tracking-[0.14em] text-muted-foreground uppercase">
+                    <p className="text-[11px] font-medium tracking-[0.14em] text-muted-foreground uppercase">
                         {locale === 'fr'
                             ? `Dernière mise à jour : ${updated}`
                             : `Last updated ${updated}`}
@@ -57,7 +57,7 @@ export function LegalSection({
     return (
         <section>
             <h2 className="flex items-baseline gap-3 text-xl font-semibold tracking-tight">
-                <span className="font-mono text-xs text-glacier-700 dark:text-glacier-400">
+                <span className="text-sm text-glacier-700 dark:text-glacier-400">
                     {number}
                 </span>
                 {title}

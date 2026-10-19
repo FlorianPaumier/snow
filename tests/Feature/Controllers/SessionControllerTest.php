@@ -217,18 +217,18 @@ it('does not clear the rate limit after successful login attempts', function ():
     $this->assertGuest();
 });
 
-it('completes the login flow by verifying the emailed challenge code', function (): void {
+it('completes the login flow by verifying the emailed challenge code', function (string $email, string $password): void {
     Mail::fake();
 
     $user = User::factory()->withoutTwoFactor()->create([
-        'email' => 'test@example.com',
-        'password' => Hash::make('password'),
+        'email' => $email,
+        'password' => Hash::make($password),
     ]);
 
     $this->fromRoute('login')
         ->post(route('login.store'), [
-            'email' => 'test@example.com',
-            'password' => 'password',
+            'email' => $email,
+            'password' => $password,
         ])
         ->assertRedirectToRoute('login-challenge.show');
 
@@ -242,7 +242,10 @@ it('completes the login flow by verifying the emailed challenge code', function 
         ->assertRedirectToRoute('dashboard');
 
     $this->assertAuthenticatedAs($user);
-});
+})->with([
+    'standard credentials' => ['test@example.com', 'password'],
+    'reported local credentials' => ['test@test.fr', 'testtest'],
+]);
 
 it('dispatches lockout event when rate limit is reached', function (): void {
     Event::fake([Lockout::class]);

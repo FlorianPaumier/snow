@@ -12,7 +12,10 @@ it('is accessible on the marketing pages', function (string $path): void {
     $page = visit($path);
     settleForAccessibilityScan($page);
 
-    $page->assertNoAccessibilityIssues(3)
+    $page->wait(1)->assertNoAccessibilityIssues(3)
+        ->click('button[aria-label="Changer le thème de couleur"]')->wait(1)->assertNoAccessibilityIssues(3)
+        ->resize(390, 844)->assertScript('document.documentElement.scrollWidth <= window.innerWidth')
+        ->assertNoAccessibilityIssues(3)
         ->assertNoSmoke();
 })->with([
     'home' => '/',
@@ -20,4 +23,7 @@ it('is accessible on the marketing pages', function (string $path): void {
     'pricing' => '/pricing',
     'about' => '/about',
     'contact' => '/contact',
+    'privacy' => '/privacy',
+    'terms' => '/terms',
+    'status' => '/status',
 ]);

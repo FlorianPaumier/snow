@@ -8,14 +8,24 @@ use App\Enums\UserRole;
 use App\Models\Organization;
 use App\Models\Tour;
 use App\Models\User;
+use App\Support\StripeConnect;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 use Laravel\Cashier\Cashier;
+use Stripe\StripeClient;
 
 final class AppServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
+        $this->app->when(StripeConnect::class)
+            ->needs(StripeClient::class)
+            ->give(fn (): StripeClient => new StripeClient([
+                'api_key' => config()->string('services.stripe_connect.key'),
+                'stripe_version' => config()->string('services.stripe_connect.api_version'),
+                'max_network_retries' => 2,
+            ]));
+
         // The organization is the Stripe customer, not the user...
         Cashier::useCustomerModel(Organization::class);
     }

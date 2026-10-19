@@ -16,6 +16,7 @@ use Laravel\Cashier\Billable;
 
 /**
  * @property-read string $id
+ * @property-read string|null $stripe_connect_id
  * @property-read string $name
  * @property-read string|null $owner_id
  * @property-read User|null $owner

@@ -18,12 +18,14 @@ final class LoginChallengeCodeMail extends Mailable implements ShouldQueue
 
     public function __construct(
         public readonly string $code,
-    ) {}
+    ) {
+        $this->locale(app()->getLocale());
+    }
 
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Your login code',
+            subject: __('invitations.login_subject'),
         );
     }
 

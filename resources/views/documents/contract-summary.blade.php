@@ -342,6 +342,9 @@ no external assets) so the PDF conversion needs nothing but this file. --}}
                         <td>{{ __('documents.slot_'.$payment['slot']) }}</td>
                         <td class="num">{{ $formatMoney($payment['amount']) }}</td>
                         <td>
+                            @if (($payment['reversedAmount'] ?? 0) > 0)
+                                <div>{{ __('documents.reversed_amount') }}: {{ $formatMoney($payment['reversedAmount']) }}</div>
+                            @endif
                             @if ($payment['paid'])
                                 <span class="status-paid">
                                     {{ __('documents.paid_on', ['date' => $formatDate($payment['paidAt'])]) }}

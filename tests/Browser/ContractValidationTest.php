@@ -35,11 +35,15 @@ it('warns when the totals do not match while creating a contract', function (): 
 
 it('rejects an unbalanced contract with a server error', function (): void {
     $admin = User::factory()->admin()->create();
-    Client::factory()->forOrganization($admin->organization)->create();
+    Client::factory()->forOrganization($admin->organization)->create(['firstName' => 'Jean', 'lastName' => 'Tremblay']);
     $page = loginViaUi($admin);
 
     $page->navigate('/contracts/create');
     $page->wait(2);
+
+    $page->fill('#clientId', 'Jean')
+        ->keys('#clientId', ['ArrowDown'])
+        ->keys('#clientId', ['Enter']);
 
     $page->fill('#services-0-label', 'Déneigement entrée')
         ->fill('#services-0-amount', '500')
@@ -48,7 +52,7 @@ it('rejects an unbalanced contract with a server error', function (): void {
         ->press('Créer le contrat');
 
     // The server-side withValidator hook adds a French error on payments...
-    $page->assertSee('Le total des versements doit correspondre au total des services')
+    $page->assertSeeIn('[data-sonner-toast]', 'Le total des versements doit correspondre au total des services')
         ->assertPathIs('/contracts/create');
 });
 

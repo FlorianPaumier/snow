@@ -220,7 +220,7 @@
     --accent: oklch(0.32 0.045 210);
     --accent-foreground: oklch(0.92 0.04 195);
     --destructive: oklch(0.65 0.19 25);
-    --destructive-foreground: oklch(0.985 0 0);
+    --destructive-foreground: oklch(0.16 0.03 25);
     --border: oklch(1 0 0 / 10%);
     --input: oklch(1 0 0 / 14%);
     --ring: oklch(0.6 0.09 197);
@@ -311,4 +311,54 @@
    theme's popover foreground so both themes stay accessible. */
 [data-sonner-toast] [data-description] {
     color: var(--popover-foreground);
+}
+
+@layer base {
+    :where(
+        a,
+        button,
+        input,
+        select,
+        textarea,
+        summary,
+        [tabindex]
+    ):focus-visible {
+        outline: 2px solid var(--ring);
+        outline-offset: 3px;
+    }
+    #main-content {
+        scroll-margin-top: 1rem;
+    }
+    @media (pointer: coarse) {
+        [data-slot='button'],
+        [data-slot='sidebar-trigger'],
+        [data-slot='sidebar-menu-button'],
+        [data-slot='input'],
+        [data-slot='select-trigger'] {
+            min-height: 44px;
+        }
+        [data-slot='button'],
+        [data-slot='sidebar-trigger'] {
+            min-width: 44px;
+            touch-action: manipulation;
+        }
+        [data-slot='checkbox'] {
+            min-width: 24px;
+            min-height: 24px;
+        }
+        [data-slot='select-trigger'],
+        textarea {
+            font-size: 16px;
+        }
+    }
+    @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+            animation-duration: 0.01ms !important;
+            animation-iteration-count: 1 !important;
+            transition-duration: 0.01ms !important;
+            scroll-behavior: auto !important;
+        }
+    }
 }

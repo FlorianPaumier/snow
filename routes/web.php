@@ -3,12 +3,18 @@
 declare(strict_types=1);
 
 use App\Actions\GetSystemStatus;
+use App\Http\Controllers\AcceptQuoteController;
 use App\Http\Controllers\AnonymizeClientController;
 use App\Http\Controllers\BillingController;
+use App\Http\Controllers\CatalogServiceController;
 use App\Http\Controllers\ClientController;
+use App\Http\Controllers\ClientRouteNotificationController;
+use App\Http\Controllers\ConnectedPaymentController;
+use App\Http\Controllers\ConnectWebhookController;
 use App\Http\Controllers\ContactInquiryController;
 use App\Http\Controllers\ContractController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\DeclineSeasonRenewalController;
 use App\Http\Controllers\DownloadContractPdfController;
 use App\Http\Controllers\DownloadPaymentReceiptController;
 use App\Http\Controllers\ExportSeasonPaymentsController;
@@ -24,14 +30,24 @@ use App\Http\Controllers\OptimizeTourController;
 use App\Http\Controllers\OrganizationController;
 use App\Http\Controllers\PrintContractDocumentController;
 use App\Http\Controllers\PrintPaymentReceiptController;
+use App\Http\Controllers\QuoteController;
+use App\Http\Controllers\ReplaceQuoteController;
+use App\Http\Controllers\SeasonRenewalController;
+use App\Http\Controllers\SendContractEmailController;
 use App\Http\Controllers\SendPaymentReminderController;
+use App\Http\Controllers\SendQuoteController;
 use App\Http\Controllers\SendUserPasswordResetController;
 use App\Http\Controllers\SessionController;
 use App\Http\Controllers\StartTourController;
+use App\Http\Controllers\StripeConnectController;
 use App\Http\Controllers\StripeWebhookController;
 use App\Http\Controllers\TourController;
+use App\Http\Controllers\TourDispatchController;
+use App\Http\Controllers\TourNotificationController;
+use App\Http\Controllers\TourTemplateController;
 use App\Http\Controllers\TransferOrganizationOwnershipController;
 use App\Http\Controllers\UnmarkPaymentPaidController;
+use App\Http\Controllers\UnsubscribeRouteNotificationController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\UserEmailResetNotificationController;
 use App\Http\Controllers\UserEmailVerificationController;
@@ -45,8 +61,25 @@ use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
+Route::get('pay/{organization}/{payment}', [ConnectedPaymentController::class, 'show'])
+    ->middleware(['signed', 'throttle:60,1'])->name('connected-payments.show');
+Route::post('pay/{organization}/{payment}', [ConnectedPaymentController::class, 'store'])
+    ->middleware(['signed', 'throttle:10,1'])->name('connected-payments.store');
+Route::post('stripe/connect/webhook', ConnectWebhookController::class)->name('stripe-connect.webhook');
+
+Route::get('service-updates/{organization}/{client}/unsubscribe', [UnsubscribeRouteNotificationController::class, 'show'])
+    ->middleware(['signed', 'throttle:60,1'])->name('service-updates.unsubscribe');
+Route::post('service-updates/{organization}/{client}/unsubscribe', [UnsubscribeRouteNotificationController::class, 'store'])
+    ->middleware(['signed', 'throttle:10,1'])->name('service-updates.unsubscribe.store');
+
 // Marketing (public)...
 Route::get('/', fn () => Inertia::render('marketing/home'))->name('home');
+Route::get('design-system', function (): \Inertia\Response {
+    abort_unless(app()->environment(['local', 'testing']), 404);
+
+    return Inertia::render('design-system');
+})->name('design-system');
+
 Route::get('features', fn () => Inertia::render('marketing/features'))->name('features');
 Route::get('pricing', fn () => Inertia::render('marketing/pricing'))->name('pricing');
 Route::get('about', fn () => Inertia::render('marketing/about'))->name('about');
@@ -70,11 +103,22 @@ Route::get('sitemap.xml', function () {
     ]);
 })->name('sitemap');
 
+Route::get('offers/{organization}/{quote}', [AcceptQuoteController::class, 'show'])->middleware(['signed', 'throttle:60,1'])->name('quotes.review');
+Route::post('offers/{organization}/{quote}', [AcceptQuoteController::class, 'store'])->middleware(['signed', 'throttle:10,1'])->name('quotes.accept');
+
 Route::middleware(['auth', 'verified:verification.notice'])->group(function (): void {
+    Route::middleware('can:manage-contracts')->group(function (): void {
+        Route::resource('quotes', QuoteController::class)->except('destroy');
+        Route::post('quotes/{quote}/send', SendQuoteController::class)->middleware('throttle:10,1')->name('quotes.send');
+        Route::post('quotes/{quote}/replace', ReplaceQuoteController::class)->name('quotes.replace');
+    });
+
     Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     Route::get('my-tours', [WorkerDashboardController::class, 'index'])->middleware('can:use-worker-dashboard')->name('tours.worker');
     Route::middleware('can:manage-tours')->group(function (): void {
+        Route::resource('tour-templates', TourTemplateController::class)->except('show');
+        Route::post('tour-dispatches', TourDispatchController::class)->name('tour-dispatches.store');
         Route::get('tours', [TourController::class, 'index'])->name('tours.index');
         Route::get('tours/create', [TourController::class, 'create'])->name('tours.create');
         Route::post('tours', [TourController::class, 'store'])->name('tours.store');
@@ -84,6 +128,20 @@ Route::middleware(['auth', 'verified:verification.notice'])->group(function (): 
     Route::get('tours/{tour}', [TourController::class, 'show'])->name('tours.show');
     Route::post('tours/{tour}/start', StartTourController::class)->name('tours.start');
     Route::post('tours/{tour}/finish', FinishTourController::class)->name('tours.finish');
+
+    Route::middleware('can:manage-billing')->group(function (): void {
+        Route::get('settings/payments', [StripeConnectController::class, 'show'])->name('stripe-connect.show');
+        Route::post('settings/payments', [StripeConnectController::class, 'store'])->middleware('throttle:6,1')->name('stripe-connect.store');
+    });
+    Route::patch('payments/{payment}/online', [ConnectedPaymentController::class, 'update'])
+        ->middleware(['can:manage-contracts', 'throttle:10,1'])->name('connected-payments.update');
+    Route::delete('payments/{payment}/online', [ConnectedPaymentController::class, 'destroy'])
+        ->middleware(['can:manage-contracts', 'throttle:10,1'])->name('connected-payments.destroy');
+
+    Route::post('tours/{tour}/announcements', [TourNotificationController::class, 'store'])
+        ->middleware(['can:manage-tours', 'throttle:10,1'])->name('tour-notifications.store');
+    Route::patch('clients/{client}/route-notifications', [ClientRouteNotificationController::class, 'update'])
+        ->middleware('can:manage-clients')->name('client-route-notifications.update');
 
     // Billing (admin-only subscription management)...
     Route::middleware('can:manage-billing')->group(function (): void {
@@ -136,6 +194,12 @@ Route::middleware(['auth', 'verified:verification.notice'])->group(function (): 
         ->middleware('can:manage-clients')
         ->name('clients.anonymize');
 
+    Route::middleware('can:manage-contracts')->group(function (): void {
+        Route::get('contracts/renewals', [SeasonRenewalController::class, 'index'])->name('renewals.index');
+        Route::post('contracts/renewals', [SeasonRenewalController::class, 'store'])->name('renewals.store');
+        Route::post('quotes/{quote}/decline-renewal', DeclineSeasonRenewalController::class)->name('renewals.decline');
+    });
+
     // Contracts (staff can browse; admins manage)...
     Route::get('contracts', [ContractController::class, 'index'])->name('contracts.index');
     Route::middleware('can:manage-contracts')->group(function (): void {
@@ -185,6 +249,8 @@ Route::middleware(['auth', 'verified:verification.notice'])->group(function (): 
         ->middleware('can:manage-contracts')
         ->name('payments.receipt.download');
 
+    Route::post('contracts/send-email', SendContractEmailController::class)->middleware(['can:manage-contracts', 'throttle:10,1'])->name('contracts.send-email');
+
     // Contract documents (staff can print; PDFs are generated on the queue)...
     Route::get('contracts/{contract}/print', PrintContractDocumentController::class)->name('contracts.print');
     Route::post('contracts/{contract}/pdf', GenerateContractPdfController::class)->name('contracts.pdf.generate');
@@ -211,6 +277,13 @@ Route::middleware('auth')->group(function (): void {
 
     // Language...
     Route::get('settings/language', fn () => Inertia::render('locale/update'))->name('locale.edit');
+
+    Route::middleware(['verified', 'can:manage-contracts'])->group(function (): void {
+        Route::get('settings/services', [CatalogServiceController::class, 'index'])->name('catalog-services.index');
+        Route::post('settings/services', [CatalogServiceController::class, 'store'])->name('catalog-services.store');
+        Route::put('settings/services/{catalogService}', [CatalogServiceController::class, 'update'])->name('catalog-services.update');
+        Route::delete('settings/services/{catalogService}', [CatalogServiceController::class, 'destroy'])->name('catalog-services.destroy');
+    });
 
     // Organization (admin settings)...
     Route::middleware('can:manage-organization')->group(function (): void {

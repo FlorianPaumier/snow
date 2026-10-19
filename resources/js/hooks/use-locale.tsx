@@ -55,11 +55,12 @@ export function useLocale(): UseLocaleReturn {
     const locale: Locale = useSyncExternalStore(
         subscribe,
         () => currentLocale,
-        () => 'fr' as const,
+        () => (isLocale(pageLocale) ? pageLocale : 'fr'),
     );
 
     const updateLocale = (next: Locale): void => {
         currentLocale = next;
+        document.documentElement.lang = next;
 
         // Cookie for the server-side SetLocale middleware...
         setCookie(next);

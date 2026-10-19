@@ -11,6 +11,7 @@ use App\Enums\PaymentMethod;
 use App\Enums\PaymentSlot;
 use App\Http\Requests\CreateContractRequest;
 use App\Http\Requests\UpdateContractRequest;
+use App\Models\CatalogService;
 use App\Models\Client;
 use App\Models\Contract;
 use App\Models\ContractService;
@@ -22,6 +23,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -55,7 +57,7 @@ final readonly class ContractController
 
         /** @var array{rows: list<array<string, mixed>>, total: int} $payload */
         $payload = $this->cache->remember(
-            'contracts-index',
+            'contracts-index-mail',
             [(string) $season, (string) $clientId, (string) $search, $sort, $direction, (string) $page],
             fn (): array => $this->indexPage($season, $clientId, $search, $sort, $direction, $page, $perPage),
             TenantCache::TTL_SHORT,
@@ -85,6 +87,7 @@ final readonly class ContractController
     public function create(): Response
     {
         return Inertia::render('contract/create', [
+            'catalogServices' => CatalogService::query()->orderBy('label')->get(['id', 'label', 'amount']),
             'clients' => $this->clientOptions(),
             'seasons' => $this->seasonOptions(),
             'slots' => $this->slotOptions(),
@@ -112,7 +115,7 @@ final readonly class ContractController
 
     public function show(Contract $contract): Response
     {
-        $contract->load(['client', 'services', 'payments']);
+        $contract->load(['client', 'services', 'payments.organization', 'documentSentBy']);
 
         /** @var Collection<int, ContractService>  $services */
         $services = $contract->services;
@@ -120,7 +123,7 @@ final readonly class ContractController
         $payments = $contract->payments;
 
         $total = $services->sum(fn (ContractService $service): int => $service->amount);
-        $collected = $payments->where('paid', true)->sum(fn (Payment $payment): int => $payment->amount);
+        $collected = $payments->sum(fn (Payment $payment): int => $payment->collectedAmount());
 
         return Inertia::render('contract/show', [
             'contract' => [
@@ -130,6 +133,7 @@ final readonly class ContractController
                     'id' => $contract->client->id,
                     'clientNumber' => $contract->client->clientNumber,
                     'displayName' => $contract->client->displayName(),
+                    'email' => $contract->client->email,
                 ],
                 'services' => $contract->services->map(fn (ContractService $service): array => [
                     'id' => $service->id,
@@ -144,13 +148,19 @@ final readonly class ContractController
                     'amount' => $payment->amount,
                     'paid' => $payment->paid,
                     'method' => $payment->method?->value,
-                    'methodLabel' => $payment->method?->label(),
+                    'methodLabel' => $payment->stripe_payment_intent_id !== null ? 'Stripe' : $payment->method?->label(),
+                    'onlineStatus' => $payment->stripe_status,
+                    'onlineLocked' => $payment->stripe_checkout_key !== null,
+                    'reversedAmount' => $payment->stripe_reversed_amount,
+                    'receiptAvailable' => $payment->receiptAvailable(),
+                    'paymentUrl' => ! $payment->paid && $payment->amount >= 50 && $payment->organization->stripe_connect_id !== null && ! $contract->client->isAnonymized() ? $payment->paymentUrl() : null,
                     'paidAt' => $payment->paid_at?->toDateString(),
                 ])->all(),
                 'total' => $total,
                 'collected' => $collected,
                 'outstanding' => $total - $collected,
                 'created_at' => $contract->created_at->toDateString(),
+                'mail' => $this->mailData($contract),
             ],
             'methods' => $this->methodOptions(),
         ]);
@@ -178,6 +188,7 @@ final readonly class ContractController
                     ],
                 ])->all(),
             ],
+            'catalogServices' => CatalogService::query()->orderBy('label')->get(['id', 'label', 'amount']),
             'clients' => $this->clientOptions(),
             'seasons' => $this->seasonOptions(),
             'slots' => $this->slotOptions(),
@@ -201,19 +212,26 @@ final readonly class ContractController
         return to_route('contracts.index')->with('status', __('statuses.contract_deleted'));
     }
 
+    /** @return array{status: string|null, sentAt: string|null, sentBy: string|null} */
+    private function mailData(Contract $contract): array
+    {
+        return ['status' => $contract->document_mail_status, 'sentAt' => $contract->document_sent_at?->toIso8601String(),
+            'sentBy' => $contract->documentSentBy?->name];
+    }
+
     /**
      * Query one page of contracts and flatten it to a cacheable payload.
      *
      * @param  'asc'|'desc'  $direction
-     * @return array{rows: list<array{id: string, season: string, client: array{id: string, clientNumber: string, displayName: string}, total: int, collected: int, outstanding: int, created_at: string}>, total: int}
+     * @return array{rows: list<array{id: string, season: string, client: array{id: string, clientNumber: string, displayName: string, email: string|null}, total: int, collected: int, outstanding: int, created_at: string, mail: array{status: string|null, sentAt: string|null, sentBy: string|null}}>, total: int}
      */
     private function indexPage(?string $season, ?string $clientId, ?string $search, string $sort, string $direction, int $page, int $perPage): array
     {
         /** @var LengthAwarePaginator<int, Contract> $contracts */
         $contracts = Contract::query()
-            ->with('client')
+            ->with(['client', 'documentSentBy'])
             ->withSum('services', 'amount')
-            ->withSum(['payments as paid_sum' => fn (Builder $query): Builder => $query->where('paid', true)], 'amount')
+            ->withSum(['payments as paid_sum' => fn (Builder $query): Builder => $query->where('paid', true)], DB::raw('amount - stripe_reversed_amount'))
             ->when($season !== null, fn (Builder $query): Builder => $query->where('season', $season))
             ->when($clientId !== null, fn (Builder $query): Builder => $query->where('client_id', $clientId))
             ->when($search !== null, fn (Builder $query): Builder => $query->where(
@@ -226,7 +244,7 @@ final readonly class ContractController
             ->orderBy($sort, $direction)
             ->paginate(perPage: $perPage, page: $page);
 
-        /** @var list<array{id: string, season: string, client: array{id: string, clientNumber: string, displayName: string}, total: int, collected: int, outstanding: int, created_at: string}> $rows */
+        /** @var list<array{id: string, season: string, client: array{id: string, clientNumber: string, displayName: string, email: string|null}, total: int, collected: int, outstanding: int, created_at: string, mail: array{status: string|null, sentAt: string|null, sentBy: string|null}}> $rows */
         $rows = $contracts->map(fn (Contract $contract): array => [
             'id' => $contract->id,
             'season' => $contract->season,
@@ -234,11 +252,13 @@ final readonly class ContractController
                 'id' => $contract->client->id,
                 'clientNumber' => $contract->client->clientNumber,
                 'displayName' => $contract->client->displayName(),
+                'email' => $contract->client->email,
             ],
             'total' => (int) $contract->services_sum_amount,
             'collected' => (int) $contract->paid_sum,
             'outstanding' => (int) $contract->services_sum_amount - (int) $contract->paid_sum,
             'created_at' => $contract->created_at->toDateString(),
+            'mail' => $this->mailData($contract),
         ])->all();
 
         return [

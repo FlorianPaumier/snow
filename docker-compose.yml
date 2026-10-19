@@ -1,9 +1,9 @@
 name: snow
 
-# Infrastructure-only compose: Postgres, Redis and Gotenberg as services,
+# Infrastructure-only compose: Postgres, Redis, Gotenberg and Mailpit as services,
 # the Laravel app itself runs on the host (php artisan serve / composer run dev)
 # and connects over the published ports (127.0.0.1:5432 / 127.0.0.1:6379 /
-# 127.0.0.1:3000).
+# 127.0.0.1:3000 / 127.0.0.1:2525 / 127.0.0.1:8026).
 #
 # Start:     docker compose up -d
 # Stop:      docker compose down (-v to also drop db/redis data)
@@ -16,7 +16,7 @@ services:
             POSTGRES_USER: snow
             POSTGRES_PASSWORD: snow
         ports:
-            - '5432:5432'
+            - '127.0.0.1:5432:5432'
         volumes:
             - db-data:/var/lib/postgresql/data
         healthcheck:
@@ -29,7 +29,7 @@ services:
     redis:
         image: redis:8-alpine
         ports:
-            - '6379:6379'
+            - '127.0.0.1:6379:6379'
         healthcheck:
             test: ['CMD', 'redis-cli', 'ping']
             interval: 5s
@@ -41,7 +41,14 @@ services:
     gotenberg:
         image: gotenberg/gotenberg:8
         ports:
-            - '3000:3000'
+            - '127.0.0.1:3000:3000'
+        platform: linux/arm64
+
+    mailpit:
+        image: axllent/mailpit:v1.31.6
+        ports:
+            - '127.0.0.1:2525:1025'
+            - '127.0.0.1:8026:8025'
         platform: linux/arm64
 
 volumes:

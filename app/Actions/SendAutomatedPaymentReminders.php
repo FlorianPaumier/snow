@@ -35,6 +35,7 @@ final readonly class SendAutomatedPaymentReminders
         /** @var Collection<int, Payment> $payments */
         $payments = Payment::query()
             ->where('paid', false)
+            ->where(fn (Builder $query): Builder => $query->whereNull('stripe_status')->orWhereNotIn('stripe_status', ['processing', 'failed']))
             ->whereNotNull('due_date')
             ->where('due_date', '<=', now()->addDays(self::DAYS_BEFORE_DUE)->endOfDay())
             ->where('automated_reminders_sent', '<', self::MAX_AUTOMATED_REMINDERS)

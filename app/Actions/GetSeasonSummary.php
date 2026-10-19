@@ -8,6 +8,7 @@ use App\Models\Contract;
 use App\Support\TenantCache;
 use App\ValueObjects\Season;
 use Illuminate\Contracts\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\DB;
 
 final readonly class GetSeasonSummary
 {
@@ -46,7 +47,7 @@ final readonly class GetSeasonSummary
             ->join('payments', 'payments.contract_id', '=', 'contracts.id')
             ->where('payments.paid', true)
             ->toBase()
-            ->sum('payments.amount');
+            ->sum(DB::raw('payments.amount - payments.stripe_reversed_amount'));
         $contractsCount = (int) $seasonContracts()->toBase()->count();
 
         return [

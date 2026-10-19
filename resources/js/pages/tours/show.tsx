@@ -1,5 +1,7 @@
 import { Form, Head, useForm, usePage } from '@inertiajs/react';
 import InputError from '@/components/input-error';
+import TourAnnouncements from '@/components/tour-announcements';
+import type { Announcement } from '@/components/tour-announcements';
 import TourStops from '@/components/tour-stops';
 import TourSummary from '@/components/tour-summary';
 import { Button } from '@/components/ui/button';
@@ -54,9 +56,11 @@ function OrderEditor({ tour }: { tour: Tour }) {
 export default function Show({
     tour,
     optimizationAvailable,
+    announcements,
 }: {
     tour: Tour;
     optimizationAvailable: boolean;
+    announcements: Announcement[];
 }) {
     const { t } = useLocale();
     const { auth } = usePage().props;
@@ -76,6 +80,13 @@ export default function Show({
             <div className="mx-auto w-full max-w-4xl space-y-6 p-4 md:p-6">
                 <h2 className="text-xl font-semibold">{tour.name}</h2>
                 <TourSummary tour={tour} />
+                {canManage && (
+                    <TourAnnouncements
+                        key={tour.finished_at ?? tour.started_at ?? 'planned'}
+                        tour={tour}
+                        announcements={announcements}
+                    />
+                )}
                 {tour.departure_address && (
                     <p className="text-sm">
                         <span className="font-medium">

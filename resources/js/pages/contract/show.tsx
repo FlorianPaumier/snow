@@ -1,7 +1,6 @@
 import { Form, Head, Link, router, usePage } from '@inertiajs/react';
 import {
     CalendarRange,
-    Download,
     FileText,
     Pencil,
     Printer,
@@ -12,13 +11,17 @@ import {
 } from 'lucide-react';
 import { useState } from 'react';
 import ContractController from '@/actions/App/Http/Controllers/ContractController';
+import DownloadContractPdfController from '@/actions/App/Http/Controllers/DownloadContractPdfController';
 import GenerateContractPdfController from '@/actions/App/Http/Controllers/GenerateContractPdfController';
 import MarkPaymentPaidController from '@/actions/App/Http/Controllers/MarkPaymentPaidController';
 import PrintContractDocumentController from '@/actions/App/Http/Controllers/PrintContractDocumentController';
 import PrintPaymentReceiptController from '@/actions/App/Http/Controllers/PrintPaymentReceiptController';
 import UnmarkPaymentPaidController from '@/actions/App/Http/Controllers/UnmarkPaymentPaidController';
 import Heading from '@/components/heading';
-import PlanCapAlert from '@/components/plan-cap-alert';
+import PdfDownloadButton from '@/components/pdf-download-button';
+import SendContractsDialog, {
+    ContractMailStatus,
+} from '@/components/send-contracts-dialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -50,15 +53,22 @@ import {
 import { useLocale } from '@/hooks/use-locale';
 import AppLayout from '@/layouts/app-layout';
 import { interpolate, useCurrencyFormatter } from '@/lib/utils';
+import {
+    update as syncOnline,
+    destroy as closeOnline,
+} from '@/routes/connected-payments';
 import type { BreadcrumbItem } from '@/types';
+import type { ContractMail } from '@/types/contract-mail';
 
 type ContractRecord = {
+    mail: ContractMail;
     id: string;
     season: string;
     client: {
         id: string;
         clientNumber: string;
         displayName: string;
+        email: string | null;
     };
     services: Array<{
         id: number;
@@ -74,6 +84,11 @@ type ContractRecord = {
         paid: boolean;
         method: string | null;
         methodLabel: string | null;
+        onlineStatus: string | null;
+        onlineLocked: boolean;
+        reversedAmount: number;
+        receiptAvailable: boolean;
+        paymentUrl: string | null;
         paidAt: string | null;
     }>;
     total: number;
@@ -96,7 +111,7 @@ export default function Show({
 }) {
     const { t } = useLocale();
     const formatCurrency = useCurrencyFormatter();
-    const { status, errors, auth } = usePage().props;
+    const { errors, auth } = usePage().props;
     const canManageContracts = auth.can?.manageContracts ?? false;
     const [markPaidTarget, setMarkPaidTarget] = useState<
         ContractRecord['payments'][number] | null
@@ -146,25 +161,9 @@ export default function Show({
             />
 
             <div className="flex h-full flex-1 flex-col gap-6 p-4">
-                {typeof status === 'string' && (
-                    <p className="text-sm text-success">{status}</p>
-                )}
-
-                <PlanCapAlert />
-
-                {typeof errors.contract === 'string' && (
-                    <p
-                        role="alert"
-                        className="text-sm font-medium text-destructive"
-                        data-test="contract-error"
-                    >
-                        {errors.contract}
-                    </p>
-                )}
-
                 <div className="mx-auto flex w-full max-w-3xl flex-col gap-6">
                     {/* Record header */}
-                    <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                    <div className="flex flex-col gap-4">
                         <div className="flex items-start gap-4">
                             <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-glacier-500/10 text-glacier-700 dark:text-glacier-400">
                                 <FileText
@@ -205,7 +204,10 @@ export default function Show({
                         </div>
 
                         {/* Document actions */}
-                        <div className="flex shrink-0 items-center gap-2">
+                        <div className="flex flex-wrap items-center gap-2">
+                            {canManageContracts && (
+                                <SendContractsDialog contracts={[contract]} />
+                            )}
                             <Button asChild variant="outline">
                                 <a
                                     href={PrintContractDocumentController.url({
@@ -219,26 +221,18 @@ export default function Show({
                                     {t.contracts.printDocument}
                                 </a>
                             </Button>
-                            <Button
-                                type="button"
-                                variant="outline"
-                                onClick={() =>
-                                    router.post(
-                                        GenerateContractPdfController.url({
-                                            contract: contract.id,
-                                        }),
-                                        {},
-                                        { preserveScroll: true },
-                                    )
-                                }
-                                data-test="download-pdf"
-                            >
-                                <Download aria-hidden="true" />{' '}
-                                {t.contracts.downloadPdf}
-                            </Button>
+                            <PdfDownloadButton
+                                generateUrl={GenerateContractPdfController.url({
+                                    contract: contract.id,
+                                })}
+                                downloadUrl={DownloadContractPdfController.url({
+                                    contract: contract.id,
+                                })}
+                            />
                         </div>
                     </div>
 
+                    <ContractMailStatus mail={contract.mail} />
                     <div className="rounded-xl border">
                         {/* Services section */}
                         <div className="p-5">
@@ -318,6 +312,24 @@ export default function Show({
                                                 {formatCurrency(payment.amount)}
                                             </TableCell>
                                             <TableCell>
+                                                {payment.onlineStatus && (
+                                                    <p className="text-xs">
+                                                        {payment.onlineStatus in
+                                                        t.connect
+                                                            ? t.connect[
+                                                                  payment.onlineStatus as keyof typeof t.connect
+                                                              ]
+                                                            : payment.onlineStatus}
+                                                    </p>
+                                                )}
+                                                {payment.reversedAmount > 0 && (
+                                                    <p className="text-xs">
+                                                        {t.connect.reversed}:{' '}
+                                                        {formatCurrency(
+                                                            payment.reversedAmount,
+                                                        )}
+                                                    </p>
+                                                )}
                                                 {payment.paid ? (
                                                     <Badge
                                                         variant="outline"
@@ -341,76 +353,159 @@ export default function Show({
                                             <TableCell>
                                                 {canManageContracts && (
                                                     <div className="flex items-center justify-end gap-1">
-                                                        {payment.paid ? (
-                                                            <>
-                                                                <Button
-                                                                    asChild
-                                                                    variant="ghost"
-                                                                    size="sm"
-                                                                    className="text-muted-foreground hover:text-foreground"
+                                                        {payment.paymentUrl && (
+                                                            <Button
+                                                                asChild
+                                                                variant="ghost"
+                                                                size="sm"
+                                                            >
+                                                                <a
+                                                                    href={
+                                                                        payment.paymentUrl
+                                                                    }
+                                                                    target="_blank"
+                                                                    rel="noopener noreferrer"
                                                                 >
-                                                                    <a
-                                                                        href={PrintPaymentReceiptController.url(
-                                                                            {
-                                                                                payment:
-                                                                                    payment.id,
-                                                                            },
-                                                                        )}
-                                                                        target="_blank"
-                                                                        rel="noopener"
-                                                                        aria-label={interpolate(
-                                                                            t
-                                                                                .contracts
-                                                                                .receiptAria,
-                                                                            {
-                                                                                slot: payment.slotLabel,
-                                                                            },
-                                                                        )}
-                                                                        data-test={`receipt-${payment.slot}`}
-                                                                    >
-                                                                        <ReceiptText
-                                                                            aria-hidden="true"
-                                                                            className="size-4"
-                                                                        />{' '}
-                                                                        {
-                                                                            t
-                                                                                .contracts
-                                                                                .receipt
-                                                                        }
-                                                                    </a>
-                                                                </Button>
+                                                                    {
+                                                                        t
+                                                                            .connect
+                                                                            .link
+                                                                    }
+                                                                </a>
+                                                            </Button>
+                                                        )}
+                                                        {payment.onlineLocked && (
+                                                            <>
                                                                 <Button
                                                                     type="button"
                                                                     variant="ghost"
                                                                     size="sm"
-                                                                    className="text-muted-foreground hover:text-foreground"
                                                                     onClick={() =>
-                                                                        unmarkPaid(
-                                                                            payment,
+                                                                        router.patch(
+                                                                            syncOnline.url(
+                                                                                {
+                                                                                    payment:
+                                                                                        payment.id,
+                                                                                },
+                                                                            ),
                                                                         )
                                                                     }
-                                                                    aria-label={interpolate(
-                                                                        t
-                                                                            .contracts
-                                                                            .unmarkPaidAria,
-                                                                        {
-                                                                            slot: payment.slotLabel,
-                                                                        },
-                                                                    )}
                                                                 >
-                                                                    <Undo2
-                                                                        aria-hidden="true"
-                                                                        className="size-4"
-                                                                    />
                                                                     {
                                                                         t
-                                                                            .contracts
-                                                                            .confirmUnmark
+                                                                            .connect
+                                                                            .sync
                                                                     }
                                                                 </Button>
+                                                                {!payment.paid && (
+                                                                    <Button
+                                                                        type="button"
+                                                                        variant="ghost"
+                                                                        size="sm"
+                                                                        onClick={() =>
+                                                                            router.delete(
+                                                                                closeOnline.url(
+                                                                                    {
+                                                                                        payment:
+                                                                                            payment.id,
+                                                                                    },
+                                                                                ),
+                                                                            )
+                                                                        }
+                                                                    >
+                                                                        {
+                                                                            t
+                                                                                .connect
+                                                                                .cancel
+                                                                        }
+                                                                    </Button>
+                                                                )}
+                                                            </>
+                                                        )}
+                                                        {payment.paid ? (
+                                                            <>
+                                                                {payment.receiptAvailable && (
+                                                                    <Button
+                                                                        asChild
+                                                                        variant="ghost"
+                                                                        size="sm"
+                                                                        className="text-muted-foreground hover:text-foreground"
+                                                                    >
+                                                                        <a
+                                                                            href={PrintPaymentReceiptController.url(
+                                                                                {
+                                                                                    payment:
+                                                                                        payment.id,
+                                                                                },
+                                                                            )}
+                                                                            target="_blank"
+                                                                            rel="noopener"
+                                                                            aria-label={interpolate(
+                                                                                t
+                                                                                    .contracts
+                                                                                    .receiptAria,
+                                                                                {
+                                                                                    slot: payment.slotLabel,
+                                                                                },
+                                                                            )}
+                                                                            data-test={`receipt-${payment.slot}`}
+                                                                        >
+                                                                            <ReceiptText
+                                                                                aria-hidden="true"
+                                                                                className="size-4"
+                                                                            />{' '}
+                                                                            {
+                                                                                t
+                                                                                    .contracts
+                                                                                    .receipt
+                                                                            }
+                                                                        </a>
+                                                                    </Button>
+                                                                )}
+                                                                {!payment.onlineLocked && (
+                                                                    <Button
+                                                                        type="button"
+                                                                        variant="ghost"
+                                                                        size="sm"
+                                                                        className="text-muted-foreground hover:text-foreground"
+                                                                        onClick={() =>
+                                                                            unmarkPaid(
+                                                                                payment,
+                                                                            )
+                                                                        }
+                                                                        aria-label={interpolate(
+                                                                            t
+                                                                                .contracts
+                                                                                .unmarkPaidAria,
+                                                                            {
+                                                                                slot: payment.slotLabel,
+                                                                            },
+                                                                        )}
+                                                                    >
+                                                                        <Undo2
+                                                                            aria-hidden="true"
+                                                                            className="size-4"
+                                                                        />
+                                                                        {
+                                                                            t
+                                                                                .contracts
+                                                                                .confirmUnmark
+                                                                        }
+                                                                    </Button>
+                                                                )}
                                                             </>
                                                         ) : (
                                                             <Button
+                                                                disabled={
+                                                                    payment.onlineLocked
+                                                                }
+                                                                title={
+                                                                    payment.onlineLocked
+                                                                        ? t
+                                                                              .connect
+                                                                              .locked
+                                                                        : undefined
+                                                                }
                                                                 type="button"
                                                                 variant="outline"
                                                                 size="sm"

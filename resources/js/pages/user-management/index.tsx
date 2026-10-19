@@ -1,4 +1,4 @@
-import { Form, Head, Link, router, usePage } from '@inertiajs/react';
+import { Form, Head, Link, router } from '@inertiajs/react';
 import {
     ArrowDown,
     ArrowUp,
@@ -13,7 +13,6 @@ import { useEffect, useState } from 'react';
 import ImportUsersController from '@/actions/App/Http/Controllers/ImportUsersController';
 import UserManagementController from '@/actions/App/Http/Controllers/UserManagementController';
 import Heading from '@/components/heading';
-import PlanCapAlert from '@/components/plan-cap-alert';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -109,7 +108,6 @@ export default function Index({
     filters: Filters;
 }) {
     const { t } = useLocale();
-    const { status } = usePage().props;
     const [search, setSearch] = useState(filters.search);
 
     const SORTABLE_COLUMNS = [
@@ -173,13 +171,18 @@ export default function Index({
 
     const sortIcon = (column: string) => {
         if (filters.sort !== column) {
-            return <ArrowUpDown className="size-3.5 opacity-40" />;
+            return (
+                <ArrowUpDown
+                    aria-hidden="true"
+                    className="size-3.5 opacity-40"
+                />
+            );
         }
 
         return filters.direction === 'asc' ? (
-            <ArrowUp className="size-3.5" />
+            <ArrowUp aria-hidden="true" className="size-3.5" />
         ) : (
-            <ArrowDown className="size-3.5" />
+            <ArrowDown aria-hidden="true" className="size-3.5" />
         );
     };
 
@@ -194,7 +197,7 @@ export default function Index({
                         description={t.users.descriptionTeam}
                     />
 
-                    <div className="flex gap-2">
+                    <div className="flex flex-wrap gap-2">
                         <Button asChild variant="outline">
                             <Link
                                 href={ImportUsersController.index.url()}
@@ -210,12 +213,6 @@ export default function Index({
                         </Button>
                     </div>
                 </div>
-
-                {typeof status === 'string' && (
-                    <p className="text-sm text-success">{status}</p>
-                )}
-
-                <PlanCapAlert />
 
                 <div className="overflow-hidden rounded-xl border">
                     {/* Toolbar: live search + mono count (design system data display pattern) */}
@@ -240,7 +237,7 @@ export default function Index({
                             />
                         </div>
                         <p
-                            className="font-mono text-xs text-muted-foreground sm:ml-auto"
+                            className="text-sm text-muted-foreground sm:ml-auto"
                             aria-live="polite"
                         >
                             {interpolate(t.users.userCount, {
@@ -249,18 +246,28 @@ export default function Index({
                         </p>
                     </div>
 
-                    <div className="overflow-x-auto">
+                    <div className="min-w-0">
                         <Table>
                             <TableHeader>
                                 <TableRow>
                                     {SORTABLE_COLUMNS.map((column) => (
-                                        <TableHead key={column.value}>
+                                        <TableHead
+                                            key={column.value}
+                                            aria-sort={
+                                                filters.sort === column.value
+                                                    ? filters.direction ===
+                                                      'asc'
+                                                        ? 'ascending'
+                                                        : 'descending'
+                                                    : undefined
+                                            }
+                                        >
                                             <button
                                                 type="button"
                                                 onClick={() =>
                                                     sortBy(column.value)
                                                 }
-                                                className="inline-flex items-center gap-1.5 hover:text-foreground"
+                                                className="inline-flex min-h-9 items-center gap-1.5 rounded-sm px-1 text-left hover:text-foreground"
                                             >
                                                 {column.label}
                                                 {sortIcon(column.value)}
@@ -291,13 +298,24 @@ export default function Index({
                                                     </span>
                                                 </span>
                                             </TableCell>
-                                            <TableCell className="font-mono text-xs">
+                                            <TableCell className="text-sm">
                                                 {user.email}
                                             </TableCell>
                                             <TableCell>
                                                 <div className="flex flex-wrap items-center gap-1.5">
                                                     <StatusBadge
-                                                        label={user.role}
+                                                        label={
+                                                            user.role ===
+                                                            'admin'
+                                                                ? t.users
+                                                                      .roleAdmin
+                                                                : user.role ===
+                                                                    'worker'
+                                                                  ? t.users
+                                                                        .roleWorker
+                                                                  : t.users
+                                                                        .roleUser
+                                                        }
                                                         className={
                                                             ROLE_BADGES[
                                                                 user.role
@@ -325,7 +343,7 @@ export default function Index({
                                                     )}
                                                 </div>
                                             </TableCell>
-                                            <TableCell className="text-right text-xs text-muted-foreground">
+                                            <TableCell className="text-right text-sm text-muted-foreground">
                                                 {user.created_at}
                                             </TableCell>
                                             <TableCell>

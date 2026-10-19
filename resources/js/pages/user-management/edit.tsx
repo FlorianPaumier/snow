@@ -2,7 +2,6 @@ import { Form } from '@inertiajs/react';
 import SendUserPasswordResetController from '@/actions/App/Http/Controllers/SendUserPasswordResetController';
 import UserManagementController from '@/actions/App/Http/Controllers/UserManagementController';
 import InputError from '@/components/input-error';
-import PlanCapAlert from '@/components/plan-cap-alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -55,8 +54,6 @@ export default function Edit({ user }: { user: EditableUser }) {
             backHref={index().url}
             backLabel={t.users.title}
         >
-            <PlanCapAlert />
-
             <Form
                 {...UserManagementController.update.form({ user: user.id })}
                 disableWhileProcessing
@@ -73,6 +70,12 @@ export default function Edit({ user }: { user: EditableUser }) {
                                     {t.users.nameField}
                                 </Label>
                                 <Input
+                                    aria-invalid={Boolean(errors.name)}
+                                    aria-describedby={
+                                        errors.name
+                                            ? 'name' + '-error'
+                                            : undefined
+                                    }
                                     id="name"
                                     type="text"
                                     required
@@ -80,7 +83,10 @@ export default function Edit({ user }: { user: EditableUser }) {
                                     name="name"
                                     defaultValue={user.name}
                                 />
-                                <InputError message={errors.name} />
+                                <InputError
+                                    id={'name' + '-error'}
+                                    message={errors.name}
+                                />
                             </div>
 
                             <div className="grid gap-2">
@@ -88,13 +94,22 @@ export default function Edit({ user }: { user: EditableUser }) {
                                     {t.users.emailField}
                                 </Label>
                                 <Input
+                                    aria-invalid={Boolean(errors.email)}
+                                    aria-describedby={
+                                        errors.email
+                                            ? 'email' + '-error'
+                                            : undefined
+                                    }
                                     id="email"
                                     type="email"
                                     required
                                     name="email"
                                     defaultValue={user.email}
                                 />
-                                <InputError message={errors.email} />
+                                <InputError
+                                    id={'email' + '-error'}
+                                    message={errors.email}
+                                />
                             </div>
 
                             <div className="grid gap-2">

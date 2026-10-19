@@ -2,12 +2,15 @@
 
 declare(strict_types=1);
 
+use App\Actions\StartBillingCheckout;
 use App\Models\Organization;
 use App\Models\User;
 use Stripe\Checkout\Session;
+use Stripe\Collection;
 use Stripe\Customer;
 use Stripe\Service\Checkout\SessionService;
 use Stripe\Service\CustomerService;
+use Stripe\Service\SubscriptionService;
 use Stripe\StripeClient;
 
 beforeEach(function (): void {
@@ -88,7 +91,7 @@ it('redirects to billing with a message when the plan has no price configured', 
         ->fromRoute('billing.index')
         ->post(route('billing.checkout'), ['plan' => 'pro', 'interval' => 'annual'])
         ->assertRedirectToRoute('billing.index')
-        ->assertSessionHas('status', 'This plan is not configured yet. Please contact support.');
+        ->assertSessionHasErrors('plan');
 });
 
 it('redirects to the Stripe checkout with tax enabled when the annual price is configured', function (): void {
@@ -176,7 +179,7 @@ it('bills immediately when the organization has no signup trial', function (): v
     expect($checkoutPayload['subscription_data'])->not->toHaveKey('trial_end');
 });
 
-it('bills immediately when the organization already has a subscription', function (): void {
+it('rejects checkout when the organization already has a subscription', function (): void {
     config()->set('plans.pro.prices.annual', 'price_test_annual');
 
     $this->organization->forceFill(['stripe_id' => 'cus_test_123'])->save();
@@ -198,9 +201,10 @@ it('bills immediately when the organization already has a subscription', functio
     $this->actingAs($this->admin)
         ->fromRoute('billing.index')
         ->post(route('billing.checkout'), ['plan' => 'pro', 'interval' => 'annual'])
-        ->assertRedirect('https://checkout.stripe.com/test');
+        ->assertRedirectToRoute('billing.index')
+        ->assertSessionHasErrors('plan');
 
-    expect($checkoutPayload['subscription_data'])->not->toHaveKey('trial_end');
+    expect($checkoutPayload)->toBe([]);
 });
 
 it('redirects to the billing portal for admins', function (): void {
@@ -227,18 +231,27 @@ it('redirects to the billing portal for admins', function (): void {
  * $portalPayload is given, it receives the params sent to the matching
  * session create call.
  */
-function bindFakeStripeClient(string $checkoutUrl = 'https://checkout.stripe.com/unused', string $portalUrl = 'https://billing.stripe.com/unused', ?array &$checkoutPayload = null, ?array &$portalPayload = null): void
+function bindFakeStripeClient(string $checkoutUrl = 'https://checkout.stripe.com/unused', string $portalUrl = 'https://billing.stripe.com/unused', ?array &$checkoutPayload = null, ?array &$portalPayload = null, array $remoteSubscriptions = [], bool $loseCheckoutResponse = false): void
 {
     $stripeCustomer = Customer::constructFrom(['id' => 'cus_test_123'], []);
 
     $customerService = Mockery::mock(CustomerService::class);
     $customerService->shouldReceive('retrieve')->with('cus_test_123', ['expand' => []])->andReturn($stripeCustomer);
 
-    $checkoutSession = Session::constructFrom(['url' => $checkoutUrl], []);
-
+    $checkoutSession = Session::constructFrom(['id' => 'cs_billing', 'object' => 'checkout.session', 'mode' => 'subscription', 'status' => 'open', 'url' => $checkoutUrl], []);
+    $sessions = [];
     $checkoutSessionService = Mockery::mock(SessionService::class);
-    $checkoutSessionService->shouldReceive('create')->andReturnUsing(function (array $payload) use (&$checkoutPayload, $checkoutSession): Session {
+    $checkoutSessionService->shouldReceive('all')->andReturnUsing(function () use (&$sessions): Collection {
+        return Collection::constructFrom(['object' => 'list', 'has_more' => false, 'data' => $sessions]);
+    });
+
+    $checkoutSessionService->shouldReceive('create')->andReturnUsing(function (array $payload) use (&$checkoutPayload, $checkoutSession, &$sessions, &$loseCheckoutResponse): Session {
         $checkoutPayload = $payload;
+        $sessions[] = $checkoutSession->toArray();
+        if ($loseCheckoutResponse) {
+            $loseCheckoutResponse = false;
+            throw new RuntimeException('Stripe response lost');
+        }
 
         return $checkoutSession;
     });
@@ -270,12 +283,13 @@ function bindFakeStripeClient(string $checkoutUrl = 'https://checkout.stripe.com
         }
     };
 
-    $client = new class($customerService, $checkoutService, $portalService) extends StripeClient
+    $client = new class($customerService, $checkoutService, $portalService, $remoteSubscriptions) extends StripeClient
     {
         public function __construct(
             private readonly object $customerService,
             private readonly object $checkoutService,
             private readonly object $portalService,
+            private readonly array $remoteSubscriptions,
         ) {
             parent::__construct(['api_key' => 'sk_test_dummy', 'api_base' => 'http://localhost:0']);
         }
@@ -286,10 +300,69 @@ function bindFakeStripeClient(string $checkoutUrl = 'https://checkout.stripe.com
                 'customers' => $this->customerService,
                 'checkout' => $this->checkoutService,
                 'billingPortal' => $this->portalService,
+                'subscriptions' => $this->fakeSubscriptions(),
                 default => parent::__get($name),
             };
+        }
+
+        private function fakeSubscriptions(): object
+        {
+            $service = Mockery::mock(SubscriptionService::class);
+            $service->shouldReceive('all')->andReturn(Collection::constructFrom(['object' => 'list', 'has_more' => false, 'data' => $this->remoteSubscriptions]));
+
+            return $service;
         }
     };
 
     app()->bind(StripeClient::class, fn (): object => $client);
 }
+
+it('reuses the pending checkout for repeated billing requests', function (): void {
+    config()->set('plans.pro.prices.annual', 'price_test_annual');
+    $this->organization->forceFill(['stripe_id' => 'cus_test_123'])->save();
+    $payload = [];
+    bindFakeStripeClient(checkoutUrl: 'https://checkout.stripe.com/test', checkoutPayload: $payload);
+    $this->actingAs($this->admin)->post(route('billing.checkout'), ['plan' => 'pro', 'interval' => 'annual'])->assertRedirect('https://checkout.stripe.com/test');
+    $payload = [];
+    $this->travel(5)->minutes();
+    $this->post(route('billing.checkout'), ['plan' => 'pro', 'interval' => 'annual'])->assertRedirect('https://checkout.stripe.com/test');
+    expect($payload)->toBe([]);
+});
+
+it('blocks another subscription before the first subscription webhook arrives', function (): void {
+    config()->set('plans.pro.prices.annual', 'price_test_annual');
+    $this->organization->forceFill(['stripe_id' => 'cus_test_123'])->save();
+    $payload = [];
+    bindFakeStripeClient(checkoutPayload: $payload, remoteSubscriptions: [['id' => 'sub_remote', 'object' => 'subscription', 'status' => 'trialing']]);
+    $this->actingAs($this->admin)->fromRoute('billing.index')->post(route('billing.checkout'), ['plan' => 'pro', 'interval' => 'annual'])
+        ->assertRedirectToRoute('billing.index')->assertSessionHasErrors('plan');
+    expect($payload)->toBe([]);
+});
+
+it('recovers billing checkout after Stripe creates it but the response is lost', function (): void {
+    $this->organization->forceFill(['stripe_id' => 'cus_test_123'])->save();
+    $payload = [];
+    bindFakeStripeClient(checkoutUrl: 'https://checkout.stripe.com/test', checkoutPayload: $payload, loseCheckoutResponse: true);
+    $action = resolve(StartBillingCheckout::class);
+    expect(fn () => $action->handle($this->organization, 'pro', 'price_test_annual'))->toThrow(RuntimeException::class, 'Stripe response lost');
+    $payload = [];
+    $this->travel(5)->minutes();
+    $action->handle($this->organization, 'pro', 'price_test_annual');
+    expect($payload)->toBe([]);
+});
+
+it('uses a full page navigation for Stripe destinations requested through Inertia', function (string $destination): void {
+    config()->set('plans.pro.prices.annual', 'price_test_annual');
+    $this->admin->organization->forceFill(['stripe_id' => 'cus_test_123'])->save();
+    bindFakeStripeClient(checkoutUrl: 'https://checkout.stripe.com/test', portalUrl: 'https://billing.stripe.com/test');
+
+    $this->actingAs($this->admin)->withHeader('X-Inertia', 'true');
+
+    $response = $destination === 'checkout'
+        ? $this->post(route('billing.checkout'), ['plan' => 'pro', 'interval' => 'annual'])
+        : $this->put(route('billing.portal'));
+
+    $response->assertStatus(409)
+        ->assertHeader('X-Inertia-Location', $destination === 'checkout' ? 'https://checkout.stripe.com/test' : 'https://billing.stripe.com/test')
+        ->assertHeaderMissing('Location');
+})->with(['checkout', 'portal']);

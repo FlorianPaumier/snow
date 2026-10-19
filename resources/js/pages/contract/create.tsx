@@ -3,6 +3,7 @@ import { useLocale } from '@/hooks/use-locale';
 import AppFormLayout from '@/layouts/app-form/layout';
 import { index } from '@/routes/contracts';
 import type { BreadcrumbItem } from '@/types';
+import type { CatalogService } from '@/types/catalog-service';
 import ContractForm from './components/contract-form';
 
 type ClientOption = {
@@ -18,9 +19,11 @@ type SlotOption = {
 
 export default function Create({
     clients,
+    catalogServices,
     seasons,
     slots,
 }: {
+    catalogServices: CatalogService[];
     clients: ClientOption[];
     seasons: string[];
     slots: SlotOption[];
@@ -41,6 +44,7 @@ export default function Create({
             backLabel={t.contracts.title}
         >
             <ContractForm
+                catalogServices={catalogServices}
                 action={
                     ContractController.store.form() as Record<string, unknown>
                 }

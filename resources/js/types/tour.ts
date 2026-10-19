@@ -21,3 +21,12 @@ export type TourPagination = {
     prev_page_url: string | null;
     next_page_url: string | null;
 };
+
+export type TourTemplateInput = {
+    id: string;
+    name: string;
+    worker_id: string | null;
+    client_ids: string[];
+    departure_address: string | null;
+    arrival_address: string | null;
+};

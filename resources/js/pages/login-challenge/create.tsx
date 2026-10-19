@@ -24,7 +24,7 @@ type Props = {
     status?: string;
 };
 
-export default function LoginChallenge({ email, status }: Props) {
+export default function LoginChallenge({ email }: Props) {
     const { t } = useLocale();
 
     return (
@@ -35,15 +35,6 @@ export default function LoginChallenge({ email, status }: Props) {
             <Head title={t.auth.challengeTitle} />
 
             <div className="space-y-6">
-                {status === 'login-challenge-code-sent' && (
-                    <div
-                        className="rounded-lg border border-info/25 bg-info/10 px-4 py-3 text-center text-sm font-medium text-info"
-                        data-test="login-challenge-code-sent"
-                    >
-                        {t.auth.challengeCodeSent}
-                    </div>
-                )}
-
                 <CodeForm />
 
                 <Form {...resend.form()}>

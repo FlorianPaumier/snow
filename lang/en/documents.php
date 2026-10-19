@@ -13,6 +13,8 @@ declare(strict_types=1);
 */
 
 return [
+    'method_stripe' => 'Stripe',
+    'reversed_amount' => 'Refunded or disputed amount',
     'page_title' => 'Contract summary — :client :season',
     'document_title' => 'Contract summary',
     'issued_on' => 'Issued on :date',

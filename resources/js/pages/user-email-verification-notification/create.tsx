@@ -8,7 +8,7 @@ import AuthLayout from '@/layouts/auth-layout';
 import { logout } from '@/routes';
 import { send } from '@/routes/verification';
 
-export default function VerifyEmail({ status }: { status?: string }) {
+export default function VerifyEmail() {
     const { t } = useLocale();
 
     return (
@@ -17,12 +17,6 @@ export default function VerifyEmail({ status }: { status?: string }) {
             description={t.auth.verificationSentDescription}
         >
             <Head title={t.auth.verificationTitle} />
-
-            {status === 'verification-link-sent' && (
-                <div className="mb-4 text-center text-sm font-medium text-success">
-                    {t.auth.verificationLinkSent}
-                </div>
-            )}
 
             <Form {...send.form()} className="space-y-6 text-center">
                 {({ processing }) => (

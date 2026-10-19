@@ -147,7 +147,6 @@ export default function Index({
     filters: Filters;
 }) {
     const { t } = useLocale();
-    const { status, errors } = usePage().props;
     const [search, setSearch] = useState(filters.search);
     const canManageClients = usePage().props.auth.can?.manageClients ?? false;
 
@@ -268,20 +267,6 @@ export default function Index({
                         </div>
                     )}
                 </div>
-
-                {typeof status === 'string' && (
-                    <p className="text-sm text-success">{status}</p>
-                )}
-
-                {typeof errors.client === 'string' && (
-                    <p
-                        role="alert"
-                        className="text-sm font-medium text-destructive"
-                        data-test="client-error"
-                    >
-                        {errors.client}
-                    </p>
-                )}
 
                 <div className="overflow-hidden rounded-xl border">
                     {/* Toolbar: live search + mono count (design system data display pattern) */}

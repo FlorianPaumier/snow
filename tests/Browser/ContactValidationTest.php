@@ -18,9 +18,9 @@ it('shows inline errors when the contact form is submitted empty', function (): 
     visit('/contact')
         ->fill('#contact-name', ' ')
         ->keys('#contact-name', ['Enter'])
-        ->assertSeeIn('#contact-name-error', 'Please enter your name — at least 2 characters.')
-        ->assertSeeIn('#contact-email-error', 'Please enter a valid email address.')
-        ->assertSeeIn('#contact-message-error', 'Tell us a little more — at least 10 characters.')
+        ->assertSeeIn('#contact-name-error', 'Veuillez saisir votre nom — au moins 2 caractères.')
+        ->assertSeeIn('#contact-email-error', 'Veuillez saisir une adresse courriel valide.')
+        ->assertSeeIn('#contact-message-error', 'Dites-nous-en un peu plus — au moins 10 caractères.')
         // The form has noValidate: client-side validation blocks the POST, so
         // no success alert may render...
         ->assertDontSee("Thanks — you're on the list.");
@@ -46,7 +46,7 @@ it('re-validates a field after it has been touched', function (): void {
 
     // Submitting touches every field and reveals the name error...
     $page->keys('#contact-name', ['Enter'])
-        ->assertSeeIn('#contact-name-error', 'Please enter your name — at least 2 characters.');
+        ->assertSeeIn('#contact-name-error', 'Veuillez saisir votre nom — au moins 2 caractères.');
 
     // Correcting the field clears the error again (change re-validates
     // once the field has been touched)...
@@ -65,7 +65,7 @@ it('accepts a valid inquiry', function (): void {
         // Enter in a text input submits the form (in a textarea it would
         // just add a newline)...
         ->keys('#contact-email', ['Enter'])
-        ->assertSee("Thanks — you're on the list.");
+        ->assertSeeIn('[data-sonner-toast]', 'Message reçu');
 
     // The success toast fades in; scanning mid-animation reports transient
     // low-contrast colors as permanent failures. Let it settle first...
@@ -86,7 +86,7 @@ it('is accessible on the contact page, including its error state', function (): 
     $errorPage = visit('/contact')
         ->fill('#contact-name', ' ')
         ->keys('#contact-name', ['Enter'])
-        ->assertSeeIn('#contact-name-error', 'Please enter your name — at least 2 characters.');
+        ->assertSeeIn('#contact-name-error', 'Veuillez saisir votre nom — au moins 2 caractères.');
 
     settleForAccessibilityScan($errorPage);
 

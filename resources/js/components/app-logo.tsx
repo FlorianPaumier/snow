@@ -1,6 +1,8 @@
 import AppLogoIcon from '@/components/app-logo-icon';
+import { useLocale } from '@/hooks/use-locale';
 
 export default function AppLogo() {
+    const { locale } = useLocale();
     return (
         <>
             <AppLogoIcon />
@@ -11,8 +13,10 @@ export default function AppLogo() {
                         OPS
                     </span>
                 </span>
-                <span className="mt-1 font-mono text-[10px] tracking-[0.18em] text-muted-foreground uppercase">
-                    Snow operations
+                <span className="mt-1 text-xs leading-snug text-muted-foreground">
+                    {locale === 'fr'
+                        ? 'Gestion du déneigement'
+                        : 'Snow operations'}
                 </span>
             </div>
         </>

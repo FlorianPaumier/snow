@@ -191,7 +191,7 @@ it('skips free-plan organizations in the automated pass', function (): void {
     expect($sent)->toBe(1);
 
     Mail::assertQueued(InstallmentReminderMail::class, 1);
-    Mail::assertNotQueued(InstallmentReminderMail::class, fn (InstallmentReminderMail $mail): bool => $mail->hasTo('free-client@example.com'));
+    Mail::assertNotQueued(InstallmentReminderMail::class, fn (InstallmentReminderMail $mail): bool => $mail->organizationId === $freeOrg->id);
 
     $dueSoon->refresh();
     expect($dueSoon->automated_reminders_sent)->toBe(1)

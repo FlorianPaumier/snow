@@ -42,7 +42,10 @@ it('shows an error for a duplicate email', function (): void {
         ->press("Créer l'utilisateur");
 
     $page->assertSee('La valeur du champ adresse courriel est déjà utilisée.')
-        ->assertPathIs('/users/create');
+        ->assertPathIs('/users/create')
+        ->assertAttribute('#email', 'aria-invalid', 'true')
+        ->assertAttribute('#email', 'aria-describedby', 'email-error')
+        ->assertScript('document.activeElement.id === "email"');
 });
 
 it('shows an error when updating a user with a duplicate email', function (): void {

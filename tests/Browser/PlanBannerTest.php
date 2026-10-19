@@ -54,3 +54,51 @@ it('hides the upgrade button from a worker during the trial', function (): void 
     $page->assertSee('Votre essai gratuit est en cours')
         ->assertDontSee('Voir Pro');
 });
+
+it('shows pending billing feedback and prevents duplicate submissions', function (bool $subscribed): void {
+    config()->set('plans.pro.prices.annual');
+    $organization = Organization::factory()->expired()->create();
+    $admin = User::factory()->admin()->forOrganization($organization)->create();
+    if ($subscribed) {
+        $organization->subscriptions()->create(['type' => 'pro', 'stripe_id' => 'sub_test', 'stripe_status' => 'active',
+            'stripe_price' => 'price_test', 'quantity' => 1]);
+    }
+
+    $page = loginViaUi($admin)->navigate('/settings/billing');
+    if ($subscribed) {
+        $page->assertButtonDisabled('button[type="submit"][aria-busy="false"]:disabled')
+            ->assertDontSee("S'abonner à l'annuel (300 \$CA)");
+    } else {
+        $page->assertButtonEnabled('button[type="submit"][aria-busy="false"]');
+    }
+    $label = $subscribed ? 'Gérer la facturation dans Stripe' : "S'abonner à l'annuel (300 \$CA)";
+    $page->assertSee($label);
+    $page->script(<<<'JS'
+        () => {
+            window.billingSubmissionCount = 0;
+            const originalOpen = XMLHttpRequest.prototype.open;
+            const originalSend = XMLHttpRequest.prototype.send;
+            XMLHttpRequest.prototype.open = function (method, url, ...args) {
+                this.isBillingRequest = method.toUpperCase() !== 'GET' && new URL(url, location.href).pathname === location.pathname;
+                return originalOpen.call(this, method, url, ...args);
+            };
+            XMLHttpRequest.prototype.send = function (body) {
+                if (!this.isBillingRequest) {
+                    return originalSend.call(this, body);
+                }
+                window.billingSubmissionCount++;
+                window.resumeBillingRequest = () => originalSend.call(this, body);
+            };
+        }
+    JS);
+    $page->page()->getByRole('button', ['name' => $label, 'exact' => true])->click();
+    $page->assertSee('Chargement…')
+        ->assertButtonDisabled('button[aria-busy="true"]')
+        ->assertVisible('button[aria-busy="true"] [role="status"]');
+    $page->script('document.querySelector("button[aria-busy=true]").click()');
+    $page->assertScript('window.billingSubmissionCount', 1)->assertNoJavascriptErrors();
+    if (! $subscribed) {
+        $page->script('window.resumeBillingRequest()');
+        $page->assertButtonEnabled('button[aria-busy="false"]')->assertSee($label)->assertDontSee('Chargement…');
+    }
+})->with(['Pro checkout' => false, 'billing portal' => true]);

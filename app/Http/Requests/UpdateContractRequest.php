@@ -51,6 +51,7 @@ final class UpdateContractRequest extends FormRequest
             ],
 
             'services' => ['required', 'array', 'min:1'],
+            'services.*' => ['required', 'array'],
             'services.*.id' => ['nullable', 'integer'],
             'services.*.label' => ['required', 'string', 'max:255'],
             'services.*.amount' => ['required', 'integer', 'min:0', 'max:10000000'],
@@ -77,7 +78,7 @@ final class UpdateContractRequest extends FormRequest
             // Malformed shapes already fail the declared array rules; skip
             // the totals here so a TypeError does not turn validation into
             // a 500...
-            if (! is_array($services) || ! is_array($payments)) {
+            if ($validator->errors()->isNotEmpty() || ! is_array($services) || ! is_array($payments)) {
                 return;
             }
 

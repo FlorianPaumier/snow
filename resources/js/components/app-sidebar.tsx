@@ -17,6 +17,7 @@ import { useLocale } from '@/hooks/use-locale';
 import { dashboard } from '@/routes';
 import { index as clientsIndex } from '@/routes/clients';
 import { index as contractsIndex } from '@/routes/contracts';
+import { index as quotesIndex } from '@/routes/quotes';
 import { index as toursIndex, worker as workerTours } from '@/routes/tours';
 import { index as usersIndex } from '@/routes/users';
 import type { NavItem } from '@/types';
@@ -43,6 +44,14 @@ export function AppSidebar() {
         },
     ];
 
+    if (auth.can?.manageContracts) {
+        mainNavItems.push({
+            title: t.quotes.title,
+            href: quotesIndex(),
+            icon: FileText,
+        });
+    }
+
     const userManagementNavItems: NavItem[] = [
         {
             title: t.nav.users,
@@ -66,7 +75,7 @@ export function AppSidebar() {
 
     return (
         <Sidebar collapsible="icon" variant="inset">
-            <SidebarHeader>
+            <SidebarHeader className="pr-12 md:pr-2">
                 <SidebarMenu>
                     <SidebarMenuItem>
                         <SidebarMenuButton size="lg" asChild>

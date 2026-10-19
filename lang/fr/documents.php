@@ -13,6 +13,8 @@ declare(strict_types=1);
 */
 
 return [
+    'method_stripe' => 'Stripe',
+    'reversed_amount' => 'Montant remboursé ou contesté',
     'page_title' => 'Sommaire de contrat — :client :season',
     'document_title' => 'Sommaire de contrat',
     'issued_on' => 'Émis le :date',

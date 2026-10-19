@@ -11,18 +11,33 @@ use App\Http\Requests\StoreTourRequest;
 use App\Http\Requests\UpdateTourOrderRequest;
 use App\Models\Client;
 use App\Models\Tour;
+use App\Models\TourNotification;
 use App\Models\User;
+use Illuminate\Contracts\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
 use Inertia\Response;
 
 final readonly class TourController
 {
-    public function index(): Response
+    public function index(Request $request): Response
     {
+        /** @var array{date?: string|null} $filters */
+        $filters = $request->validate(['date' => ['nullable', 'date_format:Y-m-d']]);
+        $date = $filters['date'] ?? null;
+        $query = Tour::query()->when($date !== null, fn (Builder $query): Builder => $query->whereDate('scheduled_date', $date));
+
         return Inertia::render('tours/index', [
-            'tours' => Tour::query()->with('worker:id,name,organization_id')->latest('scheduled_date')->orderByDesc('id')->paginate(20),
+            'tours' => (clone $query)->with('worker:id,name,organization_id')->latest('scheduled_date')->orderByDesc('id')->paginate(20)->withQueryString(),
+            'date' => $date ?? '',
+            'counts' => [
+                'assigned' => (clone $query)->whereNotNull('worker_id')->count(),
+                'planned' => (clone $query)->whereNull('started_at')->whereNull('finished_at')->count(),
+                'active' => (clone $query)->whereNotNull('started_at')->whereNull('finished_at')->count(),
+                'finished' => (clone $query)->whereNotNull('finished_at')->count(),
+            ],
         ]);
     }
 
@@ -54,6 +69,7 @@ final readonly class TourController
 
         return Inertia::render('tours/show', [
             'tour' => $tour->load('worker:id,name,organization_id'),
+            'announcements' => Gate::allows('manage-tour', $tour) ? TourNotification::query()->where('organization_id', $tour->organization_id)->where('tour_id', $tour->id)->get(['event', 'status', 'reason'])->map(fn (TourNotification $notice): array => $notice->only(['event', 'status', 'reason']))->all() : [],
             'optimizationAvailable' => mb_trim(config()->string('services.openrouteservice.key')) !== '',
         ]);
     }

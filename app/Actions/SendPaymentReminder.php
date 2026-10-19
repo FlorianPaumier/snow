@@ -30,6 +30,8 @@ final readonly class SendPaymentReminder
     {
         $payment->load(['contract.client', 'organization']);
 
+        throw_if(in_array($payment->stripe_status, ['processing', 'failed'], true), ValidationException::withMessages(['payment' => __('connect.processing')]));
+
         if ($payment->paid) {
             throw ValidationException::withMessages([
                 'payment' => __('payments.already_paid'),
@@ -56,8 +58,8 @@ final readonly class SendPaymentReminder
      */
     public function send(Payment $payment): void
     {
-        Mail::to($this->clientEmail($payment))
-            ->send(new InstallmentReminderMail($this->details($payment)));
+        $this->clientEmail($payment);
+        Mail::send(new InstallmentReminderMail($payment->id, $payment->organization_id));
     }
 
     /**
@@ -73,7 +75,7 @@ final readonly class SendPaymentReminder
     }
 
     /**
-     * @return array{clientName: string, slotLabel: string, season: string, amount: string, dueDate: string, duePhrase: string, organizationName: string, replyTo: list<string>}
+     * @return array{clientName: string, slotLabel: string, season: string, amount: string, dueDate: string, duePhrase: string, organizationName: string, paymentUrl?: string|null, replyTo: list<string>}
      */
     public function details(Payment $payment): array
     {
@@ -87,6 +89,7 @@ final readonly class SendPaymentReminder
             'dueDate' => $dueDate?->locale('fr-CA')->translatedFormat('j F Y') ?? '—',
             'duePhrase' => $this->duePhrase($dueDate),
             'organizationName' => $payment->organization->name,
+            'paymentUrl' => $payment->organization->stripe_connect_id !== null && $payment->amount >= 50 && ! $payment->contract->client->isAnonymized() ? $payment->paymentUrl() : null,
             'replyTo' => $this->replyTo($payment),
         ];
     }

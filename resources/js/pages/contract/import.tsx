@@ -158,6 +158,17 @@ export default function ImportContracts({
                                                 }
                                             >
                                                 <SelectTrigger
+                                                    aria-invalid={Boolean(
+                                                        errors.file ??
+                                                        errors.csv,
+                                                    )}
+                                                    aria-describedby={
+                                                        (errors.file ??
+                                                        errors.csv)
+                                                            ? `mapping-${field}` +
+                                                              '-error'
+                                                            : undefined
+                                                    }
                                                     id={`mapping-${field}`}
                                                 >
                                                     <SelectValue />

@@ -96,6 +96,9 @@
             "bun run test:lint"
         ],
         "test:unit": "pest --compact --parallel --testsuite=Unit",
+        "test:feature": "pest --compact --parallel --testsuite=Feature",
+        "test:browser": "pest --compact --testsuite=Browser",
+        "test:coverage": "XDEBUG_MODE=coverage php -d memory_limit=1G vendor/bin/pest --compact --testsuite=Unit,Feature --coverage --min=99",
     "test:types": [
       "phpstan --memory-limit=1G",
             "bun run test:types"
@@ -104,7 +107,9 @@
             "@test:lint",
             "@test:type-coverage",
             "@test:types",
-            "@test:unit"
+            "@test:unit",
+            "@test:feature",
+            "@test:browser"
         ]
     },
     "extra": {

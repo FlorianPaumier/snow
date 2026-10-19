@@ -19,7 +19,7 @@ final readonly class GeneratePaymentReceiptController
      */
     public function __invoke(Payment $payment): SymfonyResponse
     {
-        abort_unless($payment->paid, 404);
+        abort_unless($payment->receiptAvailable(), 404);
 
         if (Storage::disk(config()->string('filesystems.default'))->exists(GeneratePaymentReceiptPdf::pdfPath($payment->id))) {
             // Inertia answers a 409 + X-Inertia-Location header so the

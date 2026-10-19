@@ -127,3 +127,31 @@ it('returns 404 when the PDF has not been generated', function (): void {
         ->get(route('contracts.pdf.download', $contract))
         ->assertNotFound();
 });
+
+it('reports queued PDF readiness without streaming a download or queuing again', function (): void {
+    Queue::fake();
+    $user = User::factory()->create();
+    $contract = documentContract($user);
+    $disk = fakeDocumentDisk();
+
+    $this->actingAs($user)->postJson(route('contracts.pdf.generate', $contract))
+        ->assertAccepted()->assertExactJson(['ready' => false]);
+    Queue::assertPushed(GenerateContractDocumentPdf::class, 1);
+    $this->getJson(route('contracts.pdf.download', $contract))
+        ->assertOk()->assertExactJson(['ready' => false])->assertHeader('Cache-Control', 'no-store, private');
+    Queue::assertPushed(GenerateContractDocumentPdf::class, 1);
+
+    $disk->put(GenerateContractPdf::pdfPath($contract->id), '%PDF-test');
+    $this->getJson(route('contracts.pdf.download', $contract))->assertOk()->assertExactJson(['ready' => true]);
+    $this->postJson(route('contracts.pdf.generate', $contract))->assertOk()->assertExactJson(['ready' => true]);
+    Queue::assertPushed(GenerateContractDocumentPdf::class, 1);
+});
+
+it('protects JSON PDF readiness from guests and other organizations', function (): void {
+    $owner = User::factory()->create();
+    $contract = documentContract($owner);
+    $this->getJson(route('contracts.pdf.download', $contract))->assertUnauthorized();
+    $other = User::factory()->create();
+    $this->actingAs($other)->getJson(route('contracts.pdf.download', $contract))->assertNotFound();
+    $this->postJson(route('contracts.pdf.generate', $contract))->assertNotFound();
+});

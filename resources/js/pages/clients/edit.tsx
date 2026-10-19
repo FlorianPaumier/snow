@@ -90,7 +90,16 @@ export default function Edit({ client }: { client: EditableClient }) {
                                     defaultValue={client.type}
                                     onValueChange={setType}
                                 >
-                                    <SelectTrigger id="type" className="w-full">
+                                    <SelectTrigger
+                                        aria-invalid={Boolean(errors.type)}
+                                        aria-describedby={
+                                            errors.type
+                                                ? 'type' + '-error'
+                                                : undefined
+                                        }
+                                        id="type"
+                                        className="w-full"
+                                    >
                                         <SelectValue
                                             placeholder={
                                                 t.clients.typePlaceholder
@@ -106,7 +115,10 @@ export default function Edit({ client }: { client: EditableClient }) {
                                         </SelectItem>
                                     </SelectContent>
                                 </Select>
-                                <InputError message={errors.type} />
+                                <InputError
+                                    id={'type' + '-error'}
+                                    message={errors.type}
+                                />
                             </div>
 
                             {type === 'company' && (
@@ -115,6 +127,14 @@ export default function Edit({ client }: { client: EditableClient }) {
                                         {t.clients.fieldCompanyTypeName}
                                     </Label>
                                     <Input
+                                        aria-invalid={Boolean(
+                                            errors.companyName,
+                                        )}
+                                        aria-describedby={
+                                            errors.companyName
+                                                ? 'companyName' + '-error'
+                                                : undefined
+                                        }
                                         id="companyName"
                                         type="text"
                                         name="companyName"
@@ -125,7 +145,10 @@ export default function Edit({ client }: { client: EditableClient }) {
                                             t.clients.fieldCompanyTypeName
                                         }
                                     />
-                                    <InputError message={errors.companyName} />
+                                    <InputError
+                                        id={'companyName' + '-error'}
+                                        message={errors.companyName}
+                                    />
                                 </div>
                             )}
                         </FormSection>
@@ -140,6 +163,12 @@ export default function Edit({ client }: { client: EditableClient }) {
                                         {t.clients.fieldFirstName}
                                     </Label>
                                     <Input
+                                        aria-invalid={Boolean(errors.firstName)}
+                                        aria-describedby={
+                                            errors.firstName
+                                                ? 'firstName' + '-error'
+                                                : undefined
+                                        }
                                         id="firstName"
                                         type="text"
                                         required
@@ -147,7 +176,10 @@ export default function Edit({ client }: { client: EditableClient }) {
                                         name="firstName"
                                         defaultValue={client.firstName}
                                     />
-                                    <InputError message={errors.firstName} />
+                                    <InputError
+                                        id={'firstName' + '-error'}
+                                        message={errors.firstName}
+                                    />
                                 </div>
 
                                 <div className="grid gap-2">
@@ -155,13 +187,22 @@ export default function Edit({ client }: { client: EditableClient }) {
                                         {t.clients.fieldLastName}
                                     </Label>
                                     <Input
+                                        aria-invalid={Boolean(errors.lastName)}
+                                        aria-describedby={
+                                            errors.lastName
+                                                ? 'lastName' + '-error'
+                                                : undefined
+                                        }
                                         id="lastName"
                                         type="text"
                                         required
                                         name="lastName"
                                         defaultValue={client.lastName}
                                     />
-                                    <InputError message={errors.lastName} />
+                                    <InputError
+                                        id={'lastName' + '-error'}
+                                        message={errors.lastName}
+                                    />
                                 </div>
                             </div>
 
@@ -170,13 +211,22 @@ export default function Edit({ client }: { client: EditableClient }) {
                                     {t.clients.fieldEmail}
                                 </Label>
                                 <Input
+                                    aria-invalid={Boolean(errors.email)}
+                                    aria-describedby={
+                                        errors.email
+                                            ? 'email' + '-error'
+                                            : undefined
+                                    }
                                     id="email"
                                     type="email"
                                     required
                                     name="email"
                                     defaultValue={client.email}
                                 />
-                                <InputError message={errors.email} />
+                                <InputError
+                                    id={'email' + '-error'}
+                                    message={errors.email}
+                                />
                             </div>
 
                             <div className="grid gap-6 sm:grid-cols-2">
@@ -185,6 +235,12 @@ export default function Edit({ client }: { client: EditableClient }) {
                                         {t.clients.fieldPhoneDay}
                                     </Label>
                                     <Input
+                                        aria-invalid={Boolean(errors.phoneDay)}
+                                        aria-describedby={
+                                            errors.phoneDay
+                                                ? 'phoneDay' + '-error'
+                                                : undefined
+                                        }
                                         id="phoneDay"
                                         type="tel"
                                         name="phoneDay"
@@ -193,7 +249,10 @@ export default function Edit({ client }: { client: EditableClient }) {
                                         }
                                         placeholder="514 555-0100"
                                     />
-                                    <InputError message={errors.phoneDay} />
+                                    <InputError
+                                        id={'phoneDay' + '-error'}
+                                        message={errors.phoneDay}
+                                    />
                                 </div>
 
                                 <div className="grid gap-2">
@@ -201,6 +260,12 @@ export default function Edit({ client }: { client: EditableClient }) {
                                         {t.clients.fieldCellPhone}
                                     </Label>
                                     <Input
+                                        aria-invalid={Boolean(errors.cellPhone)}
+                                        aria-describedby={
+                                            errors.cellPhone
+                                                ? 'cellPhone' + '-error'
+                                                : undefined
+                                        }
                                         id="cellPhone"
                                         type="tel"
                                         name="cellPhone"
@@ -209,7 +274,10 @@ export default function Edit({ client }: { client: EditableClient }) {
                                         }
                                         placeholder="438 555-0100"
                                     />
-                                    <InputError message={errors.cellPhone} />
+                                    <InputError
+                                        id={'cellPhone' + '-error'}
+                                        message={errors.cellPhone}
+                                    />
                                 </div>
                             </div>
                         </FormSection>
@@ -223,13 +291,22 @@ export default function Edit({ client }: { client: EditableClient }) {
                                     {t.clients.fieldStreet}
                                 </Label>
                                 <Input
+                                    aria-invalid={Boolean(errors.addressStreet)}
+                                    aria-describedby={
+                                        errors.addressStreet
+                                            ? 'addressStreet' + '-error'
+                                            : undefined
+                                    }
                                     id="addressStreet"
                                     type="text"
                                     required
                                     name="addressStreet"
                                     defaultValue={client.addressStreet}
                                 />
-                                <InputError message={errors.addressStreet} />
+                                <InputError
+                                    id={'addressStreet' + '-error'}
+                                    message={errors.addressStreet}
+                                />
                             </div>
 
                             <div className="grid gap-6 sm:grid-cols-3">
@@ -238,13 +315,24 @@ export default function Edit({ client }: { client: EditableClient }) {
                                         {t.clients.fieldCity}
                                     </Label>
                                     <Input
+                                        aria-invalid={Boolean(
+                                            errors.addressCity,
+                                        )}
+                                        aria-describedby={
+                                            errors.addressCity
+                                                ? 'addressCity' + '-error'
+                                                : undefined
+                                        }
                                         id="addressCity"
                                         type="text"
                                         required
                                         name="addressCity"
                                         defaultValue={client.addressCity}
                                     />
-                                    <InputError message={errors.addressCity} />
+                                    <InputError
+                                        id={'addressCity' + '-error'}
+                                        message={errors.addressCity}
+                                    />
                                 </div>
 
                                 <div className="grid gap-2">
@@ -252,6 +340,14 @@ export default function Edit({ client }: { client: EditableClient }) {
                                         {t.clients.fieldPostalCode}
                                     </Label>
                                     <Input
+                                        aria-invalid={Boolean(
+                                            errors.addressPostalCode,
+                                        )}
+                                        aria-describedby={
+                                            errors.addressPostalCode
+                                                ? 'addressPostalCode' + '-error'
+                                                : undefined
+                                        }
                                         id="addressPostalCode"
                                         type="text"
                                         required
@@ -259,6 +355,7 @@ export default function Edit({ client }: { client: EditableClient }) {
                                         defaultValue={client.addressPostalCode}
                                     />
                                     <InputError
+                                        id={'addressPostalCode' + '-error'}
                                         message={errors.addressPostalCode}
                                     />
                                 </div>
@@ -268,6 +365,14 @@ export default function Edit({ client }: { client: EditableClient }) {
                                         {t.clients.fieldCountry}
                                     </Label>
                                     <Input
+                                        aria-invalid={Boolean(
+                                            errors.addressCountry,
+                                        )}
+                                        aria-describedby={
+                                            errors.addressCountry
+                                                ? 'addressCountry' + '-error'
+                                                : undefined
+                                        }
                                         id="addressCountry"
                                         type="text"
                                         required
@@ -275,6 +380,7 @@ export default function Edit({ client }: { client: EditableClient }) {
                                         defaultValue={client.addressCountry}
                                     />
                                     <InputError
+                                        id={'addressCountry' + '-error'}
                                         message={errors.addressCountry}
                                     />
                                 </div>
@@ -290,12 +396,21 @@ export default function Edit({ client }: { client: EditableClient }) {
                                     {t.clients.fieldRemark}
                                 </Label>
                                 <Textarea
+                                    aria-invalid={Boolean(errors.remark)}
+                                    aria-describedby={
+                                        errors.remark
+                                            ? 'remark' + '-error'
+                                            : undefined
+                                    }
                                     id="remark"
                                     name="remark"
                                     defaultValue={client.remark ?? undefined}
                                     placeholder={t.clients.remarkPlaceholder}
                                 />
-                                <InputError message={errors.remark} />
+                                <InputError
+                                    id={'remark' + '-error'}
+                                    message={errors.remark}
+                                />
                             </div>
                         </FormSection>
 

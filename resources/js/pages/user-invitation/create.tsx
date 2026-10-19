@@ -43,6 +43,12 @@ export default function AcceptInvitation({
                         <div className="grid gap-2">
                             <Label htmlFor="email">{t.auth.emailLabel}</Label>
                             <Input
+                                aria-invalid={Boolean(errors.email)}
+                                aria-describedby={
+                                    errors.email
+                                        ? 'email' + '-error'
+                                        : undefined
+                                }
                                 id="email"
                                 type="email"
                                 name="email"
@@ -52,6 +58,7 @@ export default function AcceptInvitation({
                                 readOnly
                             />
                             <InputError
+                                id={'email' + '-error'}
                                 message={errors.email}
                                 className="mt-2"
                             />

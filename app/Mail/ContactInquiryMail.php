@@ -25,7 +25,7 @@ final class ContactInquiryMail extends Mailable implements ShouldQueue
     {
         return new Envelope(
             replyTo: [$this->inquiry->email],
-            subject: 'Contact inquiry from '.$this->inquiry->name,
+            subject: __('invitations.contact_subject', ['name' => $this->inquiry->name]),
         );
     }
 

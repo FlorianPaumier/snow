@@ -31,7 +31,7 @@ export default function LocaleTabs({
             {...props}
         >
             <span id={groupId} className="sr-only">
-                Language
+                {locale === 'fr' ? 'Langue' : 'Language'}
             </span>
             {options.map(({ value, short, full }) => (
                 <button
@@ -40,7 +40,7 @@ export default function LocaleTabs({
                     onClick={() => updateLocale(value)}
                     aria-pressed={locale === value}
                     className={cn(
-                        'flex items-center rounded-md px-3.5 py-1.5 transition-colors',
+                        'flex min-h-11 items-center rounded-md px-3.5 py-1.5 transition-colors',
                         locale === value
                             ? 'bg-background text-foreground shadow-xs'
                             : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground',

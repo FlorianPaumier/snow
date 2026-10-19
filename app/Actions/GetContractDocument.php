@@ -30,7 +30,7 @@ final readonly class GetContractDocument
         $payments = $contract->payments;
 
         $total = $services->sum(fn (ContractService $service): int => $service->amount);
-        $collected = $payments->where('paid', true)->sum(fn (Payment $payment): int => $payment->amount);
+        $collected = $payments->sum(fn (Payment $payment): int => $payment->collectedAmount());
 
         return [
             // Overridden to true by the on-screen document page only; the
@@ -54,7 +54,8 @@ final readonly class GetContractDocument
                 'slot' => $payment->slot->value,
                 'amount' => $payment->amount,
                 'paid' => $payment->paid,
-                'method' => $payment->method?->value,
+                'reversedAmount' => $payment->stripe_reversed_amount,
+                'method' => $payment->stripe_payment_intent_id !== null ? 'stripe' : $payment->method?->value,
                 'paidAt' => $payment->paid_at,
             ])->all(),
             'total' => $total,

@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Mail\OrganizationInviteCodeMail;
 use App\Models\User;
 use App\ValueObjects\Season;
 use Illuminate\Support\Facades\App;
@@ -91,3 +92,17 @@ it('translates validation messages in French by default', function (): void {
 
     expect(session('errors')->get('clientId'))->toBe(['Le champ client est obligatoire.']);
 });
+
+it('uses French for invitation emails and keeps English available', function (string $locale, string $subject): void {
+    app()->setLocale($locale);
+    $mail = new OrganizationInviteCodeMail('TESTCODE', '2026-12-31');
+    expect($mail->envelope()->subject)->toBe($subject)
+        ->and($mail->locale)->toBe($locale);
+    $html = $mail->render();
+    expect($html)->toContain($locale === 'fr' ? 'Créer votre compte' : 'Create your account');
+})->with([['fr', 'Votre code d’invitation'], ['en', 'Your invitation code']]);
+
+it('uses the requested locale for error pages outside route middleware', function (string $locale, string $title): void {
+    $this->withUnencryptedCookie('locale', $locale)->get('/missing-locale-page')->assertNotFound()
+        ->assertInertia(fn ($page) => $page->component('error')->where('title', $title));
+})->with([['fr', 'Page introuvable.'], ['en', 'Page not found.']]);

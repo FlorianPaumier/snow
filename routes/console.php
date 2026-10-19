@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 use Illuminate\Support\Facades\Schedule;
 
+Schedule::command('payments:reconcile-stripe')->hourly()->withoutOverlapping()->onOneServer();
+
 // Client-facing reminders run on business days only and are capped by the
 // action's anti-spam policy (week window, weekly cooldown, 3 per
 // installment). The digest is the organization's own weekly recap.

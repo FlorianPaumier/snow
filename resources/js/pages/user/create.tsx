@@ -34,6 +34,12 @@ export default function Register() {
                             <div className="grid gap-2">
                                 <Label htmlFor="name">{t.auth.nameField}</Label>
                                 <Input
+                                    aria-invalid={Boolean(errors.name)}
+                                    aria-describedby={
+                                        errors.name
+                                            ? 'name' + '-error'
+                                            : undefined
+                                    }
                                     id="name"
                                     type="text"
                                     required
@@ -43,6 +49,7 @@ export default function Register() {
                                     placeholder={t.auth.fullNamePlaceholder}
                                 />
                                 <InputError
+                                    id={'name' + '-error'}
                                     message={errors.name}
                                     className="mt-2"
                                 />
@@ -53,6 +60,12 @@ export default function Register() {
                                     {t.auth.organizationField}
                                 </Label>
                                 <Input
+                                    aria-invalid={Boolean(errors.organization)}
+                                    aria-describedby={
+                                        errors.organization
+                                            ? 'organization' + '-error'
+                                            : undefined
+                                    }
                                     id="organization"
                                     type="text"
                                     required
@@ -61,6 +74,7 @@ export default function Register() {
                                     placeholder={t.auth.organizationPlaceholder}
                                 />
                                 <InputError
+                                    id={'organization' + '-error'}
                                     message={errors.organization}
                                     className="mt-2"
                                 />
@@ -71,6 +85,12 @@ export default function Register() {
                                     {t.auth.emailLabel}
                                 </Label>
                                 <Input
+                                    aria-invalid={Boolean(errors.email)}
+                                    aria-describedby={
+                                        errors.email
+                                            ? 'email' + '-error'
+                                            : undefined
+                                    }
                                     id="email"
                                     type="email"
                                     required
@@ -78,7 +98,10 @@ export default function Register() {
                                     name="email"
                                     placeholder="email@example.com"
                                 />
-                                <InputError message={errors.email} />
+                                <InputError
+                                    id={'email' + '-error'}
+                                    message={errors.email}
+                                />
                             </div>
 
                             <div className="grid gap-2">
@@ -86,6 +109,12 @@ export default function Register() {
                                     {t.auth.inviteCodeField}
                                 </Label>
                                 <Input
+                                    aria-invalid={Boolean(errors.invite_code)}
+                                    aria-describedby={
+                                        errors.invite_code
+                                            ? 'invite_code' + '-error'
+                                            : undefined
+                                    }
                                     id="invite_code"
                                     type="text"
                                     required
@@ -99,7 +128,10 @@ export default function Register() {
                                 <p className="text-xs text-muted-foreground">
                                     {t.auth.inviteCodeHint}
                                 </p>
-                                <InputError message={errors.invite_code} />
+                                <InputError
+                                    id={'invite_code' + '-error'}
+                                    message={errors.invite_code}
+                                />
                             </div>
 
                             <div className="grid gap-2">
@@ -135,6 +167,12 @@ export default function Register() {
                             <div className="grid gap-2">
                                 <div className="flex items-start gap-3">
                                     <Checkbox
+                                        aria-invalid={Boolean(errors.terms)}
+                                        aria-describedby={
+                                            errors.terms
+                                                ? 'terms' + '-error'
+                                                : undefined
+                                        }
                                         id="terms"
                                         name="terms"
                                         className="mt-0.5"
@@ -154,7 +192,10 @@ export default function Register() {
                                         </TextLink>
                                     </Label>
                                 </div>
-                                <InputError message={errors.terms} />
+                                <InputError
+                                    id={'terms' + '-error'}
+                                    message={errors.terms}
+                                />
                             </div>
 
                             <Button

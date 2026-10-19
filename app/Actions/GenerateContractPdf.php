@@ -7,6 +7,7 @@ namespace App\Actions;
 use App\Models\Contract;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\RequestException;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 
@@ -34,19 +35,25 @@ final readonly class GenerateContractPdf
      */
     public function handle(Contract $contract): string
     {
-        $html = view('documents.contract-summary', $this->document->handle($contract))->render();
+        return DB::transaction(function () use ($contract): string {
+            $contract->refreshForUpdate();
+            $contract->client->refreshForUpdate();
+            $contract->refresh();
 
-        $response = Http::asMultipart()
-            ->attach('files', $html, 'index.html')
-            ->timeout(30)
-            ->post($this->endpoint(), ['preferCssPageSize' => 'true']);
+            $html = view('documents.contract-summary', $this->document->handle($contract))->render();
 
-        $response->throw();
+            $response = Http::asMultipart()
+                ->attach('files', $html, 'index.html')
+                ->timeout(30)
+                ->post($this->endpoint(), ['preferCssPageSize' => 'true']);
 
-        $path = self::pdfPath($contract->id);
-        Storage::disk(config()->string('filesystems.default'))->put($path, $response->body());
+            $response->throw();
 
-        return $path;
+            $path = self::pdfPath($contract->id);
+            Storage::disk(config()->string('filesystems.default'))->put($path, $response->body());
+
+            return $path;
+        });
     }
 
     private function endpoint(): string

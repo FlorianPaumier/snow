@@ -19,12 +19,14 @@ final class OrganizationInviteCodeMail extends Mailable implements ShouldQueue
     public function __construct(
         public readonly string $code,
         public readonly string $expiresAt,
-    ) {}
+    ) {
+        $this->locale(app()->getLocale());
+    }
 
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Your invitation code',
+            subject: __('invitations.code_subject'),
         );
     }
 

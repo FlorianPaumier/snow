@@ -1,0 +1,93 @@
+.landing-next {
+    min-height: 100svh;
+}
+.landing-next .landing-header {
+    background: var(--color-card);
+}
+.landing-next .landing-header a {
+    text-underline-offset: 5px;
+}
+.landing-next .landing-header nav a:not([data-slot]):hover {
+    color: var(--color-primary);
+}
+.landing-next .landing-hero {
+    padding-block: 80px 0;
+    background: radial-gradient(
+        ellipse at 86% 30%,
+        var(--color-accent),
+        transparent 62%
+    );
+}
+.landing-next .landing-display {
+    font-size: clamp(36px, 4.5vw, 56px);
+    line-height: 1.1;
+    font-weight: 700;
+    letter-spacing: -0.035em;
+    text-wrap: balance;
+}
+.landing-next .landing-title {
+    font-size: clamp(28px, 3.2vw, 40px);
+    line-height: 1.15;
+    font-weight: 650;
+    letter-spacing: -0.025em;
+    text-wrap: balance;
+}
+.landing-next .landing-note {
+    padding: 28px 0;
+    border-block: 1px solid var(--color-border);
+}
+.landing-next .landing-section {
+    padding-block: 88px;
+    scroll-margin-top: 24px;
+}
+.landing-next .landing-client-scene,
+.landing-next .landing-record-scene {
+    padding: 32px;
+    border-radius: 20px;
+    background: var(--color-card);
+    box-shadow: var(--preview-elevation);
+}
+.landing-next .landing-client-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 20px 0;
+}
+.landing-next .landing-client-row + .landing-client-row {
+    border-top: 1px solid var(--color-border);
+}
+.landing-next .landing-plan {
+    padding: 32px;
+    background: var(--color-card);
+    border-radius: 20px;
+    box-shadow: var(--preview-elevation);
+}
+.landing-next .landing-plan-featured {
+    outline: 2px solid var(--color-primary);
+    outline-offset: -2px;
+}
+.landing-next .landing-close {
+    padding: 64px 28px;
+    border-radius: 24px;
+    background: linear-gradient(
+        130deg,
+        var(--color-secondary),
+        var(--color-card)
+    );
+}
+@media (max-width: 639px) {
+    .landing-next .landing-hero {
+        padding-top: 48px;
+    }
+    .landing-next .landing-section {
+        padding-block: 56px;
+    }
+    .landing-next .landing-client-scene,
+    .landing-next .landing-record-scene,
+    .landing-next .landing-plan {
+        padding: 24px;
+    }
+    .landing-next .landing-close {
+        padding: 40px 24px;
+    }
+}

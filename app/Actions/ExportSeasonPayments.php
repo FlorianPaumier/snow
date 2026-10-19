@@ -39,6 +39,7 @@ final readonly class ExportSeasonPayments
             'Payé',
             'Date de paiement',
             'Méthode',
+            'Montant annulé/remboursé (CAD)',
         ]);
     }
 
@@ -101,7 +102,8 @@ final readonly class ExportSeasonPayments
             $this->amount($payment->amount),
             $payment->paid ? 'Oui' : 'Non',
             $payment->paid_at?->toDateString() ?? '',
-            $payment->method?->label() ?? '',
+            $payment->stripe_payment_intent_id !== null ? 'Stripe: '.$payment->stripe_status : ($payment->method?->label() ?? ''),
+            $this->amount($payment->stripe_reversed_amount),
         ]);
     }
 

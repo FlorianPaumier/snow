@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Actions;
 
 use App\Models\Payment;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 final readonly class UnmarkPaymentPaid
@@ -16,18 +17,23 @@ final readonly class UnmarkPaymentPaid
 
     public function handle(Payment $payment): void
     {
-        throw_unless(
-            $payment->paid,
-            ValidationException::withMessages([
-                'payment' => __('contracts.not_marked'),
-            ]),
-        );
+        DB::transaction(function () use ($payment): void {
+            $payment = Payment::query()->lockForUpdate()->findOrFail($payment->id);
+            throw_if($payment->stripe_payment_intent_id !== null, ValidationException::withMessages(['payment' => __('connect.locked')]));
+            throw_unless(
+                $payment->paid,
+                ValidationException::withMessages([
+                    'payment' => __('contracts.not_marked'),
+                ]),
+            );
 
-        $payment->update([
-            'paid' => false,
-            'method' => null,
-            'paid_at' => null,
-        ]);
+            $payment->update([
+                'paid' => false,
+                'method' => null,
+                'paid_at' => null,
+            ]);
+
+        });
 
         // The receipt PDF proves a payment that no longer exists as such;
         // the generate flow short-circuits while it is stored, so delete it

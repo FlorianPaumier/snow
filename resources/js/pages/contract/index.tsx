@@ -12,9 +12,13 @@ import {
 import { useEffect, useState } from 'react';
 import ContractController from '@/actions/App/Http/Controllers/ContractController';
 import Heading from '@/components/heading';
+import SendContractsDialog, {
+    ContractMailStatus,
+} from '@/components/send-contracts-dialog';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
     Dialog,
     DialogClose,
@@ -46,14 +50,17 @@ import { interpolate, useCurrencyFormatter } from '@/lib/utils';
 import { create, importMethod, index } from '@/routes/contracts';
 import { exportMethod } from '@/routes/payments';
 import type { BreadcrumbItem } from '@/types';
+import type { ContractMail } from '@/types/contract-mail';
 
 type ContractRow = {
+    mail: ContractMail;
     id: string;
     season: string;
     client: {
         id: string;
         clientNumber: string;
         displayName: string;
+        email: string | null;
     };
     total: number;
     collected: number;
@@ -99,9 +106,18 @@ export default function Index({
 }) {
     const { t } = useLocale();
     const formatCurrency = useCurrencyFormatter();
-    const { status, errors, auth } = usePage().props;
+    const { auth } = usePage().props;
     const canManageContracts = auth.can?.manageContracts ?? false;
     const [search, setSearch] = useState(filters.search);
+    const selectionKey = JSON.stringify([filters, contracts.current_page]);
+    const [selection, setSelection] = useState<{ key: string; ids: string[] }>({
+        key: selectionKey,
+        ids: [],
+    });
+    const selected = selection.key === selectionKey ? selection.ids : [];
+    const selectedContracts = contracts.data.filter((contract) =>
+        selected.includes(contract.id),
+    );
 
     // Server-side CSV download; follows the season filter when one is set.
     const exportHref = exportMethod.url(
@@ -172,7 +188,20 @@ export default function Index({
                         description={t.contracts.description}
                     />
 
-                    <div className="flex flex-wrap items-center gap-3">
+                    <div
+                        className="flex flex-wrap items-center gap-3"
+                        data-test="contract-actions"
+                    >
+                        {canManageContracts && selectedContracts.length > 0 && (
+                            <SendContractsDialog
+                                contracts={selectedContracts}
+                                label={t.contractMail.batch}
+                                onQueued={() =>
+                                    setSelection({ key: selectionKey, ids: [] })
+                                }
+                            />
+                        )}
+
                         <Select
                             name="season"
                             value={filters.season || 'all'}
@@ -240,20 +269,6 @@ export default function Index({
                     </div>
                 </div>
 
-                {typeof status === 'string' && (
-                    <p className="text-sm text-success">{status}</p>
-                )}
-
-                {typeof errors.contract === 'string' && (
-                    <p
-                        role="alert"
-                        className="text-sm font-medium text-destructive"
-                        data-test="contract-error"
-                    >
-                        {errors.contract}
-                    </p>
-                )}
-
                 <div className="overflow-hidden rounded-xl border">
                     {/* Toolbar: live search + mono count (design system data display pattern) */}
                     <div className="flex flex-col gap-3 border-b bg-muted/40 px-4 py-3 sm:flex-row sm:items-center">
@@ -295,6 +310,40 @@ export default function Index({
                         <Table>
                             <TableHeader>
                                 <TableRow>
+                                    {canManageContracts && (
+                                        <TableHead>
+                                            <Checkbox
+                                                aria-label={
+                                                    t.contractMail.selectAll
+                                                }
+                                                checked={
+                                                    selectedContracts.length ===
+                                                        contracts.data.length &&
+                                                    contracts.data.length > 0
+                                                        ? true
+                                                        : selectedContracts.length >
+                                                            0
+                                                          ? 'indeterminate'
+                                                          : false
+                                                }
+                                                onCheckedChange={(checked) =>
+                                                    setSelection({
+                                                        key: selectionKey,
+                                                        ids:
+                                                            checked === true
+                                                                ? contracts.data.map(
+                                                                      (
+                                                                          contract,
+                                                                      ) =>
+                                                                          contract.id,
+                                                                  )
+                                                                : [],
+                                                    })
+                                                }
+                                                data-test="select-all-contracts"
+                                            />
+                                        </TableHead>
+                                    )}
                                     <TableHead>
                                         {t.contracts.columnClient}
                                     </TableHead>
@@ -311,6 +360,11 @@ export default function Index({
                                         {t.contracts.columnBalance}
                                     </TableHead>
                                     <TableHead>{t.common.createdAt}</TableHead>
+                                    {canManageContracts && (
+                                        <TableHead>
+                                            {t.contractMail.column}
+                                        </TableHead>
+                                    )}
                                     <TableHead className="text-right">
                                         {t.common.actions}
                                     </TableHead>
@@ -323,6 +377,46 @@ export default function Index({
                                             key={contract.id}
                                             className="border-border/50 bg-muted/10 hover:bg-muted/25 dark:bg-muted/5 dark:hover:bg-muted/15"
                                         >
+                                            {canManageContracts && (
+                                                <TableCell>
+                                                    <Checkbox
+                                                        aria-label={interpolate(
+                                                            t.contractMail
+                                                                .select,
+                                                            {
+                                                                client: contract
+                                                                    .client
+                                                                    .displayName,
+                                                            },
+                                                        )}
+                                                        checked={selected.includes(
+                                                            contract.id,
+                                                        )}
+                                                        onCheckedChange={(
+                                                            checked,
+                                                        ) =>
+                                                            setSelection({
+                                                                key: selectionKey,
+                                                                ids:
+                                                                    checked ===
+                                                                    true
+                                                                        ? [
+                                                                              ...selected,
+                                                                              contract.id,
+                                                                          ]
+                                                                        : selected.filter(
+                                                                              (
+                                                                                  id,
+                                                                              ) =>
+                                                                                  id !==
+                                                                                  contract.id,
+                                                                          ),
+                                                            })
+                                                        }
+                                                        data-test={`select-contract-${contract.id}`}
+                                                    />
+                                                </TableCell>
+                                            )}
                                             <TableCell>
                                                 <span className="flex items-center gap-2">
                                                     <Avatar className="size-7">
@@ -373,6 +467,13 @@ export default function Index({
                                             <TableCell className="text-xs text-muted-foreground">
                                                 {contract.created_at}
                                             </TableCell>
+                                            {canManageContracts && (
+                                                <TableCell>
+                                                    <ContractMailStatus
+                                                        mail={contract.mail}
+                                                    />
+                                                </TableCell>
+                                            )}
                                             <TableCell>
                                                 <div className="flex items-center justify-end gap-0.5">
                                                     <Button
@@ -536,7 +637,7 @@ export default function Index({
                                 ) : (
                                     <TableRow>
                                         <TableCell
-                                            colSpan={7}
+                                            colSpan={canManageContracts ? 9 : 7}
                                             className="h-28 text-center"
                                         >
                                             <div className="flex flex-col items-center gap-1.5">

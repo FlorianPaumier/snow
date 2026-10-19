@@ -16,6 +16,13 @@ return [
     |
     */
 
+    'stripe_connect' => [
+        'key' => env('STRIPE_CONNECT_KEY', ''),
+        'webhook_secret' => env('STRIPE_CONNECT_WEBHOOK_SECRET', ''),
+        'livemode' => env('STRIPE_CONNECT_LIVEMODE', false),
+        'api_version' => '2026-08-26.dahlia',
+    ],
+
     'postmark' => [
         'key' => env('POSTMARK_API_KEY'),
     ],

@@ -1,6 +1,7 @@
 import { Link } from '@inertiajs/react';
 import { ArrowRight, Menu, Moon, Snowflake, Sun } from 'lucide-react';
 import * as React from 'react';
+import LocaleTabs from '@/components/locale-tabs';
 import { marketingNav } from '@/components/marketing/data';
 import { ROUTES } from '@/components/marketing/routes';
 import { Button } from '@/components/ui/button';
@@ -13,40 +14,45 @@ import {
     SheetTrigger,
 } from '@/components/ui/sheet';
 import { useAppearance } from '@/hooks/use-appearance';
+import { usePublicCopy } from '@/hooks/use-public-copy';
 import { cn } from '@/lib/utils';
+import { login } from '@/routes';
 
 export function MarketingNav({ route }: { route: string }) {
+    const { copy } = usePublicCopy();
+
     const { resolvedAppearance, updateAppearance } = useAppearance();
     const [menuOpen, setMenuOpen] = React.useState(false);
 
     return (
-        <header className="sticky top-0 z-50 w-full border-b border-border/80 bg-background/85 backdrop-blur-md supports-[backdrop-filter]:bg-background/70">
-            <div className="mx-auto flex h-16 w-full max-w-6xl items-center gap-4 px-4 sm:px-6 lg:px-8">
+        <header className="sticky top-0 z-50 w-full border-b border-border/80 bg-card/95 backdrop-blur-md">
+            <div className="mx-auto flex h-20 w-full max-w-[1184px] items-center gap-4 px-4 sm:px-6 lg:px-8">
                 <Link
                     href={ROUTES.home}
-                    aria-label="Frostline OPS home"
+                    aria-label={copy('Frostline OPS home')}
                     className="flex shrink-0 items-center gap-2.5 rounded-lg outline-offset-4 focus-visible:outline-2 focus-visible:outline-ring"
                 >
                     <span
                         aria-hidden="true"
-                        className="flex size-9 items-center justify-center rounded-xl bg-linear-to-br from-glacier-600 to-glacier-400 text-white shadow-frost-sm dark:from-glacier-500 dark:to-glacier-300 dark:text-glacier-950"
+                        className="flex size-9 items-center justify-center rounded-xl bg-primary text-primary-foreground"
                     >
                         <Snowflake className="size-5" />
                     </span>
                     <span className="flex flex-col leading-none">
                         <span className="text-base font-semibold tracking-tight">
-                            Frostline{' '}
+                            {copy('Frostline')}
+                            {copy(' ')}
                             <span className="text-glacier-600 dark:text-glacier-400">
-                                OPS
+                                {copy('OPS')}
                             </span>
-                        </span>
-                        <span className="mt-1 font-mono text-[10px] tracking-[0.18em] text-muted-foreground uppercase">
-                            Snow operations
                         </span>
                     </span>
                 </Link>
 
-                <nav aria-label="Main" className="ml-auto hidden lg:block">
+                <nav
+                    aria-label={copy('Main')}
+                    className="ml-auto hidden lg:block"
+                >
                     <ul className="flex items-center gap-1">
                         {marketingNav.map((item) => {
                             const active = route === item.to;
@@ -64,7 +70,7 @@ export function MarketingNav({ route }: { route: string }) {
                                                 : 'text-muted-foreground hover:text-foreground',
                                         )}
                                     >
-                                        {item.label}
+                                        {copy(item.label)}
                                     </Link>
                                 </li>
                             );
@@ -73,10 +79,11 @@ export function MarketingNav({ route }: { route: string }) {
                 </nav>
 
                 <div className="ml-auto flex items-center gap-1.5 lg:ml-0">
+                    <LocaleTabs className="hidden sm:inline-flex" />
                     <Button
                         variant="ghost"
                         size="icon"
-                        aria-label="Toggle color theme"
+                        aria-label={copy('Toggle color theme')}
                         onClick={() =>
                             updateAppearance(
                                 resolvedAppearance === 'dark'
@@ -100,12 +107,12 @@ export function MarketingNav({ route }: { route: string }) {
                         className="hidden sm:inline-flex"
                         asChild
                     >
-                        <Link href="/login">Sign in</Link>
+                        <Link href={login()}>{copy('Sign in')}</Link>
                     </Button>
 
                     <Button asChild className="hidden sm:inline-flex">
                         <Link href={ROUTES.contact}>
-                            Get started
+                            {copy('Request a trial')}
                             <ArrowRight aria-hidden="true" />
                         </Link>
                     </Button>
@@ -115,28 +122,33 @@ export function MarketingNav({ route }: { route: string }) {
                             <Button
                                 variant="ghost"
                                 size="icon"
-                                aria-label="Open navigation menu"
+                                aria-label={copy('Open navigation menu')}
                                 className="lg:hidden"
                             >
                                 <Menu className="size-5" aria-hidden="true" />
                             </Button>
                         </SheetTrigger>
-                        <SheetContent side="right" className="w-72 gap-0 p-0">
+                        <SheetContent
+                            side="right"
+                            className="frostline-public w-72 gap-0 bg-card p-0"
+                            data-theme={resolvedAppearance}
+                        >
                             <SheetHeader className="space-y-1 border-b border-border p-4 text-left">
                                 <SheetTitle className="flex items-center gap-2 text-base font-semibold tracking-tight">
                                     <span
                                         aria-hidden="true"
-                                        className="flex size-7 items-center justify-center rounded-lg bg-linear-to-br from-glacier-600 to-glacier-400 text-white dark:from-glacier-500 dark:to-glacier-300 dark:text-glacier-950"
+                                        className="flex size-7 items-center justify-center rounded-lg bg-primary text-primary-foreground"
                                     >
                                         <Snowflake className="size-4" />
                                     </span>
-                                    Frostline OPS
+                                    {copy('Frostline OPS')}
                                 </SheetTitle>
-                                <SheetDescription className="font-mono text-[10px] tracking-[0.18em] text-muted-foreground uppercase">
-                                    Snow operations
+                                <SheetDescription className="text-sm text-muted-foreground">
+                                    {copy('Snow operations')}
                                 </SheetDescription>
                             </SheetHeader>
-                            <nav aria-label="Mobile" className="p-3">
+                            <nav aria-label={copy('Mobile')} className="p-3">
+                                <LocaleTabs className="mb-4" />
                                 <ul className="flex flex-col gap-0.5">
                                     {marketingNav.map((item) => (
                                         <li key={item.to}>
@@ -152,7 +164,7 @@ export function MarketingNav({ route }: { route: string }) {
                                                         : 'text-muted-foreground hover:bg-accent/60 hover:text-foreground',
                                                 )}
                                             >
-                                                {item.label}
+                                                {copy(item.label)}
                                             </Link>
                                         </li>
                                     ))}
@@ -163,16 +175,16 @@ export function MarketingNav({ route }: { route: string }) {
                                             href={ROUTES.contact}
                                             onClick={() => setMenuOpen(false)}
                                         >
-                                            Get started
+                                            {copy('Request a trial')}
                                             <ArrowRight aria-hidden="true" />
                                         </Link>
                                     </Button>
                                     <Button variant="outline" asChild>
                                         <Link
-                                            href="/login"
+                                            href={login()}
                                             onClick={() => setMenuOpen(false)}
                                         >
-                                            Sign in
+                                            {copy('Sign in')}
                                         </Link>
                                     </Button>
                                 </div>

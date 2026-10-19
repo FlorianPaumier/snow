@@ -7,6 +7,7 @@ namespace App\Actions;
 use App\Models\Payment;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\RequestException;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 
@@ -34,19 +35,26 @@ final readonly class GeneratePaymentReceiptPdf
      */
     public function handle(Payment $payment): string
     {
-        $html = view('documents.payment-receipt', $this->receipt->handle($payment))->render();
+        return DB::transaction(function () use ($payment): string {
+            $payment->refresh();
+            $payment->contract->refreshForUpdate();
+            $payment->contract->client->refreshForUpdate();
+            $payment->refresh();
 
-        $response = Http::asMultipart()
-            ->attach('files', $html, 'index.html')
-            ->timeout(30)
-            ->post($this->endpoint(), ['preferCssPageSize' => 'true']);
+            $html = view('documents.payment-receipt', $this->receipt->handle($payment))->render();
 
-        $response->throw();
+            $response = Http::asMultipart()
+                ->attach('files', $html, 'index.html')
+                ->timeout(30)
+                ->post($this->endpoint(), ['preferCssPageSize' => 'true']);
 
-        $path = self::pdfPath($payment->id);
-        Storage::disk(config()->string('filesystems.default'))->put($path, $response->body());
+            $response->throw();
 
-        return $path;
+            $path = self::pdfPath($payment->id);
+            Storage::disk(config()->string('filesystems.default'))->put($path, $response->body());
+
+            return $path;
+        });
     }
 
     private function endpoint(): string

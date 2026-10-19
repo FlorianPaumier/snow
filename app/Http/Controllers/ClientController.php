@@ -19,6 +19,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection as BaseCollection;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -98,7 +99,7 @@ final readonly class ClientController
         /** @var Collection<int, Contract>  $contracts */
         $contracts = $client->contracts()
             ->withSum('services', 'amount')
-            ->withSum(['payments as paid_sum' => fn (Builder $query): Builder => $query->where('paid', true)], 'amount')
+            ->withSum(['payments as paid_sum' => fn (Builder $query): Builder => $query->where('paid', true)], DB::raw('amount - stripe_reversed_amount'))
             ->orderByDesc('season')
             ->get();
 
@@ -123,6 +124,7 @@ final readonly class ClientController
                 'contractsCount' => $contracts->count(),
                 'contracts' => $this->contractSummaries($contracts),
                 'anonymizedAt' => $client->anonymized_at?->toDateString(),
+                'routeNotificationsEnabled' => $client->route_notifications_enabled,
                 'created_at' => $client->created_at->toDateString(),
             ],
         ]);

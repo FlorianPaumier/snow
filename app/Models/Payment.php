@@ -14,8 +14,15 @@ use Illuminate\Database\Eloquent\Attributes\WithoutTimestamps;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\URL;
 
 /**
+ * @property-read CarbonInterface|null $stripe_checkout_started_at
+ * @property-read string|null $stripe_checkout_key
+ * @property-read string|null $stripe_session_id
+ * @property-read string|null $stripe_payment_intent_id
+ * @property-read string|null $stripe_status
+ * @property-read int $stripe_reversed_amount
  * @property-read int $id
  * @property-read string $organization_id
  * @property-read Organization $organization
@@ -57,6 +64,7 @@ final class Payment extends Model
      * @var array<string, mixed>
      */
     protected $attributes = [
+        'stripe_reversed_amount' => 0,
         'due_date' => null,
         'last_reminder_at' => null,
         'automated_reminders_sent' => 0,
@@ -87,6 +95,8 @@ final class Payment extends Model
             'organization_id' => 'string',
             'slot' => PaymentSlot::class,
             'due_date' => 'date',
+            'stripe_checkout_started_at' => 'datetime',
+            'stripe_reversed_amount' => 'integer',
             'amount' => 'integer',
             'paid' => 'boolean',
             'method' => PaymentMethod::class,
@@ -95,5 +105,22 @@ final class Payment extends Model
             'automated_reminders_sent' => 'integer',
             'contract_id' => 'string',
         ];
+    }
+
+    public function collectedAmount(): int
+    {
+        return $this->paid ? $this->amount - $this->stripe_reversed_amount : 0;
+    }
+
+    public function receiptAvailable(): bool
+    {
+        return $this->paid && $this->stripe_reversed_amount === 0 && $this->stripe_status !== 'disputed';
+    }
+
+    public function paymentUrl(?CarbonInterface $startedAt = null): string
+    {
+        return URL::temporarySignedRoute('connected-payments.show', ($startedAt ?? now())->copy()->addDays(30), [
+            'organization' => $this->organization_id, 'payment' => $this->id,
+        ]);
     }
 }

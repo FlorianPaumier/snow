@@ -4,6 +4,7 @@ import AppFormLayout from '@/layouts/app-form/layout';
 import { interpolate } from '@/lib/utils';
 import { index } from '@/routes/contracts';
 import type { BreadcrumbItem } from '@/types';
+import type { CatalogService } from '@/types/catalog-service';
 import ContractForm from './components/contract-form';
 
 type ClientOption = {
@@ -31,10 +32,12 @@ type EditableContract = {
 export default function Edit({
     contract,
     clients,
+    catalogServices,
     seasons,
     slots,
 }: {
     contract: EditableContract;
+    catalogServices: CatalogService[];
     clients: ClientOption[];
     seasons: string[];
     slots: SlotOption[];
@@ -84,6 +87,7 @@ export default function Edit({
             backLabel={t.contracts.title}
         >
             <ContractForm
+                catalogServices={catalogServices}
                 action={
                     ContractController.update.form({
                         contract: contract.id,

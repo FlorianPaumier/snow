@@ -20,6 +20,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Notifications\Notifiable;
 
 /**
+ * @property-read bool $route_notifications_enabled
  * @property-read string $id
  * @property-read string $organization_id
  * @property-read Organization $organization
@@ -65,9 +66,9 @@ final class Client extends Model
     use HasUuids;
     use Notifiable;
 
-    /**
-     * @return array<string, string>
-     */
+    protected $attributes = ['route_notifications_enabled' => false];
+
+    /** @return array<string, string> */
     public function casts(): array
     {
         return [
@@ -83,6 +84,7 @@ final class Client extends Model
             'cellPhone' => 'string',
             'email' => 'string',
             'remark' => 'string',
+            'route_notifications_enabled' => 'boolean',
             'anonymized_at' => 'datetime',
             'anonymized_by' => 'string',
             'created_at' => 'datetime',

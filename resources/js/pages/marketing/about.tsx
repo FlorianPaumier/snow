@@ -15,6 +15,7 @@ import {
 } from '@/components/marketing/page-hero';
 import { ROUTES } from '@/components/marketing/routes';
 import { Button } from '@/components/ui/button';
+import { usePublicCopy } from '@/hooks/use-public-copy';
 
 /* ── Values ────────────────────────────────────────────────────── */
 
@@ -67,15 +68,24 @@ const VALUES: Value[] = [
 ];
 
 export default function About() {
+    const { copy } = usePublicCopy();
+
     return (
-        <MarketingLayout title="About — Frostline OPS" route={ROUTES.about}>
+        <MarketingLayout
+            title={copy('About — Frostline OPS')}
+            route={ROUTES.about}
+        >
             <PageHero
-                eyebrow="Our mission"
-                title="Built for the people who run the season"
-                description="Snow removal businesses still run their back office on binders, spreadsheets, and memory. Frostline OPS exists to replace that chaos with one system — from the first contract to the final balance."
+                eyebrow={copy('Our mission')}
+                title={copy('Built for the people who run the season')}
+                description={copy(
+                    'Snow removal businesses still run their back office on binders, spreadsheets, and memory. Frostline OPS exists to replace that chaos with one system — from the first contract to the final balance.',
+                )}
             >
                 <Button asChild variant="outline">
-                    <Link href={ROUTES.features}>See what we built</Link>
+                    <Link href={ROUTES.features}>
+                        {copy('See what we built')}
+                    </Link>
                 </Button>
             </PageHero>
 
@@ -83,30 +93,23 @@ export default function About() {
             <section className="py-16 md:py-24">
                 <div className="mx-auto w-full max-w-3xl px-4 text-center sm:px-6 lg:px-8">
                     <h2 className="text-3xl font-semibold tracking-tight text-balance">
-                        The problem we're here to solve
+                        {copy("The problem we're here to solve")}
                     </h2>
                     <div className="mt-6 space-y-4 text-base leading-relaxed text-muted-foreground">
                         <p>
-                            Every snow contractor knows this version of the
-                            season: contracts are signed in a rush before the
-                            first snowfall and live in a binder. Payments come
-                            in pieces — a deposit here, an installment there —
-                            and nobody is quite sure who still owes what. Then
-                            spring arrives, the melt starts, and the balance
-                            chase begins with a shoebox of receipts and a
-                            spreadsheet nobody trusts.
+                            {copy(
+                                'Every snow contractor knows this version of the season: contracts are signed in a rush before the first snowfall and live in a binder. Payments come in pieces — a deposit here, an installment there — and nobody is quite sure who still owes what. Then spring arrives, the melt starts, and the balance chase begins with a shoebox of receipts and a spreadsheet nobody trusts.',
+                            )}
                         </p>
                         <p>
-                            It doesn't have to work that way. When clients,
-                            contracts, payments, and receipts live in one
-                            system, the end-of-season question stops being
-                            &ldquo;who still owes us?&rdquo; and becomes a
-                            number you already have.
+                            {copy(
+                                "It doesn't have to work that way. When clients, contracts, payments, and receipts live in one system, the end-of-season question stops being “who still owes us?” and becomes a number you already have.",
+                            )}
                         </p>
                         <p>
-                            That's the product we build — and the rule we build
-                            it by: the back office should be as reliable as the
-                            crews it supports.
+                            {copy(
+                                "That's the product we build — and the rule we build it by: the back office should be as reliable as the crews it supports.",
+                            )}
                         </p>
                     </div>
                 </div>
@@ -114,9 +117,11 @@ export default function About() {
 
             {/* Values */}
             <MarketingSection
-                eyebrow="How we work"
-                title="Four rules, no exceptions"
-                description="The same rules that govern the product govern the company."
+                eyebrow={copy('How we work')}
+                title={copy('Four rules, no exceptions')}
+                description={copy(
+                    'The same rules that govern the product govern the company.',
+                )}
             >
                 <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                     {VALUES.map((value) => {
@@ -124,7 +129,7 @@ export default function About() {
                         return (
                             <li
                                 key={value.title}
-                                className="flex flex-col rounded-xl border border-border bg-card p-6 shadow-frost-xs transition-all duration-300 hover:-translate-y-0.5 hover:shadow-frost-sm"
+                                className="flex flex-col rounded-xl border border-border bg-card p-6 shadow-frost-xs transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[var(--preview-elevation)]"
                             >
                                 <span
                                     aria-hidden="true"
@@ -133,16 +138,16 @@ export default function About() {
                                     <Icon className="size-5" />
                                 </span>
                                 <h3 className="mt-4 text-base font-semibold tracking-tight">
-                                    {value.title}
+                                    {copy(value.title)}
                                 </h3>
                                 <p className="mt-2 mb-5 text-sm leading-relaxed text-muted-foreground">
-                                    {value.body}
+                                    {copy(value.body)}
                                 </p>
-                                <p className="mt-auto border-t border-border pt-4 font-mono text-[11px] leading-relaxed text-muted-foreground">
+                                <p className="mt-auto border-t border-border pt-4 text-sm leading-relaxed text-muted-foreground">
                                     <span className={value.accentClass}>
-                                        In practice
-                                    </span>{' '}
-                                    · {value.practice}
+                                        {copy('In practice')}
+                                    </span>
+                                    {copy(' ')}· {copy(value.practice)}
                                 </p>
                             </li>
                         );
@@ -158,11 +163,11 @@ export default function About() {
                             key={fact.label}
                             className="flex flex-col items-center gap-1.5 text-center"
                         >
-                            <dt className="order-2 font-mono text-[11px] font-medium tracking-[0.14em] text-muted-foreground uppercase">
-                                {fact.label}
+                            <dt className="order-2 text-sm font-medium tracking-[0.14em] text-muted-foreground">
+                                {copy(fact.label)}
                             </dt>
                             <dd className="order-1 text-2xl font-semibold tracking-tight tabular-nums md:text-3xl">
-                                {fact.value}
+                                {copy(fact.value)}
                             </dd>
                         </div>
                     ))}
@@ -170,11 +175,13 @@ export default function About() {
             </section>
 
             <CTABand
-                title="Run your season with us"
-                description="Whether you manage 20 properties or 200, see what your season looks like when the clients, contracts, and payments organize themselves."
-                primaryLabel="Talk to us"
+                title={copy('Run your season with us')}
+                description={copy(
+                    'Whether you manage 20 properties or 200, see what your season looks like when the clients, contracts, and payments organize themselves.',
+                )}
+                primaryLabel={copy('Talk to us')}
                 primaryTo={ROUTES.contact}
-                secondaryLabel="See pricing"
+                secondaryLabel={copy('See pricing')}
                 secondaryTo={ROUTES.pricing}
             />
         </MarketingLayout>

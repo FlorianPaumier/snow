@@ -41,7 +41,7 @@ final readonly class GetPaymentReceipt
             'payment' => [
                 'slot' => $payment->slot->value,
                 'amount' => $payment->amount,
-                'method' => $payment->method?->value,
+                'method' => $payment->stripe_payment_intent_id !== null ? 'stripe' : $payment->method?->value,
                 'paidAt' => $payment->paid_at,
             ],
         ];

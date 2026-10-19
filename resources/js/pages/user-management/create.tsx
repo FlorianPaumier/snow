@@ -1,7 +1,6 @@
 import { Form } from '@inertiajs/react';
 import UserManagementController from '@/actions/App/Http/Controllers/UserManagementController';
 import InputError from '@/components/input-error';
-import PlanCapAlert from '@/components/plan-cap-alert';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -36,8 +35,6 @@ export default function Create() {
             backHref={index().url}
             backLabel={t.users.title}
         >
-            <PlanCapAlert />
-
             <Form
                 {...UserManagementController.store.form()}
                 disableWhileProcessing
@@ -48,6 +45,10 @@ export default function Create() {
                         <div className="grid gap-2">
                             <Label htmlFor="name">{t.users.nameField}</Label>
                             <Input
+                                aria-invalid={Boolean(errors.name)}
+                                aria-describedby={
+                                    errors.name ? 'name' + '-error' : undefined
+                                }
                                 id="name"
                                 type="text"
                                 required
@@ -55,25 +56,46 @@ export default function Create() {
                                 name="name"
                                 placeholder={t.auth.fullNamePlaceholder}
                             />
-                            <InputError message={errors.name} />
+                            <InputError
+                                id={'name' + '-error'}
+                                message={errors.name}
+                            />
                         </div>
 
                         <div className="grid gap-2">
                             <Label htmlFor="email">{t.users.emailField}</Label>
                             <Input
+                                aria-invalid={Boolean(errors.email)}
+                                aria-describedby={
+                                    errors.email
+                                        ? 'email' + '-error'
+                                        : undefined
+                                }
                                 id="email"
                                 type="email"
                                 required
                                 name="email"
                                 placeholder="email@example.com"
                             />
-                            <InputError message={errors.email} />
+                            <InputError
+                                id={'email' + '-error'}
+                                message={errors.email}
+                            />
                         </div>
 
                         <div className="grid gap-2">
                             <Label htmlFor="role">{t.users.roleField}</Label>
                             <Select name="role" defaultValue="user">
-                                <SelectTrigger id="role" className="w-full">
+                                <SelectTrigger
+                                    aria-invalid={Boolean(errors.role)}
+                                    aria-describedby={
+                                        errors.role
+                                            ? 'role' + '-error'
+                                            : undefined
+                                    }
+                                    id="role"
+                                    className="w-full"
+                                >
                                     <SelectValue
                                         placeholder={
                                             t.users.selectRolePlaceholder
@@ -92,7 +114,10 @@ export default function Create() {
                                     </SelectItem>
                                 </SelectContent>
                             </Select>
-                            <InputError message={errors.role} />
+                            <InputError
+                                id={'role' + '-error'}
+                                message={errors.role}
+                            />
                         </div>
 
                         <FormFooter>

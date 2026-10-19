@@ -29,7 +29,7 @@ void createInertiaApp({
             <StrictMode>
                 <TooltipProvider delayDuration={0}>
                     <App {...props} />
-                    <Toaster />
+                    <Toaster initialPage={props.initialPage} />
                 </TooltipProvider>
             </StrictMode>,
         );

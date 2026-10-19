@@ -1,20 +1,20 @@
 <x-mail::message>
-# Your invitation code
+# {{ __('invitations.code_subject') }}
 
-You've been invited to set up your company on {{ config('app.name') }}.
+{{ __('invitations.code_intro', ['app' => config('app.name')]) }}
 
-Use the code below when creating your account. The code can be used once and expires on **{{ $expiresAt }}**.
+{{ __('invitations.code_body', ['date' => $expiresAt]) }}
 
 <x-mail::panel>
 {{ $code }}
 </x-mail::panel>
 
 <x-mail::button :url="$url">
-Create your account
+{{ __('invitations.create') }}
 </x-mail::button>
 
-If you weren't expecting this invitation, no further action is required.
+{{ __('invitations.unexpected') }}
 
-Thanks,<br>
+{{ __('invitations.thanks') }}<br>
 {{ config('app.name') }}
 </x-mail::message>

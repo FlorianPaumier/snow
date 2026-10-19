@@ -1,38 +1,10 @@
 import { Link } from '@inertiajs/react';
-import { ArrowRight, Snowflake } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import * as React from 'react';
 import { ROUTES } from '@/components/marketing/routes';
 import { Button } from '@/components/ui/button';
+import { usePublicCopy } from '@/hooks/use-public-copy';
 import { cn } from '@/lib/utils';
-
-/* ── Ambient backdrop shared by marketing heroes ────────────────── */
-function HeroBackdrop({ compact = false }: { compact?: boolean }) {
-    return (
-        <div
-            aria-hidden="true"
-            className="pointer-events-none absolute inset-0 overflow-hidden"
-        >
-            <div className="bg-grid-frost absolute inset-0 [mask-image:radial-gradient(ellipse_85%_70%_at_50%_0%,black_25%,transparent_100%)]" />
-            <div
-                className={cn(
-                    'absolute -top-40 -left-32 rounded-full bg-glacier-400/20 blur-3xl dark:bg-glacier-500/10',
-                    compact ? 'size-96' : 'size-[34rem]',
-                )}
-            />
-            <div
-                className={cn(
-                    'absolute -right-32 -bottom-44 rounded-full bg-ember-400/15 blur-3xl dark:bg-ember-500/10',
-                    compact ? 'size-80' : 'size-[30rem]',
-                )}
-            />
-            <Snowflake className="absolute top-[18%] right-[12%] size-8 animate-drift text-glacier-400/40" />
-            <Snowflake
-                className="absolute top-[30%] left-[6%] hidden size-5 animate-drift text-glacier-400/30 md:block"
-                style={{ animationDelay: '-6s' }}
-            />
-        </div>
-    );
-}
 
 /* ── PageHero: standard hero for public pages ───────────────────── */
 export function PageHero({
@@ -50,13 +22,14 @@ export function PageHero({
     align?: 'center' | 'left';
     compact?: boolean;
 }) {
+    const { copy } = usePublicCopy();
+
     return (
-        <section className="relative overflow-hidden border-b border-border">
-            <HeroBackdrop compact={compact} />
+        <section className="preview-hero relative overflow-hidden">
             <div
                 className={cn(
                     'relative z-10 mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-8',
-                    compact ? 'py-14 md:py-20' : 'py-20 md:py-28',
+                    compact ? 'py-0' : 'py-2 md:py-4',
                 )}
             >
                 <div
@@ -65,11 +38,11 @@ export function PageHero({
                         align === 'center' && 'mx-auto text-center',
                     )}
                 >
-                    <p className="inline-flex items-center rounded-full border border-glacier-200 bg-glacier-50/70 px-3 py-1 font-mono text-[11px] font-medium tracking-[0.16em] text-glacier-800 uppercase dark:border-glacier-800/60 dark:bg-glacier-950/40 dark:text-glacier-300">
-                        {eyebrow}
+                    <p className="inline-flex items-center rounded-full border border-glacier-200 bg-glacier-50/70 px-3 py-1 text-sm font-medium text-glacier-800 dark:border-glacier-800/60 dark:bg-glacier-950/40 dark:text-glacier-300">
+                        {copy(eyebrow)}
                     </p>
-                    <h1 className="mt-5 text-4xl font-semibold tracking-tighter text-balance md:text-6xl">
-                        {title}
+                    <h1 className="preview-display mt-5 text-balance">
+                        {copy(title)}
                     </h1>
                     {description ? (
                         <p
@@ -80,7 +53,7 @@ export function PageHero({
                                     : 'max-w-xl',
                             )}
                         >
-                            {description}
+                            {copy(description)}
                         </p>
                     ) : null}
                     {children ? (
@@ -117,8 +90,10 @@ export function MarketingSection({
     align?: 'center' | 'left';
     id?: string;
 }) {
+    const { copy } = usePublicCopy();
+
     return (
-        <section id={id} className={cn('relative py-16 md:py-24', className)}>
+        <section id={id} className={cn('preview-section relative', className)}>
             <div className="mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-8">
                 <div
                     className={cn(
@@ -127,16 +102,16 @@ export function MarketingSection({
                     )}
                 >
                     {eyebrow ? (
-                        <p className="font-mono text-xs font-medium tracking-[0.18em] text-glacier-700 uppercase dark:text-glacier-400">
-                            {eyebrow}
+                        <p className="text-sm font-medium text-glacier-700 dark:text-glacier-400">
+                            {copy(eyebrow)}
                         </p>
                     ) : null}
-                    <h2 className="mt-3 text-3xl font-semibold tracking-tight text-balance md:text-4xl">
-                        {title}
+                    <h2 className="preview-title mt-3 text-balance">
+                        {copy(title)}
                     </h2>
                     {description ? (
                         <p className="mt-4 text-base leading-relaxed text-muted-foreground">
-                            {description}
+                            {copy(description)}
                         </p>
                     ) : null}
                 </div>
@@ -150,7 +125,7 @@ export function MarketingSection({
 export function CTABand({
     title = 'Ready for the next storm?',
     description = 'Set up your clients, contracts, and payment schedules before the first flake — so when the snow flies, the paperwork is already done. Guided onboarding imports your client list and gets your first season live fast.',
-    primaryLabel = 'Start free trial',
+    primaryLabel = 'Request a free trial',
     primaryTo = ROUTES.contact,
     secondaryLabel = 'See pricing',
     secondaryTo = ROUTES.pricing,
@@ -162,32 +137,30 @@ export function CTABand({
     secondaryLabel?: string;
     secondaryTo?: string;
 }) {
+    const { copy } = usePublicCopy();
+
     return (
-        <section className="relative overflow-hidden border-t border-border">
-            <div
-                aria-hidden="true"
-                className="pointer-events-none absolute inset-0 bg-linear-to-br from-glacier-500/10 via-transparent to-ember-500/10"
-            />
+        <section className="relative overflow-hidden bg-secondary/60">
             <div className="relative z-10 mx-auto w-full max-w-6xl px-4 py-16 text-center sm:px-6 md:py-24 lg:px-8">
-                <h2 className="mx-auto max-w-2xl text-3xl font-semibold tracking-tight text-balance md:text-4xl">
-                    {title}
+                <h2 className="preview-title mx-auto max-w-2xl text-balance">
+                    {copy(title)}
                 </h2>
                 <p className="mx-auto mt-4 max-w-xl text-base leading-relaxed text-muted-foreground">
-                    {description}
+                    {copy(description)}
                 </p>
                 <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
                     <Button asChild size="lg">
                         <Link href={primaryTo}>
-                            {primaryLabel}
+                            {copy(primaryLabel)}
                             <ArrowRight aria-hidden="true" />
                         </Link>
                     </Button>
                     <Button asChild size="lg" variant="outline">
-                        <Link href={secondaryTo}>{secondaryLabel}</Link>
+                        <Link href={secondaryTo}>{copy(secondaryLabel)}</Link>
                     </Button>
                 </div>
-                <p className="mt-6 font-mono text-[11px] tracking-[0.14em] text-muted-foreground uppercase">
-                    14-day trial · no card required · cancel anytime
+                <p className="mt-6 text-sm text-muted-foreground">
+                    {copy('14 days of Pro · no card required · by invitation')}
                 </p>
             </div>
         </section>

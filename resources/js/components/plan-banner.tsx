@@ -12,7 +12,7 @@ import { index } from '@/routes/billing';
  */
 export default function PlanBanner() {
     const { auth } = usePage().props;
-    const { t } = useLocale();
+    const { t, locale } = useLocale();
 
     const subscription = auth.subscription;
 
@@ -30,12 +30,16 @@ export default function PlanBanner() {
     const title = isTrial ? t.billing.trialTitle : t.billing.freeTitle;
     const body = isTrial
         ? subscription.trialEndsAt
-            ? interpolateDate(t.billing.trialBody, subscription.trialEndsAt)
+            ? interpolateDate(
+                  t.billing.trialBody,
+                  subscription.trialEndsAt,
+                  locale,
+              )
             : t.billing.trialBodyUnknown
         : t.billing.freeBody;
 
     return (
-        <Alert className={'mx-auto w-2/3'}>
+        <Alert className="mx-4 w-auto max-w-5xl sm:mx-auto sm:w-[calc(100%-2rem)]">
             <InfoIcon />
             <AlertTitle>{title}</AlertTitle>
             <AlertDescription>
@@ -61,13 +65,20 @@ export default function PlanBanner() {
 /**
  * Drop a trial end timestamp into a sentence — dates arrive as ISO 8601.
  */
-function interpolateDate(template: string, isoDate: string): string {
+function interpolateDate(
+    template: string,
+    isoDate: string,
+    locale: string,
+): string {
     const date = new Date(isoDate);
-    const formatted = date.toLocaleDateString(undefined, {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-    });
+    const formatted = date.toLocaleDateString(
+        locale === 'fr' ? 'fr-CA' : 'en-CA',
+        {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+        },
+    );
 
     return template.replace(':date', formatted);
 }

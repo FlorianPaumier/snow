@@ -29,60 +29,59 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
+import { usePublicCopy } from '@/hooks/use-public-copy';
 import { cn, toUrl } from '@/lib/utils';
 import { index as billingIndex } from '@/routes/billing';
 import register from '@/routes/register';
 
 /* ── Tier cards ─────────────────────────────────────────────────── */
 function TierCard({ tier, ctaHref }: { tier: PricingTier; ctaHref: string }) {
+    const { copy, locale } = usePublicCopy();
+
     const isFree = tier.annual === null;
-    const price = tier.annual;
 
     return (
         <div
             className={cn(
                 'relative flex flex-col rounded-2xl border bg-card p-6 shadow-frost-xs md:p-7',
                 tier.featured
-                    ? 'border-glacier-500/50 shadow-glow-cyan'
+                    ? 'border-glacier-500/50 shadow-[var(--preview-elevation)]'
                     : 'border-border',
             )}
         >
             {tier.featured ? (
                 <Badge className="absolute -top-3 left-1/2 z-10 -translate-x-1/2 bg-glacier-600 text-white dark:bg-glacier-500 dark:text-glacier-950">
-                    Most popular
+                    {copy('Most popular')}
                 </Badge>
             ) : null}
 
-            <h3 className="text-lg font-semibold">{tier.name}</h3>
-            <p className="mt-1 text-xs text-muted-foreground">{tier.tagline}</p>
+            <h3 className="text-lg font-semibold">{copy(tier.name)}</h3>
+            <p className="mt-1 text-sm text-muted-foreground">
+                {copy(tier.tagline)}
+            </p>
 
             <div className="mt-5 flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5">
-                {isFree ? (
-                    <span className="text-4xl font-semibold tabular-nums">
-                        $0
+                <span className="text-4xl font-semibold tabular-nums">
+                    {new Intl.NumberFormat(
+                        locale === 'fr' ? 'fr-CA' : 'en-CA',
+                        {
+                            style: 'currency',
+                            currency: 'CAD',
+                            maximumFractionDigits: 0,
+                        },
+                    ).format(tier.annual ?? 0)}
+                </span>
+                {!isFree && (
+                    <span className="text-sm text-muted-foreground">
+                        {copy('/year')}
                     </span>
-                ) : (
-                    <>
-                        <span
-                            aria-hidden="true"
-                            className="text-lg font-medium text-muted-foreground"
-                        >
-                            CA$
-                        </span>
-                        <span className="text-4xl font-semibold tabular-nums">
-                            {price}
-                        </span>
-                        <span className="text-sm text-muted-foreground">
-                            /year
-                        </span>
-                    </>
                 )}
             </div>
-            <p className="mt-1.5 font-mono text-[11px] text-muted-foreground">
-                {isFree ? 'free forever' : 'billed once a year'}
+            <p className="mt-1.5 text-sm text-muted-foreground">
+                {copy(isFree ? 'free forever' : 'billed once a year')}
             </p>
-            <p className="mt-2 font-mono text-[11px] text-muted-foreground">
-                {tier.limits}
+            <p className="mt-2 text-sm text-muted-foreground">
+                {copy(tier.limits)}
             </p>
 
             <Separator className="my-5" />
@@ -94,7 +93,7 @@ function TierCard({ tier, ctaHref }: { tier: PricingTier; ctaHref: string }) {
                             aria-hidden="true"
                             className="mt-0.5 size-4 shrink-0 text-success"
                         />
-                        <span className="text-sm">{feature}</span>
+                        <span className="text-sm">{copy(feature)}</span>
                     </li>
                 ))}
             </ul>
@@ -105,7 +104,7 @@ function TierCard({ tier, ctaHref }: { tier: PricingTier; ctaHref: string }) {
                     variant={tier.featured ? 'default' : 'outline'}
                     className="w-full"
                 >
-                    <Link href={ctaHref}>{tier.cta}</Link>
+                    <Link href={ctaHref}>{copy(tier.cta)}</Link>
                 </Button>
             </div>
         </div>
@@ -182,11 +181,13 @@ const comparisonGroups: ComparisonGroup[] = [
 ];
 
 function ComparisonCell({ value }: { value: ComparisonValue }) {
+    const { copy } = usePublicCopy();
+
     if (value === true) {
         return (
             <CheckCircle2
                 role="img"
-                aria-label="Included"
+                aria-label={copy('Included')}
                 className="mx-auto size-4 text-success"
             />
         );
@@ -195,29 +196,38 @@ function ComparisonCell({ value }: { value: ComparisonValue }) {
         return (
             <Minus
                 role="img"
-                aria-label="Not included"
+                aria-label={copy('Not included')}
                 className="mx-auto size-4 text-muted-foreground/40"
             />
         );
     }
-    return <span className="text-xs">{value}</span>;
+    return <span className="text-sm">{copy(value)}</span>;
 }
 
 function ComparisonSection() {
+    const { copy } = usePublicCopy();
+
     return (
         <MarketingSection
             align="left"
-            eyebrow="Compare"
-            title="Every feature, side by side"
-            description="The same back office on every plan — the differences come down to the size of your client book and your team."
+            eyebrow={copy('Compare')}
+            title={copy('Every feature, side by side')}
+            description={copy(
+                'The same back office on every plan — the differences come down to the size of your client book and your team.',
+            )}
         >
             <div className="overflow-hidden rounded-xl border border-border bg-card">
-                <div className="scrollbar-frost overflow-x-auto">
+                <div
+                    className="scrollbar-frost overflow-x-auto"
+                    tabIndex={0}
+                    role="region"
+                    aria-label={copy('Plan comparison')}
+                >
                     <table className="w-full min-w-[560px] caption-bottom text-sm">
                         <TableHeader>
                             <TableRow className="hover:bg-transparent">
                                 <TableHead scope="col" className="h-11 px-4">
-                                    Feature
+                                    {copy('Feature')}
                                 </TableHead>
                                 {tierNames.map((name) => (
                                     <TableHead
@@ -229,7 +239,7 @@ function ComparisonSection() {
                                                 'bg-glacier-500/5 font-semibold text-glacier-700 dark:text-glacier-400',
                                         )}
                                     >
-                                        {name}
+                                        {copy(name)}
                                     </TableHead>
                                 ))}
                             </TableRow>
@@ -240,15 +250,15 @@ function ComparisonSection() {
                                     <TableRow className="hover:bg-transparent">
                                         <TableCell
                                             colSpan={3}
-                                            className="bg-muted/50 px-4 py-2.5 text-xs font-semibold tracking-wide text-muted-foreground uppercase"
+                                            className="bg-muted/50 px-4 py-2.5 text-sm font-semibold tracking-wide text-muted-foreground"
                                         >
-                                            {group.group}
+                                            {copy(group.group)}
                                         </TableCell>
                                     </TableRow>
                                     {group.rows.map((row) => (
                                         <TableRow key={row.feature}>
                                             <TableCell className="px-4 py-3 text-sm">
-                                                {row.feature}
+                                                {copy(row.feature)}
                                             </TableCell>
                                             {row.values.map((value, index) => (
                                                 <TableCell
@@ -274,18 +284,20 @@ function ComparisonSection() {
 
 /* ── FAQ ────────────────────────────────────────────────────────── */
 function FaqSection() {
+    const { copy } = usePublicCopy();
+
     return (
         <MarketingSection
-            eyebrow="Pricing FAQ"
-            title="The fine print, unhidden"
+            eyebrow={copy('Pricing FAQ')}
+            title={copy('The fine print, unhidden')}
         >
             <div className="mx-auto max-w-3xl rounded-xl border border-border bg-card px-5 md:px-6">
                 <Accordion type="single" collapsible>
                     {pricingFaqs.map((faq) => (
                         <AccordionItem key={faq.q} value={faq.q}>
-                            <AccordionTrigger>{faq.q}</AccordionTrigger>
+                            <AccordionTrigger>{copy(faq.q)}</AccordionTrigger>
                             <AccordionContent className="text-muted-foreground">
-                                {faq.a}
+                                {copy(faq.a)}
                             </AccordionContent>
                         </AccordionItem>
                     ))}
@@ -297,6 +309,8 @@ function FaqSection() {
 
 /* ── Page ────────────────────────────────────────────────────────── */
 export default function Pricing() {
+    const { copy } = usePublicCopy();
+
     const { auth } = usePage().props;
 
     // Signed-in admins land on billing; everyone else starts a trial by
@@ -310,16 +324,21 @@ export default function Pricing() {
     );
 
     return (
-        <MarketingLayout title="Pricing — Frostline OPS" route={ROUTES.pricing}>
+        <MarketingLayout
+            title={copy('Pricing — Frostline OPS')}
+            route={ROUTES.pricing}
+        >
             <PageHero
-                eyebrow="Pricing"
-                title="Free to start, priced for the season"
-                description="Start free and organize your whole season — client directory, contracts, payment tracking, invoices & receipts. Upgrade to Pro when your client book and your team outgrow the free caps."
+                eyebrow={copy('Pricing')}
+                title={copy('Free to start, priced for the season')}
+                description={copy(
+                    'Start free and organize your whole season — client directory, contracts, payment tracking, invoices & receipts. Upgrade to Pro when your client book and your team outgrow the free caps.',
+                )}
             />
 
             <section className="relative py-14 md:py-20">
                 <div className="mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-8">
-                    <h2 className="sr-only">Plans</h2>
+                    <h2 className="sr-only">{copy('Plans')}</h2>
                     <div className="mx-auto mt-12 grid max-w-3xl gap-4 md:grid-cols-2">
                         {pricingTiers.map((tier) => (
                             <TierCard
@@ -329,9 +348,10 @@ export default function Pricing() {
                             />
                         ))}
                     </div>
-                    <p className="mt-8 text-center font-mono text-xs text-muted-foreground">
-                        Pro starts with a 14-day free trial · no card required ·
-                        taxes calculated at checkout · cancel anytime
+                    <p className="mt-8 text-center text-sm text-muted-foreground">
+                        {copy(
+                            'Pro starts with a 14-day free trial · no card required · taxes calculated at checkout · cancel anytime',
+                        )}
                     </p>
                 </div>
             </section>
@@ -341,11 +361,13 @@ export default function Pricing() {
             <FaqSection />
 
             <CTABand
-                title="Be ready before the first storm"
-                description="Import your clients and set up your season's contracts and payment schedules now — so when the snow flies, the paperwork is already done."
-                primaryLabel="Get started free"
+                title={copy('Be ready before the first storm')}
+                description={copy(
+                    "Import your clients and set up your season's contracts and payment schedules now — so when the snow flies, the paperwork is already done.",
+                )}
+                primaryLabel={copy('Get started free')}
                 primaryTo={ROUTES.register}
-                secondaryLabel="Talk to us"
+                secondaryLabel={copy('Talk to us')}
                 secondaryTo={ROUTES.contact}
             />
         </MarketingLayout>

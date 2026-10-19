@@ -1,20 +1,16 @@
 <x-mail::message>
-# You've been invited
+# {{ __('invitations.user_title') }}
 
-@if ($inviterName)
-{{ $inviterName }} has invited you to join **{{ $organizationName }}** on {{ config('app.name') }}.
-@else
-You have been invited to join **{{ $organizationName }}** on {{ config('app.name') }}.
-@endif
+{{ __($inviterName ? 'invitations.user_intro' : 'invitations.user_intro_without_inviter', ['inviter' => $inviterName, 'organization' => $organizationName, 'app' => config('app.name')]) }}
 
-Choose your own password with the button below to activate your account. The link expires in 72 hours.
+{{ __('invitations.user_body') }}
 
 <x-mail::button :url="$url">
-Set your password
+{{ __('invitations.password') }}
 </x-mail::button>
 
-If you weren't expecting this invitation, no further action is required.
+{{ __('invitations.unexpected') }}
 
-Thanks,<br>
+{{ __('invitations.thanks') }}<br>
 {{ config('app.name') }}
 </x-mail::message>

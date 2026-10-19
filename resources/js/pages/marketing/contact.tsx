@@ -1,24 +1,18 @@
 import { usePage } from '@inertiajs/react';
 import type { LucideIcon } from 'lucide-react';
-import {
-    ArrowRight,
-    CheckCircle2,
-    LifeBuoy,
-    Loader2,
-    MessageSquare,
-} from 'lucide-react';
+import { ArrowRight, LifeBuoy, Loader2, MessageSquare } from 'lucide-react';
 import * as React from 'react';
 import { toast } from 'sonner';
 import { MarketingLayout } from '@/components/marketing/marketing-layout';
 import { PageHero } from '@/components/marketing/page-hero';
 import { ROUTES } from '@/components/marketing/routes';
 import TextLink from '@/components/text-link';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { usePublicCopy } from '@/hooks/use-public-copy';
 
 /* ── Types & helpers ─────────────────────────────────────────────── */
 
@@ -102,6 +96,8 @@ function extractIssues(data: unknown): Partial<Record<string, string>> {
 /* ── Small presentational helpers ────────────────────────────────── */
 
 function FieldError({ id, message }: { id: string; message?: string }) {
+    const { copy } = usePublicCopy();
+
     if (!message) {
         return null;
     }
@@ -109,9 +105,9 @@ function FieldError({ id, message }: { id: string; message?: string }) {
         <p
             id={id}
             role="alert"
-            className="text-xs font-medium text-destructive"
+            className="text-sm font-medium text-destructive"
         >
-            {message}
+            {copy(message)}
         </p>
     );
 }
@@ -127,6 +123,8 @@ function ContactInfoCard({
     title: string;
     children: React.ReactNode;
 }) {
+    const { copy } = usePublicCopy();
+
     return (
         <div className="rounded-2xl border border-border bg-card p-5 shadow-frost-xs">
             <div className="flex items-center gap-3">
@@ -136,7 +134,7 @@ function ContactInfoCard({
                 >
                     <Icon className="size-5" />
                 </span>
-                <p className="font-medium">{title}</p>
+                <p className="font-medium">{copy(title)}</p>
             </div>
             <div className="mt-4 grid gap-1.5">{children}</div>
         </div>
@@ -146,6 +144,8 @@ function ContactInfoCard({
 /* ── Page ────────────────────────────────────────────────────────── */
 
 export default function Contact() {
+    const { copy } = usePublicCopy();
+
     const locale = usePage().props.locale === 'en' ? 'en' : 'fr';
     const [form, setForm] = React.useState<ContactFormValues>(EMPTY_FORM);
     const [errors, setErrors] = React.useState<FieldErrors>({});
@@ -212,6 +212,9 @@ export default function Contact() {
         setTouched({ name: true, email: true, message: true });
         setErrors(nextErrors);
         if (nextErrors.name || nextErrors.email || nextErrors.message) {
+            toast.error(
+                Object.values(nextErrors).filter(Boolean).map(copy).join('\n'),
+            );
             return;
         }
 
@@ -234,9 +237,10 @@ export default function Contact() {
             });
 
             if (response.ok) {
-                toast('Message received', {
-                    description:
+                toast.success(copy('Message received'), {
+                    description: copy(
                         "We'll reply within two business hours — watch your inbox.",
+                    ),
                 });
                 setForm(EMPTY_FORM);
                 setErrors({});
@@ -250,22 +254,26 @@ export default function Contact() {
             const fieldIssues = issues as FieldErrors;
             if (Object.keys(issues).length > 0) {
                 setErrors((prev) => ({ ...prev, ...fieldIssues }));
-                toast.error("We couldn't send that", {
-                    description:
+                toast.error(copy("We couldn't send that"), {
+                    description: copy(
                         issues.name ??
-                        issues.email ??
-                        issues.message ??
-                        'Please check your details and try again.',
+                            issues.email ??
+                            issues.message ??
+                            'Please check your details and try again.',
+                    ),
                 });
             } else {
-                toast.error("We couldn't send that", {
-                    description: 'Please check your details and try again.',
+                toast.error(copy("We couldn't send that"), {
+                    description: copy(
+                        'Please check your details and try again.',
+                    ),
                 });
             }
         } catch {
-            toast.error('Something went wrong', {
-                description:
+            toast.error(copy('Something went wrong'), {
+                description: copy(
                     "Try again in a moment — your message didn't go out.",
+                ),
             });
         } finally {
             setSubmitting(false);
@@ -273,46 +281,41 @@ export default function Contact() {
     };
 
     return (
-        <MarketingLayout title="Contact — Frostline OPS" route={ROUTES.contact}>
+        <MarketingLayout
+            title={copy('Contact — Frostline OPS')}
+            route={ROUTES.contact}
+        >
             <PageHero
                 compact
-                eyebrow="Contact"
-                title="Get your season under control"
-                description="Questions, a tricky client book to untangle, or ready to start — tell us where it hurts. Median first reply: 2 business hours."
+                eyebrow={copy('Contact')}
+                title={copy('Get your season under control')}
+                description={copy(
+                    'Questions, a tricky client book to untangle, or ready to start — tell us where it hurts. Median first reply: 2 business hours.',
+                )}
             />
 
             {/* Form + info column */}
             <section className="py-12 md:py-20">
                 <div className="mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-8">
                     <div className="grid gap-8 lg:grid-cols-5">
-                        <div className="rounded-2xl border border-border bg-card p-6 shadow-frost-sm md:p-8 lg:col-span-3">
+                        <div className="rounded-2xl border border-border bg-card p-6 shadow-[var(--preview-elevation)] md:p-8 lg:col-span-3">
                             <h2 className="text-xl font-semibold tracking-tight">
-                                Start your trial
+                                {copy('Start your trial')}
                             </h2>
                             <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-                                Tell us about your business — we'll set you up
-                                and import your client list before the next
-                                system moves through.
+                                {copy(
+                                    "Tell us about your business — we'll set you up and import your client list before the next system moves through.",
+                                )}
                             </p>
 
                             {submitted ? (
                                 <div className="mt-6">
-                                    <Alert className="border-success/25 bg-success/10 text-success">
-                                        <CheckCircle2 aria-hidden="true" />
-                                        <AlertTitle>
-                                            Thanks — you're on the list.
-                                        </AlertTitle>
-                                        <AlertDescription>
-                                            We'll reach out shortly to get you
-                                            set up.
-                                        </AlertDescription>
-                                    </Alert>
                                     <Button
                                         variant="outline"
                                         className="mt-4"
                                         onClick={handleReset}
                                     >
-                                        Send another message
+                                        {copy('Send another message')}
                                     </Button>
                                 </div>
                             ) : (
@@ -324,7 +327,7 @@ export default function Contact() {
                                     <div className="grid gap-4 sm:grid-cols-2">
                                         <div className="grid gap-2">
                                             <Label htmlFor="contact-name">
-                                                Name
+                                                {copy('Name')}
                                             </Label>
                                             <Input
                                                 id="contact-name"
@@ -338,7 +341,7 @@ export default function Contact() {
                                                 onBlur={() =>
                                                     handleBlur('name')
                                                 }
-                                                placeholder="Your name"
+                                                placeholder={copy('Your name')}
                                                 autoComplete="name"
                                                 aria-invalid={
                                                     touched.name && errors.name
@@ -351,16 +354,18 @@ export default function Contact() {
                                                         : undefined
                                                 }
                                             />
-                                            {touched.name ? (
-                                                <FieldError
-                                                    id="contact-name-error"
-                                                    message={errors.name}
-                                                />
-                                            ) : null}
+                                            {copy(
+                                                touched.name ? (
+                                                    <FieldError
+                                                        id="contact-name-error"
+                                                        message={errors.name}
+                                                    />
+                                                ) : null,
+                                            )}
                                         </div>
                                         <div className="grid gap-2">
                                             <Label htmlFor="contact-email">
-                                                Work email
+                                                {copy('Work email')}
                                             </Label>
                                             <Input
                                                 id="contact-email"
@@ -375,7 +380,9 @@ export default function Contact() {
                                                 onBlur={() =>
                                                     handleBlur('email')
                                                 }
-                                                placeholder="you@yourcompany.com"
+                                                placeholder={copy(
+                                                    'you@yourcompany.com',
+                                                )}
                                                 autoComplete="email"
                                                 aria-invalid={
                                                     touched.email &&
@@ -390,18 +397,20 @@ export default function Contact() {
                                                         : undefined
                                                 }
                                             />
-                                            {touched.email ? (
-                                                <FieldError
-                                                    id="contact-email-error"
-                                                    message={errors.email}
-                                                />
-                                            ) : null}
+                                            {copy(
+                                                touched.email ? (
+                                                    <FieldError
+                                                        id="contact-email-error"
+                                                        message={errors.email}
+                                                    />
+                                                ) : null,
+                                            )}
                                         </div>
                                     </div>
 
                                     <div className="grid gap-2">
                                         <Label htmlFor="contact-company">
-                                            Company
+                                            {copy('Company')}
                                         </Label>
                                         <Input
                                             id="contact-company"
@@ -412,14 +421,16 @@ export default function Contact() {
                                                     event.target.value,
                                                 )
                                             }
-                                            placeholder="Your company"
+                                            placeholder={copy('Your company')}
                                             autoComplete="organization"
                                         />
                                     </div>
 
                                     <div className="grid gap-2">
                                         <Label htmlFor="contact-message">
-                                            What does your season look like?
+                                            {copy(
+                                                'What does your season look like?',
+                                            )}
                                         </Label>
                                         <Textarea
                                             id="contact-message"
@@ -432,7 +443,9 @@ export default function Contact() {
                                                 )
                                             }
                                             onBlur={() => handleBlur('message')}
-                                            placeholder="Clients under contract, how payments are tracked today, biggest headache at season-end…"
+                                            placeholder={copy(
+                                                'Clients under contract, how payments are tracked today, biggest headache at season-end…',
+                                            )}
                                             aria-invalid={
                                                 touched.message &&
                                                 errors.message
@@ -446,12 +459,14 @@ export default function Contact() {
                                                     : undefined
                                             }
                                         />
-                                        {touched.message ? (
-                                            <FieldError
-                                                id="contact-message-error"
-                                                message={errors.message}
-                                            />
-                                        ) : null}
+                                        {copy(
+                                            touched.message ? (
+                                                <FieldError
+                                                    id="contact-message-error"
+                                                    message={errors.message}
+                                                />
+                                            ) : null,
+                                        )}
                                     </div>
 
                                     <div className="grid gap-3">
@@ -461,61 +476,74 @@ export default function Contact() {
                                             disabled={submitting}
                                             className="w-full sm:w-auto"
                                         >
-                                            {submitting ? (
-                                                <>
-                                                    <Loader2
-                                                        aria-hidden="true"
-                                                        className="animate-spin"
-                                                    />
-                                                    Sending…
-                                                </>
-                                            ) : (
-                                                <>
-                                                    Start your trial
-                                                    <ArrowRight aria-hidden="true" />
-                                                </>
+                                            {copy(
+                                                submitting ? (
+                                                    <>
+                                                        <Loader2
+                                                            aria-hidden="true"
+                                                            className="animate-spin"
+                                                        />
+                                                        Sending…
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        Start your trial
+                                                        <ArrowRight aria-hidden="true" />
+                                                    </>
+                                                ),
                                             )}
                                         </Button>
-                                        <p className="font-mono text-[11px] leading-relaxed tracking-[0.08em] text-muted-foreground">
-                                            14-day trial · no card · we reply in
-                                            ~2 business hours
+                                        <p className="text-sm leading-relaxed tracking-[0.08em] text-muted-foreground">
+                                            {copy(
+                                                '14-day trial · no card · we reply in ~2 business hours',
+                                            )}
                                         </p>
-                                        <p className="text-xs leading-relaxed text-muted-foreground">
-                                            {locale === 'fr' ? (
-                                                <>
-                                                    Nous utilisons votre nom,
-                                                    courriel, entreprise et
-                                                    message uniquement pour
-                                                    répondre à votre demande et
-                                                    en assurer le suivi. Ils
-                                                    sont supprimés selon notre
-                                                    calendrier de conservation.
-                                                    Consultez notre{' '}
-                                                    <TextLink
-                                                        href={ROUTES.privacy}
-                                                    >
-                                                        politique de
-                                                        confidentialité
-                                                    </TextLink>{' '}
-                                                    ou écrivez-nous pour exercer
-                                                    vos droits.
-                                                </>
-                                            ) : (
-                                                <>
-                                                    We use your name, email,
-                                                    company, and message only to
-                                                    answer and follow up on your
-                                                    request. They are deleted
-                                                    under our retention
-                                                    schedule. Read our{' '}
-                                                    <TextLink
-                                                        href={ROUTES.privacy}
-                                                    >
-                                                        Privacy Policy
-                                                    </TextLink>{' '}
-                                                    or contact us to exercise
-                                                    your rights.
-                                                </>
+                                        <p className="text-sm leading-relaxed text-muted-foreground">
+                                            {copy(
+                                                locale === 'fr' ? (
+                                                    <>
+                                                        Nous utilisons votre
+                                                        nom, courriel,
+                                                        entreprise et message
+                                                        uniquement pour répondre
+                                                        à votre demande et en
+                                                        assurer le suivi. Ils
+                                                        sont supprimés selon
+                                                        notre calendrier de
+                                                        conservation. Consultez
+                                                        notre{' '}
+                                                        <TextLink
+                                                            href={
+                                                                ROUTES.privacy
+                                                            }
+                                                        >
+                                                            politique de
+                                                            confidentialité
+                                                        </TextLink>{' '}
+                                                        ou écrivez-nous pour
+                                                        exercer vos droits.
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        We use your name, email,
+                                                        company, and message
+                                                        only to answer and
+                                                        follow up on your
+                                                        request. They are
+                                                        deleted under our
+                                                        retention schedule. Read
+                                                        our{' '}
+                                                        <TextLink
+                                                            href={
+                                                                ROUTES.privacy
+                                                            }
+                                                        >
+                                                            Privacy Policy
+                                                        </TextLink>{' '}
+                                                        or contact us to
+                                                        exercise your rights.
+                                                    </>
+                                                ),
                                             )}
                                         </p>
                                     </div>
@@ -524,62 +552,46 @@ export default function Contact() {
                         </div>
 
                         <div className="flex flex-col gap-4 lg:col-span-2">
-                            <div
-                                role="img"
-                                aria-label="Plow truck clearing a snowy street at night, amber beacon reflecting on fresh snow"
-                                className="relative aspect-[16/10] overflow-hidden rounded-2xl border border-border shadow-frost-sm"
-                                style={{
-                                    backgroundImage:
-                                        'url(/images/plow-night.jpg)',
-                                    backgroundSize: 'cover',
-                                    backgroundPosition: 'center',
-                                }}
-                            >
-                                <div
-                                    aria-hidden="true"
-                                    className="absolute inset-0 bg-linear-to-t from-black/70 via-black/20 to-transparent"
-                                />
-                                <div className="absolute bottom-4 left-4">
-                                    <p className="flex items-center gap-2 font-semibold text-white">
-                                        <span
-                                            aria-hidden="true"
-                                            className="size-2 animate-pulse-soft rounded-full bg-ember-400 shadow-glow-ember"
-                                        />
-                                        Built for snow businesses
-                                    </p>
-                                    <p className="mt-1 font-mono text-xs text-white/80">
-                                        Clients · contracts · payments ·
-                                        receipts
-                                    </p>
-                                </div>
+                            <div className="rounded-2xl bg-secondary p-8">
+                                <h2 className="text-2xl font-semibold tracking-tight">
+                                    {copy('A smoother season starts here.')}
+                                </h2>
+                                <p className="mt-4 leading-relaxed text-muted-foreground">
+                                    {copy(
+                                        'Tell us how you manage your clients, contracts and payments. We’ll help you find your next step.',
+                                    )}
+                                </p>
                             </div>
 
                             <ContactInfoCard
                                 icon={MessageSquare}
                                 iconClass="bg-glacier-500/10 text-glacier-700 dark:bg-glacier-400/10 dark:text-glacier-400"
-                                title="Talk to sales"
+                                title={copy('Talk to sales')}
                             >
                                 <p className="text-sm">
-                                    Tell us about your business — clients,
-                                    contracts, and what breaks at season-end.
+                                    {copy(
+                                        'Tell us about your business — clients, contracts, and what breaks at season-end.',
+                                    )}
                                 </p>
-                                <p className="text-xs text-muted-foreground">
-                                    Use the form · median first reply 2h
+                                <p className="text-sm text-muted-foreground">
+                                    {copy(
+                                        'Use the form · median first reply 2h',
+                                    )}
                                 </p>
                             </ContactInfoCard>
 
                             <ContactInfoCard
                                 icon={LifeBuoy}
                                 iconClass="bg-ember-500/10 text-ember-700 dark:bg-ember-400/10 dark:text-ember-400"
-                                title="Product support"
+                                title={copy('Product support')}
                             >
                                 <p className="text-sm">
-                                    Email support for every plan, with priority
-                                    handling on Pro and a dedicated manager on
-                                    Fleet.
+                                    {copy(
+                                        'Email support for every plan, with priority handling on Pro and a dedicated manager on Fleet.',
+                                    )}
                                 </p>
                                 <Badge className="mt-1 w-fit border-success/25 bg-success/10 text-success">
-                                    Median reply 12h
+                                    {copy('Median reply 12h')}
                                 </Badge>
                             </ContactInfoCard>
                         </div>
@@ -596,11 +608,11 @@ export default function Contact() {
                                 key={fact.label}
                                 className="flex flex-col items-center gap-1 rounded-xl border border-border bg-card/60 p-4 text-center"
                             >
-                                <dt className="order-2 font-mono text-[11px] font-medium tracking-[0.14em] text-muted-foreground uppercase">
-                                    {fact.label}
+                                <dt className="order-2 text-sm font-medium tracking-[0.14em] text-muted-foreground">
+                                    {copy(fact.label)}
                                 </dt>
                                 <dd className="order-1 text-xl font-semibold tabular-nums">
-                                    {fact.value}
+                                    {copy(fact.value)}
                                 </dd>
                             </div>
                         ))}

@@ -5,6 +5,7 @@ import InputError from '@/components/input-error';
 import SearchableClientSelect from '@/components/searchable-client-select';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -22,6 +23,7 @@ import {
     SubmitButton,
 } from '@/layouts/app-form/layout';
 import { interpolate, useCurrencyFormatter } from '@/lib/utils';
+import type { CatalogService } from '@/types/catalog-service';
 
 type ClientOption = {
     id: string;
@@ -57,14 +59,17 @@ export default function ContractForm({
     action,
     cancelHref,
     submitLabel,
+    renewalReview = false,
     initialClientId = '',
     initialSeason,
     initialServices = [{ label: '', amount: '' }],
     initialPayments,
     clients,
+    catalogServices,
     seasons,
     slots,
 }: {
+    renewalReview?: boolean;
     action: Record<string, unknown>;
     cancelHref: string;
     submitLabel: string;
@@ -73,6 +78,7 @@ export default function ContractForm({
     initialServices?: ServiceRow[];
     initialPayments: Record<string, PaymentRow>;
     clients: ClientOption[];
+    catalogServices: CatalogService[];
     seasons: string[];
     slots: SlotOption[];
 }) {
@@ -190,7 +196,16 @@ export default function ContractForm({
                                 {t.contracts.fieldSeason}
                             </Label>
                             <Select name="season" defaultValue={initialSeason}>
-                                <SelectTrigger id="season" className="w-full">
+                                <SelectTrigger
+                                    aria-invalid={Boolean(errors.season)}
+                                    aria-describedby={
+                                        errors.season
+                                            ? 'season' + '-error'
+                                            : undefined
+                                    }
+                                    id="season"
+                                    className="w-full"
+                                >
                                     <SelectValue
                                         placeholder={
                                             t.contracts.seasonPlaceholder
@@ -208,7 +223,10 @@ export default function ContractForm({
                                     ))}
                                 </SelectContent>
                             </Select>
-                            <InputError message={errors.season} />
+                            <InputError
+                                id={'season' + '-error'}
+                                message={errors.season}
+                            />
                         </div>
                     </FormSection>
 
@@ -216,6 +234,52 @@ export default function ContractForm({
                         title={t.contracts.servicesSection}
                         description={t.contracts.servicesDescription}
                     >
+                        {catalogServices.length > 0 && (
+                            <div className="mb-4 grid gap-2">
+                                <Label htmlFor="catalog-service">
+                                    {t.catalog.choose}
+                                </Label>
+                                <Select
+                                    value=""
+                                    onValueChange={(id) => {
+                                        const service = catalogServices.find(
+                                            (item) => item.id === id,
+                                        );
+                                        if (!service) return;
+                                        const row = {
+                                            label: service.label,
+                                            amount: (
+                                                service.amount / 100
+                                            ).toFixed(2),
+                                        };
+                                        setServices((current) =>
+                                            current.length === 1 &&
+                                            current[0].label === '' &&
+                                            current[0].amount === ''
+                                                ? [row]
+                                                : [...current, row],
+                                        );
+                                    }}
+                                >
+                                    <SelectTrigger id="catalog-service">
+                                        <SelectValue
+                                            placeholder={t.catalog.choose}
+                                        />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {catalogServices.map((service) => (
+                                            <SelectItem
+                                                key={service.id}
+                                                value={service.id}
+                                            >
+                                                {service.label} ·{' '}
+                                                {formatCurrency(service.amount)}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        )}
                         <div className="flex flex-col gap-4">
                             {services.map((service, index) => (
                                 <div
@@ -229,6 +293,19 @@ export default function ContractForm({
                                             {t.contracts.fieldService}
                                         </Label>
                                         <Input
+                                            aria-invalid={Boolean(
+                                                errors[
+                                                    `services.${index}.label`
+                                                ],
+                                            )}
+                                            aria-describedby={
+                                                errors[
+                                                    `services.${index}.label`
+                                                ]
+                                                    ? `services-${index}-label` +
+                                                      '-error'
+                                                    : undefined
+                                            }
                                             id={`services-${index}-label`}
                                             type="text"
                                             name={`services[${index}][label]`}
@@ -246,6 +323,10 @@ export default function ContractForm({
                                             }
                                         />
                                         <InputError
+                                            id={
+                                                `services-${index}-label` +
+                                                '-error'
+                                            }
                                             message={
                                                 errors[
                                                     `services.${index}.label`
@@ -260,6 +341,19 @@ export default function ContractForm({
                                             {t.contracts.fieldAmount}
                                         </Label>
                                         <Input
+                                            aria-invalid={Boolean(
+                                                errors[
+                                                    `services.${index}.amount`
+                                                ],
+                                            )}
+                                            aria-describedby={
+                                                errors[
+                                                    `services.${index}.amount`
+                                                ]
+                                                    ? `services-${index}-amount` +
+                                                      '-error'
+                                                    : undefined
+                                            }
                                             id={`services-${index}-amount`}
                                             type="number"
                                             min="0"
@@ -279,6 +373,10 @@ export default function ContractForm({
                                             }
                                         />
                                         <InputError
+                                            id={
+                                                `services-${index}-amount` +
+                                                '-error'
+                                            }
                                             message={
                                                 errors[
                                                     `services.${index}.amount`
@@ -450,6 +548,37 @@ export default function ContractForm({
                         <InputError message={errors.payments} />
                     </FormSection>
 
+                    <InputError message={errors.quote} />
+                    {renewalReview && (
+                        <FormSection
+                            title={t.renewals.reviewTitle}
+                            description={t.renewals.reviewHint}
+                        >
+                            <div className="flex items-center gap-3">
+                                <Checkbox
+                                    aria-invalid={Boolean(
+                                        errors.renewalReviewed,
+                                    )}
+                                    aria-describedby={
+                                        errors.renewalReviewed
+                                            ? 'renewalReviewed' + '-error'
+                                            : undefined
+                                    }
+                                    id="renewalReviewed"
+                                    name="renewalReviewed"
+                                    value="1"
+                                    required
+                                />
+                                <Label htmlFor="renewalReviewed">
+                                    {t.renewals.reviewConfirm}
+                                </Label>
+                            </div>
+                            <InputError
+                                id={'renewalReviewed' + '-error'}
+                                message={errors.renewalReviewed}
+                            />
+                        </FormSection>
+                    )}
                     <FormFooter>
                         <CancelButton href={cancelHref} />
                         <SubmitButton processing={processing}>

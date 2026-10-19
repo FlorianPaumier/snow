@@ -49,10 +49,9 @@ it('sends a queued reminder to the client and records the send', function (): vo
 
     $action->handle($payment);
 
-    Mail::assertQueued(InstallmentReminderMail::class, fn (InstallmentReminderMail $mail): bool => $mail->hasTo('client@example.com')
-        && $mail->reminder['clientName'] === $client->displayName()
-        && $mail->reminder['organizationName'] === $this->user->organization->name
-        && $mail->reminder['replyTo'] === [$this->user->email]);
+    Mail::assertQueued(InstallmentReminderMail::class, fn (InstallmentReminderMail $mail): bool => $mail->paymentId === $payment->id
+        && $mail->organizationId === $payment->organization_id
+        && $mail->to === [] && ! isset($mail->reminder));
 
     $payment->refresh();
     expect($payment->last_reminder_at?->equalTo(now()->startOfSecond()))->toBeTrue()

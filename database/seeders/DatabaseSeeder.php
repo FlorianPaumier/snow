@@ -45,6 +45,7 @@ final class DatabaseSeeder extends Seeder
         User::factory()->count(10)->forOrganization($organization)->create();
         User::factory()->count(5)->worker()->forOrganization($organization)->create();
 
+        $this->callWith(CatalogServiceSeeder::class, ['organization' => $organization]);
         $this->callWith(ClientSeeder::class, ['organization' => $organization]);
         $this->callWith(ContractSeeder::class);
     }

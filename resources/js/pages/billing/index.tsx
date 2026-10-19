@@ -10,6 +10,7 @@ import {
     CardHeader,
     CardTitle,
 } from '@/components/ui/card';
+import { Spinner } from '@/components/ui/spinner';
 import { useLocale } from '@/hooks/use-locale';
 import AppLayout from '@/layouts/app-layout';
 import SettingsLayout from '@/layouts/settings/layout';
@@ -85,9 +86,25 @@ export default function BillingIndex({
                         {isPro && (
                             <CardContent>
                                 <Form {...portal.form()}>
-                                    <Button variant="outline" type="submit">
-                                        {t.billing.manageInStripe}
-                                    </Button>
+                                    {({ processing }) => (
+                                        <Button
+                                            variant="outline"
+                                            type="submit"
+                                            disabled={processing}
+                                            aria-busy={processing}
+                                        >
+                                            {processing && (
+                                                <Spinner
+                                                    aria-label={
+                                                        t.common.loading
+                                                    }
+                                                />
+                                            )}
+                                            {processing
+                                                ? t.common.loading
+                                                : t.billing.manageInStripe}
+                                        </Button>
+                                    )}
                                 </Form>
                             </CardContent>
                         )}
@@ -146,22 +163,43 @@ export default function BillingIndex({
                             <CardContent>
                                 <div className="flex flex-col gap-2">
                                     <Form {...checkout.form()}>
-                                        <input
-                                            type="hidden"
-                                            name="plan"
-                                            value={plan.key}
-                                        />
-                                        <input
-                                            type="hidden"
-                                            name="interval"
-                                            value="annual"
-                                        />
-                                        <Button
-                                            type="submit"
-                                            className="w-full"
-                                        >
-                                            {t.billing.subscribeAnnually}
-                                        </Button>
+                                        {({ processing }) => (
+                                            <>
+                                                <input
+                                                    type="hidden"
+                                                    name="plan"
+                                                    value={plan.key}
+                                                />
+                                                <input
+                                                    type="hidden"
+                                                    name="interval"
+                                                    value="annual"
+                                                />
+                                                <Button
+                                                    type="submit"
+                                                    className="w-full"
+                                                    disabled={
+                                                        processing || isPro
+                                                    }
+                                                    aria-busy={processing}
+                                                >
+                                                    {processing && (
+                                                        <Spinner
+                                                            aria-label={
+                                                                t.common.loading
+                                                            }
+                                                        />
+                                                    )}
+                                                    {processing
+                                                        ? t.common.loading
+                                                        : isPro
+                                                          ? t.billing
+                                                                .currentPlan
+                                                          : t.billing
+                                                                .subscribeAnnually}
+                                                </Button>
+                                            </>
+                                        )}
                                     </Form>
                                 </div>
                             </CardContent>

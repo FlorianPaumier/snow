@@ -26,6 +26,10 @@ it('syncs services keeping order as position and updates unpaid amounts only', f
     $removed = $contract->services()->create(['label' => 'Déglaçage', 'amount' => 5000, 'position' => 2]);
     $deposit = $contract->payments()->create(['slot' => PaymentSlot::SLOT_DEPOSIT, 'amount' => 15000, 'paid' => false, 'method' => null, 'paid_at' => null]);
 
+    foreach ([PaymentSlot::SLOT_FIRST_INSTALLMENT, PaymentSlot::SLOT_SECOND_INSTALLMENT, PaymentSlot::SLOT_BALANCE] as $slot) {
+        $contract->payments()->create(['slot' => $slot, 'amount' => 0, 'paid' => false]);
+    }
+
     $action = resolve(UpdateContract::class);
     $action->handle($contract, [
         'clientId' => $client->id,
@@ -65,13 +69,15 @@ it('deletes the stored contract pdf when the contract changes', function (): voi
         );
     }
 
+    $contract->payments()->create(['slot' => PaymentSlot::SLOT_DEPOSIT, 'amount' => 35000, 'paid' => false]);
+
     resolve(UpdateContract::class)->handle($contract, [
         'clientId' => $client->id,
         'season' => $contract->season,
         'services' => [
             ['label' => 'Déneigement entrée', 'amount' => 35000],
         ],
-        'payments' => [],
+        'payments' => ['deposit' => ['amount' => 35000, 'dueDate' => null]],
     ]);
 
     $disk->assertMissing(GenerateContractPdf::pdfPath($contract->id));

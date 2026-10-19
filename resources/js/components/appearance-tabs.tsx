@@ -21,6 +21,8 @@ export default function AppearanceToggleTab({
 
     return (
         <div
+            role="group"
+            aria-label={t.settings.appearanceTitle}
             className={cn(
                 'inline-flex gap-1 rounded-lg bg-muted p-1',
                 className,
@@ -30,15 +32,17 @@ export default function AppearanceToggleTab({
             {tabs.map(({ value, icon: Icon, label }) => (
                 <button
                     key={value}
+                    type="button"
+                    aria-pressed={appearance === value}
                     onClick={() => updateAppearance(value)}
                     className={cn(
-                        'flex items-center rounded-md px-3.5 py-1.5 transition-colors',
+                        'flex min-h-11 items-center rounded-md px-3.5 py-1.5 transition-colors',
                         appearance === value
                             ? 'bg-background text-foreground shadow-xs'
                             : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground',
                     )}
                 >
-                    <Icon className="-ml-1 h-4 w-4" />
+                    <Icon aria-hidden="true" className="-ml-1 h-4 w-4" />
                     <span className="ml-1.5 text-sm">{label}</span>
                 </button>
             ))}

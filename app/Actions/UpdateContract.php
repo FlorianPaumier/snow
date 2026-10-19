@@ -8,6 +8,7 @@ use App\Enums\PaymentSlot;
 use App\Models\Client;
 use App\Models\Contract;
 use App\Models\ContractService;
+use App\Models\Payment;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -38,6 +39,26 @@ final readonly class UpdateContract
         );
 
         DB::transaction(function () use ($contract, $attributes): void {
+            $contract = Contract::query()->lockForUpdate()->findOrFail($contract->id);
+            $payments = $contract->payments()->lockForUpdate()->get();
+            throw_if($payments->contains(fn (Payment $payment): bool => $payment->stripe_checkout_key !== null),
+                ValidationException::withMessages(['contract' => __('connect.locked')]));
+            $serviceIds = collect($attributes['services'])->pluck('id')->filter(fn (mixed $id): bool => $id !== null && $id !== 0);
+            throw_if($serviceIds->count() !== $serviceIds->unique()->count()
+                || $contract->services()->whereIn('id', $serviceIds)->count() !== $serviceIds->count(),
+                ValidationException::withMessages(['services' => __('validation.exists', ['attribute' => 'services'])]));
+
+            foreach ($payments as $payment) {
+                if ($payment->paid && (int) ($attributes['payments'][$payment->slot->value]['amount'] ?? 0) !== $payment->amount) {
+                    throw ValidationException::withMessages(['payments.'.$payment->slot->value.'.amount' => __('contracts.slot_amount_locked')]);
+                }
+            }
+
+            $effectiveTotal = $payments->sum(fn (Payment $payment): int => $payment->paid ? $payment->amount : (int) ($attributes['payments'][$payment->slot->value]['amount'] ?? 0));
+            throw_if($effectiveTotal !== array_sum(array_column($attributes['services'], 'amount'))
+                || array_sum(array_column($attributes['services'], 'amount')) !== array_sum(array_column($attributes['payments'], 'amount')),
+                ValidationException::withMessages(['payments' => __('contracts.totals_mismatch')]));
+
             $contract->update([
                 'client_id' => $attributes['clientId'],
                 'season' => $attributes['season'],

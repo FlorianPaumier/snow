@@ -7,31 +7,49 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useLocale } from '@/hooks/use-locale';
 import AppLayout from '@/layouts/app-layout';
+import {
+    index as templatesIndex,
+    create as templatesCreate,
+    store as templatesStore,
+    update as templatesUpdate,
+} from '@/routes/tour-templates';
 import { create, index, store } from '@/routes/tours';
-import type { TourStop } from '@/types/tour';
+import type { TourTemplateInput, TourStop } from '@/types/tour';
 
 type ClientOption = Omit<TourStop, 'remark'>;
 export default function Create({
     workers,
     clients,
     today,
+    templateMode = false,
+    template,
 }: {
     workers: { id: string; name: string }[];
     clients: ClientOption[];
     today: string;
+    templateMode?: boolean;
+    template?: TourTemplateInput;
 }) {
     const { t } = useLocale();
     const [search, setSearch] = useState('');
     const form = useForm({
-        name: '',
-        worker_id: '',
+        name: template?.name ?? '',
+        worker_id: template?.worker_id ?? '',
         scheduled_date: today,
-        departure_address: '',
-        arrival_address: '',
-        client_ids: [] as string[],
+        departure_address: template?.departure_address ?? '',
+        arrival_address: template?.arrival_address ?? '',
+        client_ids: template?.client_ids ?? ([] as string[]),
     });
+    const title = templateMode
+        ? template
+            ? t.tourTemplates.editTemplate
+            : t.tourTemplates.newTemplate
+        : t.tours.newTour;
     const stops = form.data.client_ids.map((id) => ({
-        ...clients.find((client) => client.id === id)!,
+        id,
+        name: t.tourTemplates.unavailableClient,
+        address: '',
+        ...clients.find((client) => client.id === id),
         remark: null,
     }));
     const available = clients.filter(
@@ -44,26 +62,39 @@ export default function Create({
     return (
         <AppLayout
             breadcrumbs={[
-                { title: t.tours.title, href: index() },
-                { title: t.tours.newTour, href: create() },
+                {
+                    title: templateMode ? t.tourTemplates.title : t.tours.title,
+                    href: templateMode ? templatesIndex() : index(),
+                },
+                { title, href: templateMode ? templatesCreate() : create() },
             ]}
         >
-            <Head title={t.tours.newTour} />
-            <h1 className="sr-only">{t.tours.newTour}</h1>
+            <Head title={title} />
+            <h1 className="sr-only">{title}</h1>
             <form
                 className="mx-auto w-full max-w-4xl space-y-6 p-4 md:p-6"
                 onSubmit={(event) => {
                     event.preventDefault();
-                    form.submit(store());
+                    form.submit(
+                        templateMode
+                            ? template
+                                ? templatesUpdate(template.id)
+                                : templatesStore()
+                            : store(),
+                    );
                 }}
             >
-                <h2 className="text-xl font-semibold">{t.tours.newTour}</h2>
+                <h2 className="text-xl font-semibold">{title}</h2>
                 {!workers.length && <p>{t.tours.noWorkers}</p>}
                 {!clients.length && <p>{t.tours.noClients}</p>}
                 <div className="grid gap-4 md:grid-cols-2">
                     <div className="space-y-2">
                         <Label htmlFor="name">{t.tours.name}</Label>
                         <Input
+                            aria-invalid={Boolean(form.errors.name)}
+                            aria-describedby={
+                                form.errors.name ? 'name' + '-error' : undefined
+                            }
                             id="name"
                             required
                             value={form.data.name}
@@ -71,7 +102,10 @@ export default function Create({
                                 form.setData('name', e.target.value)
                             }
                         />
-                        <InputError message={form.errors.name} />
+                        <InputError
+                            id={'name' + '-error'}
+                            message={form.errors.name}
+                        />
                     </div>
                     <div className="space-y-2">
                         <Label htmlFor="worker_id">{t.tours.worker}</Label>
@@ -93,25 +127,51 @@ export default function Create({
                         </select>
                         <InputError message={form.errors.worker_id} />
                     </div>
-                    <div className="space-y-2">
-                        <Label htmlFor="scheduled_date">{t.tours.date}</Label>
-                        <Input
-                            id="scheduled_date"
-                            type="date"
-                            required
-                            min={today}
-                            value={form.data.scheduled_date}
-                            onChange={(e) =>
-                                form.setData('scheduled_date', e.target.value)
-                            }
-                        />
-                        <InputError message={form.errors.scheduled_date} />
-                    </div>
+                    {!templateMode && (
+                        <div className="space-y-2">
+                            <Label htmlFor="scheduled_date">
+                                {t.tours.date}
+                            </Label>
+                            <Input
+                                aria-invalid={Boolean(
+                                    form.errors.scheduled_date,
+                                )}
+                                aria-describedby={
+                                    form.errors.scheduled_date
+                                        ? 'scheduled_date' + '-error'
+                                        : undefined
+                                }
+                                id="scheduled_date"
+                                type="date"
+                                required
+                                min={today}
+                                value={form.data.scheduled_date}
+                                onChange={(e) =>
+                                    form.setData(
+                                        'scheduled_date',
+                                        e.target.value,
+                                    )
+                                }
+                            />
+                            <InputError
+                                id={'scheduled_date' + '-error'}
+                                message={form.errors.scheduled_date}
+                            />
+                        </div>
+                    )}
                     <div className="space-y-2">
                         <Label htmlFor="departure_address">
                             {t.tours.departure}
                         </Label>
                         <Input
+                            aria-invalid={Boolean(
+                                form.errors.departure_address,
+                            )}
+                            aria-describedby={
+                                form.errors.departure_address
+                                    ? 'departure_address' + '-error'
+                                    : undefined
+                            }
                             id="departure_address"
                             value={form.data.departure_address}
                             onChange={(e) =>
@@ -121,13 +181,22 @@ export default function Create({
                                 )
                             }
                         />
-                        <InputError message={form.errors.departure_address} />
+                        <InputError
+                            id={'departure_address' + '-error'}
+                            message={form.errors.departure_address}
+                        />
                     </div>
                     <div className="space-y-2 md:col-span-2">
                         <Label htmlFor="arrival_address">
                             {t.tours.arrival}
                         </Label>
                         <Input
+                            aria-invalid={Boolean(form.errors.arrival_address)}
+                            aria-describedby={
+                                form.errors.arrival_address
+                                    ? 'arrival_address' + '-error'
+                                    : undefined
+                            }
                             id="arrival_address"
                             value={form.data.arrival_address}
                             onChange={(e) =>
@@ -137,12 +206,21 @@ export default function Create({
                         <p className="text-sm text-muted-foreground">
                             {t.tours.arrivalHint}
                         </p>
-                        <InputError message={form.errors.arrival_address} />
+                        <InputError
+                            id={'arrival_address' + '-error'}
+                            message={form.errors.arrival_address}
+                        />
                     </div>
                 </div>
                 <div className="space-y-3">
                     <Label htmlFor="client-search">{t.tours.clients}</Label>
                     <Input
+                        aria-invalid={Boolean(form.errors.client_ids)}
+                        aria-describedby={
+                            form.errors.client_ids
+                                ? 'client-search' + '-error'
+                                : undefined
+                        }
                         id="client-search"
                         placeholder={t.tours.search}
                         value={search}
@@ -175,7 +253,10 @@ export default function Create({
                             </div>
                         ))}
                     </div>
-                    <InputError message={form.errors.client_ids} />
+                    <InputError
+                        id={'client-search' + '-error'}
+                        message={form.errors.client_ids}
+                    />
                     {stops.length > 0 && (
                         <TourStops
                             stops={stops}
@@ -218,7 +299,7 @@ export default function Create({
                         form.processing || !workers.length || !stops.length
                     }
                 >
-                    {t.tours.create}
+                    {templateMode ? t.tourTemplates.save : t.tours.create}
                 </Button>
             </form>
         </AppLayout>

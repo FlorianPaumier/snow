@@ -175,7 +175,14 @@ unit:
     - bun run build:ssr
     - php artisan inertia:start-ssr &
     - until curl -fsS http://127.0.0.1:13714/health >/dev/null; do sleep 1; done
-    - php artisan test --compact --parallel --testsuite=Unit,Feature
+    - php artisan test --compact --parallel --testsuite=Unit,Feature --coverage --min=99
+
+browser:
+  extends: .base
+  script:
+    - bun run build
+    - bunx playwright install chromium
+    - php artisan test --compact --testsuite=Browser --exclude-group=visual
 
 deploy:laravel-cloud:
   stage: deploy

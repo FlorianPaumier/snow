@@ -3,7 +3,6 @@ import OrganizationController from '@/actions/App/Http/Controllers/OrganizationC
 import TransferOrganizationOwnershipController from '@/actions/App/Http/Controllers/TransferOrganizationOwnershipController';
 import Heading from '@/components/heading';
 import InputError from '@/components/input-error';
-import PlanCapAlert from '@/components/plan-cap-alert';
 import { Button } from '@/components/ui/button';
 import {
     Dialog,
@@ -69,8 +68,6 @@ export default function Edit({
             <h1 className="sr-only">{t.settings.organization}</h1>
 
             <SettingsLayout>
-                <PlanCapAlert />
-
                 <div className="space-y-6">
                     <Heading
                         variant="small"
@@ -93,6 +90,12 @@ export default function Edit({
                                     </Label>
 
                                     <Input
+                                        aria-invalid={Boolean(errors.name)}
+                                        aria-describedby={
+                                            errors.name
+                                                ? 'name' + '-error'
+                                                : undefined
+                                        }
                                         id="name"
                                         type="text"
                                         name="name"
@@ -101,7 +104,10 @@ export default function Edit({
                                         defaultValue={organization.name}
                                     />
 
-                                    <InputError message={errors.name} />
+                                    <InputError
+                                        id={'name' + '-error'}
+                                        message={errors.name}
+                                    />
                                 </div>
 
                                 <div className="flex items-center gap-4">
@@ -146,6 +152,15 @@ export default function Edit({
 
                                             <Select name="user_id">
                                                 <SelectTrigger
+                                                    aria-invalid={Boolean(
+                                                        errors.user_id,
+                                                    )}
+                                                    aria-describedby={
+                                                        errors.user_id
+                                                            ? 'user_id' +
+                                                              '-error'
+                                                            : undefined
+                                                    }
                                                     id="user_id"
                                                     className="w-full"
                                                 >
@@ -173,6 +188,7 @@ export default function Edit({
                                             </Select>
 
                                             <InputError
+                                                id={'user_id' + '-error'}
                                                 message={errors.user_id}
                                             />
                                         </div>

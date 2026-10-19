@@ -1,16 +1,16 @@
 <x-mail::message>
-    # New contact inquiry
+    # {{ __('invitations.contact_title') }}
 
     <x-mail::panel>
-    **Name:** {{ $inquiry->name }}<br>
-    **Email:** {{ $inquiry->email }}<br>
+    **{{ __('invitations.name') }}:** {{ $inquiry->name }}<br>
+    **{{ __('invitations.email') }}:** {{ $inquiry->email }}<br>
 
     @if ($inquiry->company)
-    **Company:** {{ $inquiry->company }}<br>
+    **{{ __('invitations.company') }}:** {{ $inquiry->company }}<br>
     @endif
 
     @if ($inquiry->fleetSize)
-    **Fleet size:** {{ $inquiry->fleetSize }}
+    **{{ __('invitations.fleet') }}:** {{ $inquiry->fleetSize }}
     @endif
     </x-mail::panel>
 
@@ -18,6 +18,6 @@
     {{ $inquiry->message }}
     </x-mail::panel>
 
-    Thanks,<br>
+    {{ __('invitations.thanks') }}<br>
     {{ config('app.name') }}
 </x-mail::message>

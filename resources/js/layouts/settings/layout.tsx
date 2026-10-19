@@ -8,9 +8,11 @@ import { useLocale } from '@/hooks/use-locale';
 import { cn, toUrl } from '@/lib/utils';
 import { edit as editAppearance } from '@/routes/appearance';
 import { index as billingIndex } from '@/routes/billing';
+import { index as catalogIndex } from '@/routes/catalog-services';
 import { edit as editLocale } from '@/routes/locale';
 import { edit as editOrganization } from '@/routes/organization';
 import { edit as editPassword } from '@/routes/password';
+import { show as paymentsSettings } from '@/routes/stripe-connect';
 import { edit } from '@/routes/user-profile';
 import type { NavItem } from '@/types';
 
@@ -53,7 +55,20 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
         });
     }
 
+    if (auth.can?.manageContracts) {
+        adminNavItems.push({
+            title: t.catalog.title,
+            href: catalogIndex(),
+            icon: null,
+        });
+    }
+
     if (auth.can?.manageBilling) {
+        adminNavItems.push({
+            title: t.connect.title,
+            href: paymentsSettings(),
+            icon: null,
+        });
         adminNavItems.push({
             title: t.settings.billing,
             href: billingIndex(),
