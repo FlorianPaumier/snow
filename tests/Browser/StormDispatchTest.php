@@ -29,6 +29,7 @@ it('lets the office remove an unavailable client and repair a template', functio
         'client_ids' => [(string) Str::uuid()]]);
     $page = loginViaUi($admin);
     $page->navigate('/tour-templates/'.$template->id.'/edit')->assertSee('Client indisponible')
-        ->press('Retirer · Client indisponible')->press('Ajouter')->press('Enregistrer le modèle')->assertNoJavascriptErrors();
+        ->press('Retirer · Client indisponible')->press('Ajouter')->press('Enregistrer le modèle')
+        ->assertPathIs('/tour-templates')->assertNoJavascriptErrors();
     expect($template->refresh()->client_ids)->toBe([$client->id]);
 });
