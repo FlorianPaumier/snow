@@ -130,6 +130,9 @@ variables:
 
 lint:
   extends: .base
+  # GitLab-hosted small amd64 runners provide 8 GB for the full lint process tree.
+  tags:
+    - saas-linux-small-amd64
   # The type-aware pass is the slowest step on shared runners; headroom
   # above .base's 20-minute ceiling so a slow run fails loudly instead of
   # being killed mid-flight with no output.
@@ -137,13 +140,8 @@ lint:
   script:
     # Pint + oxlint/oxfmt only — Rector moved to its own allow_failure job.
     - vendor/bin/pint --parallel --test
-    # The type-aware linter spawns the Go tsgolint binary, whose live heap
-    # peaks around ~330 MB. GOMEMLIMIT must sit ABOVE that: below it the
-    # GC runs continuously and the pass blew the 20-minute job timeout on
-    # the shared runner, while no limit at all lets the ~500 MB RSS peak
-    # get OOM-killed there. 384MiB threads the needle (RSS ceiling ~450 MB)
-    # and GOMAXPROCS caps per-process parallelism. GOGC stays at its
-    # default — it is inert while the memory limit binds the heap goal.
+    # Bound Go memory and parallelism; Node and the other lint processes
+    # need additional memory beyond GOMEMLIMIT.
     - GOMEMLIMIT=384MiB GOMAXPROCS=2 bun run test:lint
 
 rector:

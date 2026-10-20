@@ -24,6 +24,13 @@ it('requires browser tests before the deployment stage', function (): void {
         ->and($pipeline['stages'])->toBe(['test', 'deploy']);
 });
 
+it('assigns type-aware lint to the standard GitLab-hosted amd64 runner', function (): void {
+    $pipeline = Yaml::parseFile(base_path('.gitlab-ci.yml'));
+
+    expect($pipeline['lint']['tags'])->toBe(['saas-linux-small-amd64'])
+        ->and($pipeline['lint']['allow_failure'] ?? false)->toBeFalse();
+});
+
 it('connects host Laravel mail to the local Mailpit SMTP port', function (): void {
     $compose = Yaml::parseFile(base_path('docker-compose.yml'));
     $environment = Dotenv::parse(file_get_contents(base_path('.env.example')));
