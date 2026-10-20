@@ -3,7 +3,9 @@
 declare(strict_types=1);
 
 use Illuminate\Support\Facades\Route;
+use Inertia\Inertia;
 use Inertia\Testing\AssertableInertia;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 
 beforeEach(function (): void {
     config(['app.debug' => false]);
@@ -14,8 +16,9 @@ it('renders minimal errors for direct and Inertia requests', function (int $code
 
     foreach ([[], ['X-Inertia' => 'true']] as $headers) {
         if ($headers !== []) {
-            $headers['X-Inertia-Version'] = Inertia\Inertia::getVersion();
+            $headers['X-Inertia-Version'] = Inertia::getVersion();
         }
+
         $response = $this->withUnencryptedCookie('locale', 'en')->get('/_test/error', $headers);
         $response->assertStatus($code)->assertHeader('Retry-After', '60')
             ->assertHeader('X-Robots-Tag', 'noindex, nofollow');
@@ -28,6 +31,7 @@ it('renders minimal errors for direct and Inertia requests', function (int $code
                 ->component('error')->where('code', $code)->where('title', $title)
                 ->missing('auth')->missing('exception'));
         }
+
         expect($response->getContent())->not->toContain('PRIVATE exception details');
     }
 })->with([
@@ -66,12 +70,12 @@ it('keeps validation redirects instead of replacing them with an error page', fu
 });
 
 it('provides server-rendered fallbacks without frontend assets or exception details', function (string $view, int $code): void {
-    $html = view('errors.'.$view, ['exception' => new Symfony\Component\HttpKernel\Exception\HttpException($code, 'PRIVATE details')])->render();
+    $html = view('errors.'.$view, ['exception' => new HttpException($code, 'PRIVATE details')])->render();
     expect($html)->toContain((string) $code, 'noindex, nofollow')->not->toContain('PRIVATE details', '<script', '/build/');
 })->with([['404', 404], ['500', 500], ['503', 503], ['4xx', 418], ['5xx', 507]]);
 
 it('falls back to minimal HTML when the frontend cannot render', function (): void {
-    Inertia\Inertia::partialMock()->shouldReceive('render')->once()->andThrow(new RuntimeException('PRIVATE asset path'));
+    Inertia::partialMock()->shouldReceive('render')->once()->andThrow(new RuntimeException('PRIVATE asset path'));
     $this->get('/this-page-does-not-exist')->assertNotFound()->assertSee('<main>', false)
         ->assertDontSee('PRIVATE asset path')->assertDontSee('/build/')->assertSee('noindex, nofollow');
 });

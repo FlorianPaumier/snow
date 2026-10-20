@@ -71,7 +71,7 @@ it('rejects cross organization edits and archives', function (): void {
     $this->actingAs($admin)->put(route('catalog-services.update', $foreign), ['label' => 'Stolen', 'amount' => 0])->assertNotFound();
     $this->delete(route('catalog-services.destroy', $foreign))->assertNotFound();
     expect($foreign->refresh()->deleted_at)->toBeNull()->and($foreign->label)->not->toBe('Stolen');
-    expect(fn () => app(SaveCatalogService::class)->handle($admin, ['label' => 'Stolen', 'amount' => 0], $foreign))
+    expect(fn () => resolve(SaveCatalogService::class)->handle($admin, ['label' => 'Stolen', 'amount' => 0], $foreign))
         ->toThrow(ModelNotFoundException::class);
 });
 
@@ -82,7 +82,7 @@ it('denies catalog management to workers and regular staff', function (bool $wor
     $this->post(route('catalog-services.store'), ['label' => 'Service', 'amount' => 100])->assertForbidden();
     $this->put(route('catalog-services.update', $service), ['label' => 'Changed', 'amount' => 200])->assertForbidden();
     $this->delete(route('catalog-services.destroy', $service))->assertForbidden();
-    expect(fn () => app(SaveCatalogService::class)->handle($user, ['label' => 'Service', 'amount' => 100]))
+    expect(fn () => resolve(SaveCatalogService::class)->handle($user, ['label' => 'Service', 'amount' => 100]))
         ->toThrow(AuthorizationException::class);
 })->with([false, true]);
 
@@ -117,8 +117,10 @@ it('accepts a zero price and seeds demo defaults without overwriting edits', fun
     $this->actingAs($admin)->post(route('catalog-services.store'), ['label' => 'Free inspection', 'amount' => 0])->assertSessionHasNoErrors();
     $seeder = new CatalogServiceSeeder;
     $seeder->run($admin->organization);
+
     $driveway = CatalogService::query()->where('label', 'Déneigement entrée')->firstOrFail();
     $driveway->update(['amount' => 12345]);
+
     $seeder->run($admin->organization);
     expect(CatalogService::query()->count())->toBe(4)->and($driveway->refresh()->amount)->toBe(12345);
 });

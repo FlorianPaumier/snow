@@ -12,6 +12,7 @@ use App\Models\CatalogService;
 use App\Models\Client;
 use App\Models\Quote;
 use App\ValueObjects\Season;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -64,7 +65,7 @@ final readonly class QuoteController
         return to_route('quotes.show', $quote);
     }
 
-    /** @return array{catalogServices: \Illuminate\Database\Eloquent\Collection<int, CatalogService>, clients: list<array{id: string, clientNumber: string, displayName: string}>, seasons: list<string>, slots: list<array{value: string, label: string}>} */
+    /** @return array{catalogServices: Collection<int, CatalogService>, clients: list<array{id: string, clientNumber: string, displayName: string}>, seasons: list<string>, slots: list<array{value: string, label: string}>} */
     private function options(): array
     {
         $current = Season::current();

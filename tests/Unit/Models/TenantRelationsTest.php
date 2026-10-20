@@ -110,6 +110,7 @@ it('renders the login challenge mailable', function (): void {
 });
 
 it('renders the user invitation mailable', function (): void {
+    config(['app.name' => 'Frostline Test']);
     $mail = new UserInvitationMail(
         email: 'invitee@example.com',
         organizationName: 'Frostline OPS',
@@ -119,7 +120,7 @@ it('renders the user invitation mailable', function (): void {
 
     $rendered = $mail->render();
 
-    expect($mail->envelope()->subject)->toBe(__('invitations.user_subject', ['organization' => 'Frostline OPS', 'app' => config('app.name')]))
+    expect($mail->envelope()->subject)->toBe(__('invitations.user_subject', ['organization' => 'Frostline OPS', 'app' => 'Frostline Test']))
         ->and($mail->content()->markdown)->toBe('mail.user-invitation')
         ->and($mail->content()->with['email'])->toBe('invitee@example.com')
         ->and($mail->content()->with['url'])->toBe(route('user-invitation.create', ['token' => 'invitation-token'], absolute: false).'?email='.urlencode('invitee@example.com'))

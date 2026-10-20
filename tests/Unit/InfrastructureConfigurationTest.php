@@ -19,6 +19,7 @@ it('requires browser tests before the deployment stage', function (): void {
     expect($pipeline['browser']['extends'])->toBe('.base')
         ->and($pipeline['.base']['stage'])->toBe('test')
         ->and($pipeline['browser']['allow_failure'] ?? false)->toBeFalse()
+        ->and($pipeline['browser']['script'])->toContain('bunx playwright install --with-deps chromium')
         ->and($pipeline['browser']['script'])->toContain('php artisan test --compact --testsuite=Browser --exclude-group=visual')
         ->and($pipeline['stages'])->toBe(['test', 'deploy']);
 });

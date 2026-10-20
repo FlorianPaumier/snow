@@ -24,7 +24,7 @@ it('shows PDF progress then downloads automatically or allows a retry after fail
                 if (String(url).endsWith('/pdf')) {
                     window.pdfRequests++;
                     await new Promise(resolve => setTimeout(resolve, 500));
-                    if ($failure) return new Response('{}', { status: 500 });
+                    if ({$failure}) return new Response('{}', { status: 500 });
                     return new Response(JSON.stringify({ ready: window.pdfRequests >= 3 }), {
                         status: 200, headers: { 'Content-Type': 'application/json' }
                     });
@@ -43,6 +43,7 @@ it('shows PDF progress then downloads automatically or allows a retry after fail
         $page->assertSeeIn('[data-sonner-toast]', 'Le téléchargement du PDF a commencé.')
             ->assertButtonEnabled('@download-pdf')->assertScript('window.pdfRequests', 3);
     }
+
     $page->assertNoJavascriptErrors();
     Storage::disk(config()->string('filesystems.default'))->delete(GenerateContractPdf::pdfPath($contract->id));
 })->with(['generated' => false, 'failed' => true]);

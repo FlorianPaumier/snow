@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Models\User;
+use PHPUnit\Framework\ExpectationFailedException;
 
 it('supports skipping navigation and exposes the current user sort', function (): void {
     $admin = User::factory()->admin()->create();
@@ -28,10 +29,11 @@ it('keeps the shared app shell and primary pages accessible', function (): void 
         settleForAccessibilityScan($page);
         try {
             $page->assertVisible('a[href="#main-content"]')->assertNoAccessibilityIssues(3)->assertNoSmoke();
-        } catch (PHPUnit\Framework\ExpectationFailedException $exception) {
+        } catch (ExpectationFailedException $exception) {
             $failures[] = $path.': '.$exception->getMessage();
         }
     }
+
     expect($failures)->toBeEmpty();
 });
 

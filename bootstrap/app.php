@@ -42,7 +42,7 @@ return Application::configure(basePath: dirname(__DIR__))
                 return $response;
             }
 
-            $locale = $request->cookie('locale', config('app.locale'));
+            $locale = $request->cookie('locale', config()->string('app.locale'));
             app()->setLocale(in_array($locale, ['fr', 'en'], true) ? $locale : 'fr');
 
             // Error pages must not depend on tenant data or expose shared user props.
@@ -56,8 +56,8 @@ return Application::configure(basePath: dirname(__DIR__))
                     'homeLabel' => __('errors.home'),
                     'errors' => (object) [],
                 ])->toResponse($request)->setStatusCode($code);
-            } catch (Throwable $renderException) {
-                report($renderException);
+            } catch (Throwable $throwable) {
+                report($throwable);
                 $error = response()->view('errors.minimal', ['status' => $code], $code);
             }
 

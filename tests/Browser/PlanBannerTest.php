@@ -71,6 +71,7 @@ it('shows pending billing feedback and prevents duplicate submissions', function
     } else {
         $page->assertButtonEnabled('button[type="submit"][aria-busy="false"]');
     }
+
     $label = $subscribed ? 'Gérer la facturation dans Stripe' : "S'abonner à l'annuel (300 \$CA)";
     $page->assertSee($label);
     $page->script(<<<'JS'

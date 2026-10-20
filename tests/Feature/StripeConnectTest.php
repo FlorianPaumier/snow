@@ -14,6 +14,7 @@ use App\Models\Payment;
 use App\Models\User;
 use App\Support\StripeConnect;
 use App\ValueObjects\Season;
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Str;
@@ -272,8 +273,8 @@ it('blocks concurrent PDF generation while reconciling or closing a checkout', f
                 $observer->select('SELECT id FROM contracts WHERE id = ? FOR UPDATE NOWAIT', [$payment->contract_id]);
                 throw new RuntimeException('Concurrent PDF generation was not blocked.');
             });
-        } catch (Illuminate\Database\QueryException $exception) {
-            expect($exception->errorInfo[0])->toBe('55P03');
+        } catch (QueryException $queryException) {
+            expect($queryException->errorInfo[0])->toBe('55P03');
             $blocked = true;
         }
 

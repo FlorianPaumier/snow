@@ -173,15 +173,14 @@ unit:
     # Marketing claims are scanned from real server-rendered HTML. Always
     # build the current SSR bundle so a stale artifact cannot hide failures.
     - bun run build:ssr
-    - php artisan inertia:start-ssr &
-    - until curl -fsS http://127.0.0.1:13714/health >/dev/null; do sleep 1; done
     - php artisan test --compact --parallel --testsuite=Unit,Feature --coverage --min=99
 
 browser:
   extends: .base
   script:
     - bun run build
-    - bunx playwright install chromium
+    - rm -rf /var/lib/apt/lists/*
+    - bunx playwright install --with-deps chromium
     - php artisan test --compact --testsuite=Browser --exclude-group=visual
 
 deploy:laravel-cloud:

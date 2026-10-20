@@ -44,8 +44,8 @@ final readonly class QueueContractEmails
                 DB::afterCommit(function () use ($job): void {
                     try {
                         dispatch($job);
-                    } catch (Throwable $exception) {
-                        $job->failed($exception);
+                    } catch (Throwable $throwable) {
+                        $job->failed($throwable);
                     }
                 });
                 $queued++;

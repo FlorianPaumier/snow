@@ -35,7 +35,7 @@ beforeAll(function () use (&$ssrProcess, &$ssrUrl): void {
     $root = dirname(__DIR__, 2);
     $ssrUrl = 'http://127.0.0.1:'.$port;
     $ssrProcess = new Process(['node', $root.'/bootstrap/ssr/ssr.js'], $root, ['INERTIA_SSR_PORT' => $port]);
-    $ssrProcess->setTimeout(10);
+    $ssrProcess->setTimeout(60);
     $ssrProcess->start();
     if (! $ssrProcess->waitUntil(fn (string $type, string $output): bool => str_contains($output, 'Inertia SSR server started.'))) {
         throw new RuntimeException('The test SSR server failed to start: '.$ssrProcess->getErrorOutput());

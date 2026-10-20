@@ -28,7 +28,7 @@ function queuedContractEmail(User $admin): array
     $contract->services()->create(['label' => 'Driveway', 'amount' => 42500, 'position' => 1]);
     Queue::fake();
     auth()->login($admin);
-    app(QueueContractEmails::class)->handle($admin, [$contract->id]);
+    resolve(QueueContractEmails::class)->handle($admin, [$contract->id]);
     $job = Queue::pushed(SendContractEmail::class)->first();
 
     return [$contract, $job];
@@ -70,21 +70,19 @@ it('recovers a rejected queue submission without stranding the rest of the batch
     $bus = Mockery::mock(Dispatcher::class);
     $bus->shouldReceive('dispatch')->times(3)->andReturnUsing(function (SendContractEmail $job) use (&$attempts): void {
         $attempts[] = $job;
-        if (count($attempts) === 1) {
-            throw new RuntimeException('Queue unavailable');
-        }
+        throw_if(count($attempts) === 1, RuntimeException::class, 'Queue unavailable');
     });
     app()->instance(Dispatcher::class, $bus);
     $this->actingAs($admin);
 
-    app(QueueContractEmails::class)->handle($admin, $contracts->pluck('id')->all());
+    resolve(QueueContractEmails::class)->handle($admin, $contracts->pluck('id')->all());
     expect($attempts)->toHaveCount(2);
     $failed = Contract::query()->findOrFail($attempts[0]->contractId);
     expect($failed->document_mail_status)->toBe('failed')
         ->and(Contract::query()->findOrFail($attempts[1]->contractId)->document_mail_status)->toBe('queued');
     Exceptions::assertReported(RuntimeException::class);
 
-    app(QueueContractEmails::class)->handle($admin, [$failed->id]);
+    resolve(QueueContractEmails::class)->handle($admin, [$failed->id]);
     expect($attempts)->toHaveCount(3)
         ->and($attempts[2]->requestId)->not->toBe($attempts[0]->requestId)
         ->and($failed->refresh()->document_mail_status)->toBe('queued');
@@ -97,12 +95,13 @@ it('requires admin authorization and validates selection', function (): void {
     $user = User::factory()->worker()->create();
     Queue::fake();
     $this->actingAs($user)->post(route('contracts.send-email'), ['contract_ids' => []])->assertForbidden();
-    expect(fn () => app(QueueContractEmails::class)->handle($user, []))->toThrow(AuthorizationException::class);
+    expect(fn () => resolve(QueueContractEmails::class)->handle($user, []))->toThrow(AuthorizationException::class);
     $admin = User::factory()->admin()->create();
     $id = (string) str()->uuid();
     foreach ([[], ['not-a-uuid'], [$id, $id], array_fill(0, 101, $id)] as $ids) {
         $this->actingAs($admin)->post(route('contracts.send-email'), ['contract_ids' => $ids])->assertSessionHasErrors();
     }
+
     Queue::assertNothingPushed();
 });
 
@@ -114,10 +113,11 @@ it('generates and attaches the PDF, records successful sender and time, and neve
     Http::fake(['*/forms/chromium/convert/html' => Http::response('%PDF-1.4 contract', 200)]);
     Mail::fake();
     app()->setLocale('en');
-    $job->handle(app(DeliverContractEmail::class));
-    $job->handle(app(DeliverContractEmail::class));
+    $job->handle(resolve(DeliverContractEmail::class));
+    $job->handle(resolve(DeliverContractEmail::class));
+
     expect(app()->getLocale())->toBe('en');
-    Http::assertSent(fn ($request): bool => str_contains($request->body(), '<html lang="'.$locale.'">'));
+    Http::assertSent(fn ($request): bool => str_contains((string) $request->body(), '<html lang="'.$locale.'">'));
     Mail::assertSent(ContractDocumentMail::class, function (ContractDocumentMail $mail) use ($contract): bool {
         $mail->assertHasAttachment(Attachment::fromStorageDisk(config()->string('filesystems.default'), $mail->pdfPath)
             ->as('Contrat-'.$contract->season.'-'.$contract->client->clientNumber.'.pdf')->withMime('application/pdf'));
@@ -145,9 +145,10 @@ it('skips changed or erased recipients before sending any PDF', function (string
     } else {
         $contract->delete();
     }
+
     Mail::fake();
     Http::fake();
-    $job->handle(app(DeliverContractEmail::class));
+    $job->handle(resolve(DeliverContractEmail::class));
     Mail::assertNothingSent();
     Http::assertNothingSent();
     if ($change !== 'deleted') {
@@ -160,7 +161,7 @@ it('retries PDF failures without recording an email and marks exhausted attempts
     [$contract, $job] = queuedContractEmail($admin);
     Http::fake(['*/forms/chromium/convert/html' => Http::response('failed', 500)]);
     Mail::fake();
-    expect(fn () => $job->handle(app(DeliverContractEmail::class)))->toThrow(RequestException::class);
+    expect(fn () => $job->handle(resolve(DeliverContractEmail::class)))->toThrow(RequestException::class);
     expect($contract->refresh()->document_mail_status)->toBe('queued')->and($contract->document_sent_at)->toBeNull();
     $job->failed(null);
     expect($contract->refresh()->document_mail_status)->toBe('failed');
@@ -175,13 +176,14 @@ it('does not retry an uncertain SMTP attempt or an older request', function (): 
     Exceptions::fake();
     Mail::shouldReceive('to')->once()->with('client@example.com')->andReturnSelf();
     Mail::shouldReceive('sendNow')->once()->andThrow(new RuntimeException('SMTP acceptance unknown'));
-    $job->handle(app(DeliverContractEmail::class));
+    $job->handle(resolve(DeliverContractEmail::class));
     expect($contract->refresh()->document_mail_status)->toBe('uncertain')->and($contract->document_sent_at)->toBeNull();
-    $job->handle(app(DeliverContractEmail::class));
+    $job->handle(resolve(DeliverContractEmail::class));
     Exceptions::assertReported(RuntimeException::class);
     $contract->forceFill(['document_mail_status' => 'queued', 'document_mail_request_id' => (string) str()->uuid()])->save();
-    $job->handle(app(DeliverContractEmail::class));
+    $job->handle(resolve(DeliverContractEmail::class));
     $job->failed(new RuntimeException('Old worker'));
+
     expect($contract->refresh()->document_mail_status)->toBe('queued');
 });
 
@@ -190,7 +192,7 @@ it('marks an interrupted transport uncertain without sending again', function ()
     [$contract, $job] = queuedContractEmail($admin);
     $contract->forceFill(['document_mail_status' => 'sending'])->save();
     Mail::fake();
-    $job->handle(app(DeliverContractEmail::class));
+    $job->handle(resolve(DeliverContractEmail::class));
     expect($contract->refresh()->document_mail_status)->toBe('uncertain');
     Mail::assertNothingSent();
 });
