@@ -106,4 +106,5 @@ function loginViaUi(User $user, string $code = '123456'): AwaitableWebpage
 function settleForAccessibilityScan($page): void
 {
     $page->assertScript('document.querySelector("main") !== null && document.querySelector("h1") !== null');
+    $page->assertScript('Array.from(document.querySelectorAll("[data-sonner-toast]")).every(toast => getComputedStyle(toast).opacity === "1")');
 }
