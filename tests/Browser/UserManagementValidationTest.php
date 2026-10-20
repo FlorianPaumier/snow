@@ -37,6 +37,20 @@ it('shows an error for a duplicate email', function (): void {
     $page->navigate('/users/create');
     $page->wait(2);
 
+    $page->script(<<<'JS'
+        () => {
+            const form = document.querySelector('main form');
+            const observer = new MutationObserver(() => {
+                if (form.querySelector('[aria-invalid="true"]') && !form.inert) {
+                    observer.disconnect();
+                    form.inert = true;
+                    setTimeout(() => { form.inert = false; }, 250);
+                }
+            });
+            observer.observe(form, { subtree: true, attributes: true, attributeFilter: ['aria-invalid', 'inert'] });
+        }
+    JS);
+
     $page->fill('#name', 'Jean Tremblay')
         ->fill('#email', 'taken@example.com')
         ->press("Créer l'utilisateur");

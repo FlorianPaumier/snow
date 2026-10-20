@@ -11,6 +11,7 @@ import type { FlashToast } from '@/types/ui';
 export function useFlashToast(initialPage: Page): void {
     useEffect(() => {
         let currentPage = initialPage;
+        let errorFocusObserver: MutationObserver | undefined;
         const showErrors = (errors: Record<string, unknown>) => {
             const messages = [
                 ...new Set(
@@ -23,13 +24,35 @@ export function useFlashToast(initialPage: Page): void {
                 ),
             ];
             if (messages.length) {
-                requestAnimationFrame(() => {
-                    document
-                        .querySelector<HTMLElement>(
-                            'main [aria-invalid="true"]',
-                        )
-                        ?.focus();
-                });
+                errorFocusObserver?.disconnect();
+                const main = document.querySelector('main');
+                if (main) {
+                    const focusFirstInvalid = () => {
+                        const field = main.querySelector<HTMLElement>(
+                            '[aria-invalid="true"]',
+                        );
+                        if (
+                            field &&
+                            !field.closest('[inert]') &&
+                            !field.matches(':disabled')
+                        ) {
+                            field.focus();
+                            if (document.activeElement === field) {
+                                errorFocusObserver?.disconnect();
+                            }
+                        }
+                    };
+                    errorFocusObserver = new MutationObserver(
+                        focusFirstInvalid,
+                    );
+                    errorFocusObserver.observe(main, {
+                        childList: true,
+                        subtree: true,
+                        attributes: true,
+                        attributeFilter: ['aria-invalid', 'inert', 'disabled'],
+                    });
+                    focusFirstInvalid();
+                }
                 const t = currentPage.props.locale === 'en' ? en : fr;
                 const needsUpgrade =
                     typeof errors.planLimit === 'string' ||
@@ -64,6 +87,9 @@ export function useFlashToast(initialPage: Page): void {
         };
         showStatus(initialPage);
         showErrors(initialPage.props.errors);
+        const removeStart = router.on('start', () =>
+            errorFocusObserver?.disconnect(),
+        );
         const removeSuccess = router.on('success', (event) =>
             showStatus(event.detail.page),
         );
@@ -80,6 +106,8 @@ export function useFlashToast(initialPage: Page): void {
             showFlash(event.detail.flash.toast),
         );
         return () => {
+            errorFocusObserver?.disconnect();
+            removeStart();
             removeSuccess();
             removeError();
             removeFlash();
