@@ -140,9 +140,8 @@ lint:
   script:
     # Pint + oxlint/oxfmt only — Rector moved to its own allow_failure job.
     - vendor/bin/pint --parallel --test
-    # Bound Go memory and parallelism; Node and the other lint processes
-    # need additional memory beyond GOMEMLIMIT.
-    - GOMEMLIMIT=384MiB GOMAXPROCS=2 bun run test:lint
+    # Let Go size its heap for the 8 GB runner; a low cap can stall type analysis.
+    - GOMAXPROCS=2 bun run test:lint
 
 rector:
   # Pre-existing debt: 36 files would change. Tracked for a follow-up

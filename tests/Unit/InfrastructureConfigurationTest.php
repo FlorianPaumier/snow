@@ -28,6 +28,7 @@ it('assigns type-aware lint to the standard GitLab-hosted amd64 runner', functio
     $pipeline = Yaml::parseFile(base_path('.gitlab-ci.yml'));
 
     expect($pipeline['lint']['tags'])->toBe(['saas-linux-small-amd64'])
+        ->and($pipeline['lint']['script'])->toContain('GOMAXPROCS=2 bun run test:lint')
         ->and($pipeline['lint']['allow_failure'] ?? false)->toBeFalse();
 });
 
