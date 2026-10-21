@@ -1,4 +1,6 @@
 /.phpunit.cache
+/.bun-cache
+/.composer-cache
 /bootstrap/ssr
 /node_modules
 /public/build

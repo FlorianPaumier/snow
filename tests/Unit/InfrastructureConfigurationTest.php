@@ -32,6 +32,15 @@ it('assigns type-aware lint to the standard GitLab-hosted amd64 runner', functio
         ->and($pipeline['lint']['allow_failure'] ?? false)->toBeFalse();
 });
 
+it('ignores CI dependency download caches during repository discovery', function (): void {
+    $pipeline = Yaml::parseFile(base_path('.gitlab-ci.yml'));
+    $ignoredPaths = file(base_path('.gitignore'), FILE_IGNORE_NEW_LINES);
+
+    foreach (['BUN_INSTALL_CACHE_DIR', 'COMPOSER_CACHE_DIR'] as $variable) {
+        expect($ignoredPaths)->toContain(str_replace('$CI_PROJECT_DIR', '', $pipeline['.base']['variables'][$variable]));
+    }
+});
+
 it('connects host Laravel mail to the local Mailpit SMTP port', function (): void {
     $compose = Yaml::parseFile(base_path('docker-compose.yml'));
     $environment = Dotenv::parse(file_get_contents(base_path('.env.example')));
