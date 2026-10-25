@@ -1,11 +1,38 @@
 {
-    "mcpServers": {
-        "laravel-boost": {
-            "command": "php",
-            "args": [
-                "artisan",
-                "boost:mcp"
-            ]
-        }
+  "mcpServers": {
+    "laravel-boost": {
+      "command": "php",
+      "args": [
+        "artisan",
+        "boost:mcp"
+      ]
     }
+  },
+  "hooks": {
+    "BeforeTool": [
+      {
+        "matcher": "^run_shell_command$",
+        "hooks": [
+          {
+            "name": "impeccable-session",
+            "type": "command",
+            "command": "[ ! -f '/Users/florianpaumier/.gemini/skills/impeccable/scripts/impeccable' ] || '/Users/florianpaumier/.gemini/skills/impeccable/scripts/impeccable' hook",
+            "timeout": 5000
+          }
+        ]
+      }
+    ],
+    "AfterAgent": [
+      {
+        "hooks": [
+          {
+            "name": "impeccable-completion",
+            "type": "command",
+            "command": "[ ! -f '/Users/florianpaumier/.gemini/skills/impeccable/scripts/impeccable' ] || '/Users/florianpaumier/.gemini/skills/impeccable/scripts/impeccable' hook",
+            "timeout": 30000
+          }
+        ]
+      }
+    ]
+  }
 }

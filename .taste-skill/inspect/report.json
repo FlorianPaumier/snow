@@ -1,0 +1,1496 @@
+{
+ "url": "http://localhost:8000",
+ "at": "2026-10-18T04:03:52.675Z",
+ "allow": [],
+ "viewports": [
+  {
+   "width": 1440,
+   "height": 900,
+   "load": "load",
+   "screens": 7,
+   "filled": [
+    0.44,
+    0.71,
+    0.96,
+    0.83,
+    0.64,
+    0.96,
+    0.95
+   ],
+   "motion": {
+    "elements": 0,
+    "css": 0,
+    "transitions": 0,
+    "scripted": 0,
+    "videos": 0,
+    "playingVideos": 0
+   },
+   "metrics": {
+    "viewport": {
+     "w": 1440,
+     "h": 900
+    },
+    "page": {
+     "height": 5617,
+     "screens": 6.2,
+     "words": 394,
+     "img": 4,
+     "video": 0,
+     "canvas": 0,
+     "svg": 29,
+     "sections": 6,
+     "horizontalOverflow": 0,
+     "overflowCulprits": [],
+     "uiFragments": 0,
+     "uiAbuse": false,
+     "realPictures": 4,
+     "videoCount": 0,
+     "uiPictures": 0,
+     "pictureSamples": [
+      "product-contract.webp",
+      "product-clients.webp",
+      "product-contract.webp",
+      "product-payments.webp"
+     ],
+     "blendText": 0,
+     "sideScrollers": 0,
+     "brokenImages": [],
+     "emoji": []
+    },
+    "hero": {
+     "text": "Your season. All accounted for.",
+     "words": 5,
+     "chars": 31,
+     "lines": 2,
+     "size": 104,
+     "vw": 7.2,
+     "font": "Instrument Sans",
+     "weight": 600,
+     "tracking": -0.055,
+     "leading": 0.98,
+     "upper": false,
+     "italic": false,
+     "mono": false,
+     "align": "left",
+     "position": "center",
+     "widthRatio": 0.71,
+     "top": 144,
+     "tag": "h1",
+     "kind": "heading"
+    },
+    "h1": {
+     "text": "Your season. All accounted for.",
+     "words": 5,
+     "lines": 2,
+     "size": 104,
+     "font": "Instrument Sans"
+    },
+    "headings": [
+     {
+      "text": "Your season. All accounted for.",
+      "words": 5,
+      "chars": 31,
+      "lines": 2,
+      "size": 104,
+      "vw": 7.2,
+      "font": "Instrument Sans",
+      "weight": 600,
+      "tracking": -0.055,
+      "leading": 0.98,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.71,
+      "top": 144,
+      "tag": "h1",
+      "kind": "heading"
+     },
+     {
+      "text": "From first client to final balance.",
+      "words": 6,
+      "chars": 35,
+      "lines": 2,
+      "size": 48,
+      "vw": 3.3,
+      "font": "Instrument Sans",
+      "weight": 600,
+      "tracking": -0.025,
+      "leading": 1.25,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.47,
+      "top": 1628,
+      "tag": "h2",
+      "kind": "heading"
+     },
+     {
+      "text": "Start with your clients.",
+      "words": 4,
+      "chars": 24,
+      "lines": 1,
+      "size": 30,
+      "vw": 2.1,
+      "font": "Instrument Sans",
+      "weight": 600,
+      "tracking": -0.025,
+      "leading": 1.2,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.28,
+      "top": 1933,
+      "tag": "h3",
+      "kind": "heading"
+     },
+     {
+      "text": "Put the season in writing.",
+      "words": 5,
+      "chars": 26,
+      "lines": 1,
+      "size": 30,
+      "vw": 2.1,
+      "font": "Instrument Sans",
+      "weight": 600,
+      "tracking": -0.025,
+      "leading": 1.2,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "right",
+      "widthRatio": 0.28,
+      "top": 2476,
+      "tag": "h3",
+      "kind": "heading"
+     },
+     {
+      "text": "Know what is still owed.",
+      "words": 5,
+      "chars": 24,
+      "lines": 1,
+      "size": 30,
+      "vw": 2.1,
+      "font": "Instrument Sans",
+      "weight": 600,
+      "tracking": -0.025,
+      "leading": 1.2,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.28,
+      "top": 3019,
+      "tag": "h3",
+      "kind": "heading"
+     },
+     {
+      "text": "One season. One clear price.",
+      "words": 5,
+      "chars": 28,
+      "lines": 2,
+      "size": 48,
+      "vw": 3.3,
+      "font": "Instrument Sans",
+      "weight": 600,
+      "tracking": -0.025,
+      "leading": 1.25,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.37,
+      "top": 3585,
+      "tag": "h2",
+      "kind": "heading"
+     },
+     {
+      "text": "CA$0forever",
+      "words": 1,
+      "chars": 11,
+      "lines": 1,
+      "size": 36,
+      "vw": 2.5,
+      "font": "Instrument Sans",
+      "weight": 600,
+      "tracking": -0.025,
+      "leading": 1.11,
+      "upper": true,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.33,
+      "top": 3821,
+      "tag": "p",
+      "kind": "statement"
+     },
+     {
+      "text": "CA$300/ year, before tax",
+      "words": 4,
+      "chars": 24,
+      "lines": 1,
+      "size": 36,
+      "vw": 2.5,
+      "font": "Instrument Sans",
+      "weight": 600,
+      "tracking": -0.025,
+      "leading": 1.11,
+      "upper": true,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "right",
+      "widthRatio": 0.33,
+      "top": 3821,
+      "tag": "p",
+      "kind": "statement"
+     },
+     {
+      "text": "Before you get started.",
+      "words": 4,
+      "chars": 23,
+      "lines": 2,
+      "size": 48,
+      "vw": 3.3,
+      "font": "Instrument Sans",
+      "weight": 600,
+      "tracking": -0.025,
+      "leading": 1,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.28,
+      "top": 4485,
+      "tag": "h2",
+      "kind": "heading"
+     },
+     {
+      "text": "Ready for your season?",
+      "words": 4,
+      "chars": 22,
+      "lines": 1,
+      "size": 48,
+      "vw": 3.3,
+      "font": "Instrument Sans",
+      "weight": 600,
+      "tracking": -0.025,
+      "leading": 1,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.4,
+      "top": 5061,
+      "tag": "h2",
+      "kind": "heading"
+     }
+    ],
+    "headingSummary": {
+     "count": 10,
+     "maxLines": 2,
+     "over2Lines": 0,
+     "statements": 2,
+     "centered": 0,
+     "medianWords": 4,
+     "mixedFontHeadings": 0
+    },
+    "type": {
+     "families": [
+      {
+       "family": "Instrument Sans",
+       "share": 1,
+       "mono": false
+      }
+     ],
+     "familyCount": 1,
+     "sizes": [
+      14,
+      16,
+      18,
+      20,
+      24,
+      30,
+      36,
+      48,
+      104
+     ],
+     "sizeCount": 9,
+     "notLoaded": [],
+     "body": {
+      "font": "Instrument Sans",
+      "size": 18,
+      "leading": 1.63,
+      "weight": 400,
+      "tracking": 0,
+      "contrast": 16.1
+     },
+     "measureChars": 45,
+     "max": {
+      "size": 104,
+      "vw": 7.2,
+      "font": "Instrument Sans",
+      "text": "Your season.All accounted for."
+     },
+     "monoShare": 0,
+     "monoProseShare": 0,
+     "monoFamilies": [],
+     "monoSamples": [],
+     "microLabels": 0,
+     "microLabelShare": 0,
+     "microSamples": [],
+     "upperShare": 0.01,
+     "centerShare": 0.01,
+     "smallText": 0
+    },
+    "eyebrows": [],
+    "numbered": [],
+    "color": {
+     "bodyBg": "#07151b",
+     "bodyBgHsl": {
+      "h": 198,
+      "s": 0.59,
+      "l": 0.07
+     },
+     "dark": true,
+     "sectionBgs": [
+      {
+       "color": "#192931",
+       "top": 626,
+       "hsl": {
+        "h": 200,
+        "s": 0.32,
+        "l": 0.15
+       }
+      },
+      {
+       "color": "#42c3c7",
+       "top": 4965,
+       "hsl": {
+        "h": 182,
+        "s": 0.54,
+        "l": 0.52
+       }
+      }
+     ],
+     "textColors": [
+      {
+       "color": "#eaf0f1",
+       "share": 0.72
+      },
+      {
+       "color": "#95a1a5",
+       "share": 0.19
+      },
+      {
+       "color": "#001c22",
+       "share": 0.07
+      },
+      {
+       "color": "#42c3c7",
+       "share": 0.02
+      },
+      {
+       "color": "#58ced1",
+       "share": 0
+      }
+     ],
+     "button": {
+      "bg": "#42c3c7",
+      "hsl": {
+       "h": 182,
+       "s": 0.54,
+       "l": 0.52
+      },
+      "fg": "#001c22"
+     },
+     "lowContrast": []
+    },
+    "buttons": {
+     "count": 6,
+     "inHero": 3,
+     "radius": 10,
+     "height": 40,
+     "withShadow": 0,
+     "withGradient": 0,
+     "mono": 0,
+     "upper": 0,
+     "heroLabels": [
+      "Request access",
+      "Request a trial",
+      "Contracts"
+     ]
+    },
+    "surfaces": {
+     "shadowStatic": 0,
+     "shadowOverlay": 0,
+     "shadowSamples": [],
+     "gradients": 0,
+     "scrims": 0,
+     "gradientSamples": [],
+     "gradientText": 0,
+     "hairlines": 0,
+     "hairlineSamples": [],
+     "outlinedBoxes": 0,
+     "dashed": 0,
+     "blurred": 0,
+     "roundedBoxes": 0,
+     "boxRadius": 0,
+     "squareMedia": 4,
+     "roundedMedia": 0,
+     "mediaRadius": 0,
+     "textShadow": 0,
+     "cardRows": []
+    },
+    "heroMedia": [
+     {
+      "type": "img",
+      "ratio": 0.23
+     }
+    ],
+    "nav": {
+     "links": 7,
+     "fixed": true,
+     "height": 64,
+     "floatingPill": false,
+     "blur": false
+    },
+    "fontsLoaded": [
+     "instrument sans"
+    ]
+   },
+   "consoleErrors": []
+  },
+  {
+   "width": 768,
+   "height": 1024,
+   "load": "load",
+   "screens": 6,
+   "filled": [
+    0.63,
+    0.93,
+    0.97,
+    0.77,
+    0.81,
+    0.97
+   ],
+   "motion": {
+    "elements": 0,
+    "css": 0,
+    "transitions": 0,
+    "scripted": 0,
+    "videos": 0,
+    "playingVideos": 0
+   },
+   "metrics": {
+    "viewport": {
+     "w": 768,
+     "h": 1024
+    },
+    "page": {
+     "height": 6086,
+     "screens": 5.9,
+     "words": 390,
+     "img": 4,
+     "video": 0,
+     "canvas": 0,
+     "svg": 29,
+     "sections": 6,
+     "horizontalOverflow": 0,
+     "overflowCulprits": [],
+     "uiFragments": 0,
+     "uiAbuse": false,
+     "realPictures": 4,
+     "videoCount": 0,
+     "uiPictures": 0,
+     "pictureSamples": [
+      "product-contract.webp",
+      "product-clients.webp",
+      "product-contract.webp",
+      "product-payments.webp"
+     ],
+     "blendText": 0,
+     "sideScrollers": 0,
+     "brokenImages": [],
+     "emoji": []
+    },
+    "hero": {
+     "text": "Your season. All accounted for.",
+     "words": 5,
+     "chars": 31,
+     "lines": 2,
+     "size": 57.6,
+     "vw": 7.5,
+     "font": "Instrument Sans",
+     "weight": 600,
+     "tracking": -0.055,
+     "leading": 0.98,
+     "upper": false,
+     "italic": false,
+     "mono": false,
+     "align": "left",
+     "position": "center",
+     "widthRatio": 0.94,
+     "top": 144,
+     "tag": "h1",
+     "kind": "heading"
+    },
+    "h1": {
+     "text": "Your season. All accounted for.",
+     "words": 5,
+     "lines": 2,
+     "size": 57.6,
+     "font": "Instrument Sans"
+    },
+    "headings": [
+     {
+      "text": "Your season. All accounted for.",
+      "words": 5,
+      "chars": 31,
+      "lines": 2,
+      "size": 57.6,
+      "vw": 7.5,
+      "font": "Instrument Sans",
+      "weight": 600,
+      "tracking": -0.055,
+      "leading": 0.98,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.94,
+      "top": 144,
+      "tag": "h1",
+      "kind": "heading"
+     },
+     {
+      "text": "From first client to final balance.",
+      "words": 6,
+      "chars": 35,
+      "lines": 2,
+      "size": 48,
+      "vw": 6.3,
+      "font": "Instrument Sans",
+      "weight": 600,
+      "tracking": -0.025,
+      "leading": 1.25,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.88,
+      "top": 1274,
+      "tag": "h2",
+      "kind": "heading"
+     },
+     {
+      "text": "Start with your clients.",
+      "words": 4,
+      "chars": 24,
+      "lines": 1,
+      "size": 30,
+      "vw": 3.9,
+      "font": "Instrument Sans",
+      "weight": 600,
+      "tracking": -0.025,
+      "leading": 1.2,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.94,
+      "top": 1442,
+      "tag": "h3",
+      "kind": "heading"
+     },
+     {
+      "text": "Put the season in writing.",
+      "words": 5,
+      "chars": 26,
+      "lines": 1,
+      "size": 30,
+      "vw": 3.9,
+      "font": "Instrument Sans",
+      "weight": 600,
+      "tracking": -0.025,
+      "leading": 1.2,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.94,
+      "top": 2187,
+      "tag": "h3",
+      "kind": "heading"
+     },
+     {
+      "text": "Know what is still owed.",
+      "words": 5,
+      "chars": 24,
+      "lines": 1,
+      "size": 30,
+      "vw": 3.9,
+      "font": "Instrument Sans",
+      "weight": 600,
+      "tracking": -0.025,
+      "leading": 1.2,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.94,
+      "top": 2940,
+      "tag": "h3",
+      "kind": "heading"
+     },
+     {
+      "text": "One season. One clear price.",
+      "words": 5,
+      "chars": 28,
+      "lines": 2,
+      "size": 48,
+      "vw": 6.3,
+      "font": "Instrument Sans",
+      "weight": 600,
+      "tracking": -0.025,
+      "leading": 1.25,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.45,
+      "top": 3878,
+      "tag": "h2",
+      "kind": "heading"
+     },
+     {
+      "text": "CA$0forever",
+      "words": 1,
+      "chars": 11,
+      "lines": 1,
+      "size": 36,
+      "vw": 4.7,
+      "font": "Instrument Sans",
+      "weight": 600,
+      "tracking": -0.025,
+      "leading": 1.11,
+      "upper": true,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.38,
+      "top": 4114,
+      "tag": "p",
+      "kind": "statement"
+     },
+     {
+      "text": "CA$300/ year, before tax",
+      "words": 4,
+      "chars": 24,
+      "lines": 1,
+      "size": 36,
+      "vw": 4.7,
+      "font": "Instrument Sans",
+      "weight": 600,
+      "tracking": -0.025,
+      "leading": 1.11,
+      "upper": true,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "right",
+      "widthRatio": 0.38,
+      "top": 4114,
+      "tag": "p",
+      "kind": "statement"
+     },
+     {
+      "text": "Before you get started.",
+      "words": 4,
+      "chars": 23,
+      "lines": 2,
+      "size": 48,
+      "vw": 6.3,
+      "font": "Instrument Sans",
+      "weight": 600,
+      "tracking": -0.025,
+      "leading": 1,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.94,
+      "top": 4802,
+      "tag": "h2",
+      "kind": "heading"
+     },
+     {
+      "text": "Ready for your season?",
+      "words": 4,
+      "chars": 22,
+      "lines": 1,
+      "size": 48,
+      "vw": 6.3,
+      "font": "Instrument Sans",
+      "weight": 600,
+      "tracking": -0.025,
+      "leading": 1,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.7,
+      "top": 5506,
+      "tag": "h2",
+      "kind": "heading"
+     }
+    ],
+    "headingSummary": {
+     "count": 10,
+     "maxLines": 2,
+     "over2Lines": 0,
+     "statements": 2,
+     "centered": 0,
+     "medianWords": 4,
+     "mixedFontHeadings": 0
+    },
+    "type": {
+     "families": [
+      {
+       "family": "Instrument Sans",
+       "share": 1,
+       "mono": false
+      }
+     ],
+     "familyCount": 1,
+     "sizes": [
+      14,
+      16,
+      18,
+      20,
+      24,
+      30,
+      36,
+      48,
+      58
+     ],
+     "sizeCount": 9,
+     "notLoaded": [],
+     "body": {
+      "font": "Instrument Sans",
+      "size": 18,
+      "leading": 1.63,
+      "weight": 400,
+      "tracking": 0,
+      "contrast": 16.1
+     },
+     "measureChars": 80,
+     "max": {
+      "size": 57.6,
+      "vw": 7.5,
+      "font": "Instrument Sans",
+      "text": "Your season.All accounted for."
+     },
+     "monoShare": 0,
+     "monoProseShare": 0,
+     "monoFamilies": [],
+     "monoSamples": [],
+     "microLabels": 0,
+     "microLabelShare": 0,
+     "microSamples": [],
+     "upperShare": 0.01,
+     "centerShare": 0.01,
+     "smallText": 0
+    },
+    "eyebrows": [],
+    "numbered": [],
+    "color": {
+     "bodyBg": "#07151b",
+     "bodyBgHsl": {
+      "h": 198,
+      "s": 0.59,
+      "l": 0.07
+     },
+     "dark": true,
+     "sectionBgs": [
+      {
+       "color": "#192931",
+       "top": 535,
+       "hsl": {
+        "h": 200,
+        "s": 0.32,
+        "l": 0.15
+       }
+      },
+      {
+       "color": "#42c3c7",
+       "top": 5410,
+       "hsl": {
+        "h": 182,
+        "s": 0.54,
+        "l": 0.52
+       }
+      }
+     ],
+     "textColors": [
+      {
+       "color": "#eaf0f1",
+       "share": 0.72
+      },
+      {
+       "color": "#95a1a5",
+       "share": 0.19
+      },
+      {
+       "color": "#001c22",
+       "share": 0.07
+      },
+      {
+       "color": "#42c3c7",
+       "share": 0.02
+      },
+      {
+       "color": "#58ced1",
+       "share": 0
+      }
+     ],
+     "button": {
+      "bg": "#42c3c7",
+      "hsl": {
+       "h": 182,
+       "s": 0.54,
+       "l": 0.52
+      },
+      "fg": "#001c22"
+     },
+     "lowContrast": []
+    },
+    "buttons": {
+     "count": 6,
+     "inHero": 3,
+     "radius": 10,
+     "height": 40,
+     "withShadow": 0,
+     "withGradient": 0,
+     "mono": 0,
+     "upper": 0,
+     "heroLabels": [
+      "Request access",
+      "Request a trial",
+      "Contracts"
+     ]
+    },
+    "surfaces": {
+     "shadowStatic": 0,
+     "shadowOverlay": 0,
+     "shadowSamples": [],
+     "gradients": 0,
+     "scrims": 0,
+     "gradientSamples": [],
+     "gradientText": 0,
+     "hairlines": 0,
+     "hairlineSamples": [],
+     "outlinedBoxes": 0,
+     "dashed": 0,
+     "blurred": 0,
+     "roundedBoxes": 0,
+     "boxRadius": 0,
+     "squareMedia": 4,
+     "roundedMedia": 0,
+     "mediaRadius": 0,
+     "textShadow": 0,
+     "cardRows": []
+    },
+    "heroMedia": [
+     {
+      "type": "img",
+      "ratio": 0.45
+     }
+    ],
+    "nav": {
+     "links": 3,
+     "fixed": true,
+     "height": 64,
+     "floatingPill": false,
+     "blur": false
+    },
+    "fontsLoaded": [
+     "instrument sans"
+    ]
+   },
+   "consoleErrors": []
+  },
+  {
+   "width": 390,
+   "height": 844,
+   "load": "load",
+   "screens": 8,
+   "filled": [
+    0.55,
+    0.85,
+    0.96,
+    0.77,
+    0.88,
+    0.86,
+    0.89,
+    0.89
+   ],
+   "motion": {
+    "elements": 0,
+    "css": 0,
+    "transitions": 0,
+    "scripted": 0,
+    "videos": 0,
+    "playingVideos": 0
+   },
+   "metrics": {
+    "viewport": {
+     "w": 390,
+     "h": 844
+    },
+    "page": {
+     "height": 6073,
+     "screens": 7.2,
+     "words": 386,
+     "img": 4,
+     "video": 0,
+     "canvas": 0,
+     "svg": 29,
+     "sections": 6,
+     "horizontalOverflow": 0,
+     "overflowCulprits": [],
+     "uiFragments": 0,
+     "uiAbuse": false,
+     "realPictures": 4,
+     "videoCount": 0,
+     "uiPictures": 0,
+     "pictureSamples": [
+      "product-contract-mobile.webp",
+      "product-clients.webp",
+      "product-contract.webp",
+      "product-payments.webp"
+     ],
+     "blendText": 0,
+     "sideScrollers": 0,
+     "brokenImages": [],
+     "emoji": []
+    },
+    "hero": {
+     "text": "Your season. All accounted for.",
+     "words": 5,
+     "chars": 31,
+     "lines": 2,
+     "size": 44,
+     "vw": 11.3,
+     "font": "Instrument Sans",
+     "weight": 600,
+     "tracking": -0.055,
+     "leading": 0.98,
+     "upper": false,
+     "italic": false,
+     "mono": false,
+     "align": "left",
+     "position": "center",
+     "widthRatio": 0.92,
+     "top": 112,
+     "tag": "h1",
+     "kind": "heading"
+    },
+    "h1": {
+     "text": "Your season. All accounted for.",
+     "words": 5,
+     "lines": 2,
+     "size": 44,
+     "font": "Instrument Sans"
+    },
+    "headings": [
+     {
+      "text": "Your season. All accounted for.",
+      "words": 5,
+      "chars": 31,
+      "lines": 2,
+      "size": 44,
+      "vw": 11.3,
+      "font": "Instrument Sans",
+      "weight": 600,
+      "tracking": -0.055,
+      "leading": 0.98,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.92,
+      "top": 112,
+      "tag": "h1",
+      "kind": "heading"
+     },
+     {
+      "text": "From first client to final balance.",
+      "words": 6,
+      "chars": 35,
+      "lines": 2,
+      "size": 30,
+      "vw": 7.7,
+      "font": "Instrument Sans",
+      "weight": 600,
+      "tracking": -0.025,
+      "leading": 1.25,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.92,
+      "top": 1379,
+      "tag": "h2",
+      "kind": "heading"
+     },
+     {
+      "text": "Start with your clients.",
+      "words": 4,
+      "chars": 24,
+      "lines": 1,
+      "size": 24,
+      "vw": 6.2,
+      "font": "Instrument Sans",
+      "weight": 600,
+      "tracking": -0.025,
+      "leading": 1.33,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.92,
+      "top": 1502,
+      "tag": "h3",
+      "kind": "heading"
+     },
+     {
+      "text": "Put the season in writing.",
+      "words": 5,
+      "chars": 26,
+      "lines": 1,
+      "size": 24,
+      "vw": 6.2,
+      "font": "Instrument Sans",
+      "weight": 600,
+      "tracking": -0.025,
+      "leading": 1.33,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.92,
+      "top": 2001,
+      "tag": "h3",
+      "kind": "heading"
+     },
+     {
+      "text": "Know what is still owed.",
+      "words": 5,
+      "chars": 24,
+      "lines": 1,
+      "size": 24,
+      "vw": 6.2,
+      "font": "Instrument Sans",
+      "weight": 600,
+      "tracking": -0.025,
+      "leading": 1.33,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.92,
+      "top": 2505,
+      "tag": "h3",
+      "kind": "heading"
+     },
+     {
+      "text": "One season. One clear price.",
+      "words": 5,
+      "chars": 28,
+      "lines": 2,
+      "size": 30,
+      "vw": 7.7,
+      "font": "Instrument Sans",
+      "weight": 600,
+      "tracking": -0.025,
+      "leading": 1.25,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.92,
+      "top": 3137,
+      "tag": "h2",
+      "kind": "heading"
+     },
+     {
+      "text": "Free",
+      "words": 1,
+      "chars": 4,
+      "lines": 1,
+      "size": 24,
+      "vw": 6.2,
+      "font": "Instrument Sans",
+      "weight": 600,
+      "tracking": 0,
+      "leading": 1.33,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.79,
+      "top": 3425,
+      "tag": "h3",
+      "kind": "heading"
+     },
+     {
+      "text": "CA$0forever",
+      "words": 1,
+      "chars": 11,
+      "lines": 1,
+      "size": 36,
+      "vw": 9.2,
+      "font": "Instrument Sans",
+      "weight": 600,
+      "tracking": -0.025,
+      "leading": 1.11,
+      "upper": true,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.79,
+      "top": 3469,
+      "tag": "p",
+      "kind": "statement"
+     },
+     {
+      "text": "Pro",
+      "words": 1,
+      "chars": 3,
+      "lines": 1,
+      "size": 24,
+      "vw": 6.2,
+      "font": "Instrument Sans",
+      "weight": 600,
+      "tracking": 0,
+      "leading": 1.33,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.79,
+      "top": 3877,
+      "tag": "h3",
+      "kind": "heading"
+     },
+     {
+      "text": "CA$300/ year, before tax",
+      "words": 4,
+      "chars": 24,
+      "lines": 1,
+      "size": 36,
+      "vw": 9.2,
+      "font": "Instrument Sans",
+      "weight": 600,
+      "tracking": -0.025,
+      "leading": 1.11,
+      "upper": true,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.79,
+      "top": 3921,
+      "tag": "p",
+      "kind": "statement"
+     },
+     {
+      "text": "Before you get started.",
+      "words": 4,
+      "chars": 23,
+      "lines": 2,
+      "size": 30,
+      "vw": 7.7,
+      "font": "Instrument Sans",
+      "weight": 600,
+      "tracking": -0.025,
+      "leading": 1.2,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.92,
+      "top": 4513,
+      "tag": "h2",
+      "kind": "heading"
+     },
+     {
+      "text": "Ready for your season?",
+      "words": 4,
+      "chars": 22,
+      "lines": 1,
+      "size": 30,
+      "vw": 7.7,
+      "font": "Instrument Sans",
+      "weight": 600,
+      "tracking": -0.025,
+      "leading": 1.2,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.92,
+      "top": 5129,
+      "tag": "h2",
+      "kind": "heading"
+     }
+    ],
+    "headingSummary": {
+     "count": 12,
+     "maxLines": 2,
+     "over2Lines": 0,
+     "statements": 2,
+     "centered": 0,
+     "medianWords": 4,
+     "mixedFontHeadings": 0
+    },
+    "type": {
+     "families": [
+      {
+       "family": "Instrument Sans",
+       "share": 1,
+       "mono": false
+      }
+     ],
+     "familyCount": 1,
+     "sizes": [
+      14,
+      16,
+      18,
+      24,
+      30,
+      36,
+      44
+     ],
+     "sizeCount": 7,
+     "notLoaded": [],
+     "body": {
+      "font": "Instrument Sans",
+      "size": 16,
+      "leading": 1.63,
+      "weight": 400,
+      "tracking": 0,
+      "contrast": 16.1
+     },
+     "measureChars": 45,
+     "max": {
+      "size": 44,
+      "vw": 11.3,
+      "font": "Instrument Sans",
+      "text": "Your season.All accounted for."
+     },
+     "monoShare": 0,
+     "monoProseShare": 0,
+     "monoFamilies": [],
+     "monoSamples": [],
+     "microLabels": 0,
+     "microLabelShare": 0,
+     "microSamples": [],
+     "upperShare": 0.01,
+     "centerShare": 0.01,
+     "smallText": 0
+    },
+    "eyebrows": [],
+    "numbered": [],
+    "color": {
+     "bodyBg": "#07151b",
+     "bodyBgHsl": {
+      "h": 198,
+      "s": 0.59,
+      "l": 0.07
+     },
+     "dark": true,
+     "sectionBgs": [
+      {
+       "color": "#192931",
+       "top": 602,
+       "hsl": {
+        "h": 200,
+        "s": 0.32,
+        "l": 0.15
+       }
+      },
+      {
+       "color": "#42c3c7",
+       "top": 5065,
+       "hsl": {
+        "h": 182,
+        "s": 0.54,
+        "l": 0.52
+       }
+      }
+     ],
+     "textColors": [
+      {
+       "color": "#eaf0f1",
+       "share": 0.73
+      },
+      {
+       "color": "#95a1a5",
+       "share": 0.19
+      },
+      {
+       "color": "#001c22",
+       "share": 0.06
+      },
+      {
+       "color": "#42c3c7",
+       "share": 0.02
+      },
+      {
+       "color": "#58ced1",
+       "share": 0
+      }
+     ],
+     "button": {
+      "bg": "#1a2c34",
+      "hsl": {
+       "h": 198,
+       "s": 0.33,
+       "l": 0.15
+      },
+      "fg": "#eaf0f1"
+     },
+     "lowContrast": []
+    },
+    "buttons": {
+     "count": 5,
+     "inHero": 2,
+     "radius": 10,
+     "height": 40,
+     "withShadow": 0,
+     "withGradient": 0,
+     "mono": 0,
+     "upper": 0,
+     "heroLabels": [
+      "Request a trial",
+      "Contracts"
+     ]
+    },
+    "surfaces": {
+     "shadowStatic": 0,
+     "shadowOverlay": 0,
+     "shadowSamples": [],
+     "gradients": 0,
+     "scrims": 0,
+     "gradientSamples": [],
+     "gradientText": 0,
+     "hairlines": 0,
+     "hairlineSamples": [],
+     "outlinedBoxes": 0,
+     "dashed": 0,
+     "blurred": 0,
+     "roundedBoxes": 0,
+     "boxRadius": 0,
+     "squareMedia": 4,
+     "roundedMedia": 0,
+     "mediaRadius": 0,
+     "textShadow": 0,
+     "cardRows": []
+    },
+    "heroMedia": [
+     {
+      "type": "img",
+      "ratio": 0.26
+     }
+    ],
+    "nav": {
+     "links": 1,
+     "fixed": true,
+     "height": 64,
+     "floatingPill": false,
+     "blur": false
+    },
+    "fontsLoaded": [
+     "instrument sans"
+    ]
+   },
+   "consoleErrors": []
+  }
+ ],
+ "findings": [
+  {
+   "level": "WARN",
+   "id": "no-footage",
+   "width": 1440,
+   "message": "No video anywhere on the page.",
+   "fix": "Look for one honest clip with scripts/assets.mjs --video (the place, the material, the process) and use it as a muted loop with a poster frame. Defend its absence only if no clip fits the subject."
+  },
+  {
+   "level": "FAIL",
+   "id": "still-page",
+   "width": 1440,
+   "message": "Only 0 element(s) moved while the page loaded and scrolled.",
+   "fix": "Build the motion layer (SKILL.md step 9, references/motion.md): the signature move, an entrance for the parts of every section, feedback on every control, and one moving picture. Transform and opacity only, with a reduced-motion fallback."
+  }
+ ],
+ "images": [
+  {
+   "viewport": "desktop",
+   "width": 1440,
+   "fold": "/Users/florianpaumier/Documents/dev/snow/laravel-app/.taste-skill/inspect/desktop-fold.jpg",
+   "pages": [
+    "/Users/florianpaumier/Documents/dev/snow/laravel-app/.taste-skill/inspect/desktop-page-01.jpg",
+    "/Users/florianpaumier/Documents/dev/snow/laravel-app/.taste-skill/inspect/desktop-page-02.jpg"
+   ]
+  },
+  {
+   "viewport": "tablet",
+   "width": 768,
+   "fold": "/Users/florianpaumier/Documents/dev/snow/laravel-app/.taste-skill/inspect/tablet-fold.jpg",
+   "pages": [
+    "/Users/florianpaumier/Documents/dev/snow/laravel-app/.taste-skill/inspect/tablet-page-01.jpg"
+   ]
+  },
+  {
+   "viewport": "mobile",
+   "width": 390,
+   "fold": "/Users/florianpaumier/Documents/dev/snow/laravel-app/.taste-skill/inspect/mobile-fold.jpg",
+   "pages": [
+    "/Users/florianpaumier/Documents/dev/snow/laravel-app/.taste-skill/inspect/mobile-page-01.jpg"
+   ]
+  }
+ ]
+}
